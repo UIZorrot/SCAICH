@@ -7,9 +7,10 @@
 __pycache__
 # testing
 /coverage
-
+.env
 # production
 /build
+sci-hub-doi-2022-02-12.txt
 
 # misc
 .DS_Store
@@ -21,3 +22,7 @@ __pycache__
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+existing_dois.json
+*.sqlite
+backup

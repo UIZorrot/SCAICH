@@ -1,0 +1,53 @@
+body {
+  background-color: "#f0f2f5";
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  background-color: "#f0f2f5";
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.ant-spin-dot-item {
+  background-color: red !important;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 10px !important;
+  ;
+  /* 滚动条的宽度 */
+  height: 10px !important;
+  ;
+  /* 滚动条的高度（用于水平滚动条） */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  /* 滚动条轨道的背景色 */
+  border-radius: 10px;
+  /* 滚动条轨道的圆角 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(0, 0%, 46%);
+  /* 滚动条滑块的颜色 */
+  border-radius: 10px;
+  /* 滚动条滑块的圆角 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(0, 0%, 67%);
+  /* 鼠标悬停时滚动条滑块的颜色 */
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+  /* 如果有滚动条角落（双滚动条交汇处），将其设为透明 */
+}
