@@ -265,9 +265,11 @@ function SearchResult({
                 }}
               />
             )}
-            <p>            <Text type="secondary"
-              style={{ fontSize: "12px" }}><i>DOI: {result.doi}</i>
-            </Text></p>
+            <p>
+              <Text type="secondary"
+                style={{ fontSize: "12px" }}><i>DOI: {result.doi}</i>
+              </Text>
+            </p>
             {(result.source === "scihub" || result.source === "arxiv") && (
               <Button
                 type="outlined"

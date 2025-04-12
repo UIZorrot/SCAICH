@@ -73,7 +73,8 @@ export default function SearchApp() {
   // BNB Testnet 代币地址
   const BNB_TOKEN_ADDRESS = "0x8082B8b47D92E4AC80aa205Eace902C5ee6BeCEe";
   const REQUIRED_AMOUNT = 10000; // 会员要求的代币数量（1000 个代币）
-
+  const REQUIRED_AMOUNT_BNB = 10000; // 会员要求的代币数量（1000 个代币）
+  
   // 获取小数位
   const { data: decimalsData, error: decimalsError } = useReadContract({
     address: BNB_TOKEN_ADDRESS,
@@ -254,7 +255,7 @@ export default function SearchApp() {
     console.log("BNB Balance (tokens):", bnbBalanceInTokens);
 
     // 如果任一余额 >= 1000，则为会员
-    const isPro = solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT;
+    const isPro = solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT_BNB;
     setPro(isPro);
     console.log("Is Pro:", isPro);
   }, [balance, bnbBalance]);
