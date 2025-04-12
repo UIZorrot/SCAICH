@@ -236,7 +236,10 @@ function SearchResult({
                 />
               )}
               <span dangerouslySetInnerHTML={{ __html: highlight(result.title) }} />
+
             </Title>
+
+
             <Text
               type="secondary"
               style={{ fontSize: "14px", color: "#42e57e" }}
@@ -262,6 +265,9 @@ function SearchResult({
                 }}
               />
             )}
+            <p>            <Text type="secondary"
+              style={{ fontSize: "12px" }}><i>DOI: {result.doi}</i>
+            </Text></p>
             {(result.source === "scihub" || result.source === "arxiv") && (
               <Button
                 type="outlined"
