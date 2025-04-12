@@ -15,10 +15,11 @@ import "./wallet.css";
 
 // BNB Testnet (RainbowKit) 相关导入
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { getDefaultConfig, RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { bscTestnet } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { createConfig, http } from 'wagmi';
 
 // Solana 钱包提供者
 const SolanaWalletProvider = ({ children }) => {
@@ -39,11 +40,22 @@ const SolanaWalletProvider = ({ children }) => {
 };
 
 // BNB Testnet 配置
-const bnbConfig = getDefaultConfig({
-  appName: "My RainbowKit App",
-  projectId: "2e6bc42e2496a73ccfd286d2b8b070f8", // 替换为你的 WalletConnect Project ID
+// const bnbConfig = getDefaultConfig({
+//   appName: "My RainbowKit App",
+//   projectId: "2e6bc42e2496a73ccfd286d2b8b070f8", // 替换为你的 WalletConnect Project ID
+//   chains: [bscTestnet],
+//   ssr: true,
+// });
+
+const bnbConfig = createConfig({
   chains: [bscTestnet],
-  ssr: true,
+  transports: {
+    [bscTestnet.id]: http('https://bsc-testnet-dataseed.bnbchain.org'),
+  },
+  connectors: getDefaultWallets({
+    appName: 'Scihub BNB Testnet Faucet',
+    projectId: '2e6bc42e2496a73ccfd286d2b8b070f8', // 可选，从 WalletConnect 获取
+  }).connectors,
 });
 
 const queryClient = new QueryClient();
@@ -55,8 +67,8 @@ const UnifiedWalletProvider = ({ children, walletType }) => {
       <WagmiProvider config={bnbConfig}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
-          <SolanaWalletProvider>{children}
-          </SolanaWalletProvider>
+            <SolanaWalletProvider>{children}
+            </SolanaWalletProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
