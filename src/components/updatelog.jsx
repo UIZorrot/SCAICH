@@ -25,6 +25,27 @@ export const UpdateModal = ({ visible, onClose }) => {
         >
             <div>
                 <Title level={4}>
+                    V1.0 - 2025.04.12
+                </Title>
+                <div style={{ marginTop: "24px" }}>
+                    <Title level={5}>Introducing SCAICH DEEP</Title>
+                    <Paragraph>
+                        We’re excited to unveil SCAICH DEEP, the most convenient tool for deep research on academic papers. Search for papers like you would on Google Scholar, and instantly use our AI assistant to read them or ask detailed questions about their content. Powered by Sci-hub’s vast database of approximately 80 million papers and our rigorous data cleaning, SCAICH DEEP offers end-to-end full-text analysis, making research faster and more accessible for everyone, from scholars to curious minds.
+                    </Paragraph>
+
+                    <Title level={5}>Membership and Open Science</Title>
+                    <Paragraph>
+                        SCAICH DEEP is a member-exclusive feature due to server costs, but access is simple: hold 10,000 Scihub tokens to unlock it and all future Scihub Web3 ecosystem products. No locking or burning required—just hold, and the choice is yours to support open science or sell anytime. As a Sci-hub Web3 community project, SCAI is committed to academic freedom, developing Web3-based tools to keep science open and accessible without paywalls.
+                    </Paragraph>
+
+                    <Title level={5}>BNB AI Hackathon Milestone</Title>
+                    <Paragraph>
+                        SCAICH DEEP marks a key milestone following our participation in the BNB AI Hackathon, where we collaborated with DeSci and AI projects in the BNB ecosystem. We issued test tokens on the BNB network to showcase SCAICH’s capabilities, offering the same rights as Scihub tokens during the event. Try it now at <a href="https://search.scai.sh/">search.scai.sh</a>, or claim test tokens at <a href="https://scihubfaccut.vercel.app/">scihubfaccut.vercel.app</a>.
+                    </Paragraph>
+                </div>
+            </div>
+            <div>
+                <Title level={4}>
                     V0.4 - 2025.03.17
                 </Title>
                 <div style={{ marginTop: "24px" }}>
