@@ -129,7 +129,7 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                             <strong>Congratulations</strong>
                         </Title>
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
-                            You have successfully unlocked Professional Membership by holding 1,000 SciHub Tokens.
+                            You have successfully unlocked Professional Membership by holding 10,000 SciHub Tokens.
                         </Paragraph>
 
                         <Title level={4} style={{ marginTop: "2rem", marginBottom: "1.5rem", color: "#1a1a1a", fontSize: isMobile ? "18px" : "20px" }}>
@@ -172,7 +172,7 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                                     - Open API access<br />
                                     - Integration with the SCAI model<br />
                                     - Access to the paper database<br />
-                                    - Requires holding 1,000,000 SciHub Tokens
+                                    - Requires holding 10,000,000 SciHub Tokens
                                 </Paragraph>
                             </div>
                         </div>
@@ -211,11 +211,11 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                         </Title>
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
                             <Text strong style={{ fontWeight: "600" }}>
-                                Holding 1,000 SciHub Tokens is Our Commitment
+                                Holding 10,000 SciHub Tokens is Our Commitment
                             </Text>
                         </Paragraph>
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
-                            We uphold the open and free spirit of Sci-Hub. By holding 1,000 SciHub Tokens in any Web3 wallet, you will gain access to the Pro version. We will never initiate any transactions on your behalf. SciHub is now available on <Tag color="default">BNB Testnet</Tag> and <Tag color="default">Solana Mainnet</Tag>.
+                            We uphold the open and free spirit of Sci-Hub. By holding 10,000 SciHub Tokens in any Web3 wallet, you will gain access to the Pro version. We will never initiate any transactions on your behalf. SciHub is now available on <Tag color="default">BNB Testnet</Tag> and <Tag color="default">Solana Mainnet</Tag>.
                         </Paragraph>
 
                         <div style={cardContainerStyle}>
@@ -235,9 +235,9 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                             {/* Membership */}
                             <div style={HighCardStyle}>
                                 <div style={HighTagStyle}>Recommended</div>
-                                
+
                                 <Text strong style={textStyle}>
-                                 Membership
+                                    Membership
                                 </Text>
                                 <Paragraph style={paragraphStyle}>
                                     - All features above<br />
@@ -257,7 +257,7 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                                     - Open API access<br />
                                     - Integration with the SCAI model<br />
                                     - Access to the paper database<br />
-                                    - Requires holding 1,000,000 SciHub Tokens
+                                    - Requires holding 10,000,000 SciHub Tokens
                                 </Paragraph>
                             </div>
                         </div>
