@@ -74,7 +74,7 @@ export default function SearchApp() {
   const BNB_TOKEN_ADDRESS = "0x8082B8b47D92E4AC80aa205Eace902C5ee6BeCEe";
   const REQUIRED_AMOUNT = 10000; // 会员要求的代币数量（1000 个代币）
   const REQUIRED_AMOUNT_BNB = 10000; // 会员要求的代币数量（1000 个代币）
-  
+
   // 获取小数位
   const { data: decimalsData, error: decimalsError } = useReadContract({
     address: BNB_TOKEN_ADDRESS,
@@ -104,15 +104,15 @@ export default function SearchApp() {
     console.log("Raw BNB Balance Data:", bnbBalanceData);
     console.log("BNB Balance (tokens):", bnbBalance);
 
-    if (decimalsError) {
-      console.error("Error fetching decimals:", decimalsError);
-      alert("Failed to fetch token decimals. Using default value (18).");
-    }
+    // if (decimalsError) {
+    //   console.error("Error fetching decimals:", decimalsError);
+    //   alert("Failed to fetch token decimals. Using default value (18).");
+    // }
 
-    if (bnbBalanceError) {
-      console.error("Error fetching BNB balance:", bnbBalanceError);
-      alert("Failed to fetch BNB Testnet balance. Please ensure your wallet is connected to BNB Testnet.");
-    }
+    // if (bnbBalanceError) {
+    //   console.error("Error fetching BNB balance:", bnbBalanceError);
+    //   alert("Failed to fetch BNB Testnet balance. Please ensure your wallet is connected to BNB Testnet.");
+    // }
   }, [bnbAccount, decimals, bnbBalanceData, decimalsError, bnbBalanceError]);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function SearchApp() {
       }
     };
     signSolanaMessage();
-  }, [signMessage]);
+  }, [publicKey]);
 
   useEffect(() => {
     const signBnb = async () => {
@@ -258,7 +258,7 @@ export default function SearchApp() {
     const isPro = solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT_BNB;
     setPro(isPro);
     console.log("Is Pro:", isPro);
-  }, [balance, bnbBalance]);
+  }, [balance, bnbBalance]); 
 
   const isDuplicateHistory = (query) => {
     return searchHistory.some((historyItem) => historyItem.query === query);

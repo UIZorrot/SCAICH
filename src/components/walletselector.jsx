@@ -116,6 +116,7 @@ export const WalletSelector = ({ Connected }) => {
   // Handle disconnection
   const handleDisconnect = () => {
     if (isBscConnected) {
+      disconnectBsc();
       disconnectSolana();
       message.success("Disconnected from BSC");
     } else if (isSolanaConnected) {
