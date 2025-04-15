@@ -72,8 +72,8 @@ export default function SearchApp() {
 
   // BNB Testnet 代币地址
   const BNB_TOKEN_ADDRESS = "0x8082B8b47D92E4AC80aa205Eace902C5ee6BeCEe";
-  const REQUIRED_AMOUNT = 10000; // 会员要求的代币数量（1000 个代币）
-  const REQUIRED_AMOUNT_BNB = 10000; // 会员要求的代币数量（1000 个代币）
+  const REQUIRED_AMOUNT = 1000; // 会员要求的代币数量（1000 个代币）
+  const REQUIRED_AMOUNT_BNB = 1000; // 会员要求的代币数量（1000 个代币）
 
   // 获取小数位
   const { data: decimalsData, error: decimalsError } = useReadContract({
@@ -258,7 +258,7 @@ export default function SearchApp() {
     const isPro = solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT_BNB;
     setPro(isPro);
     console.log("Is Pro:", isPro);
-  }, [balance, bnbBalance]); 
+  }, [balance, bnbBalance]);
 
   const isDuplicateHistory = (query) => {
     return searchHistory.some((historyItem) => historyItem.query === query);
