@@ -129,7 +129,7 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                             <strong>Congratulations</strong>
                         </Title>
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
-                            You have successfully unlocked Professional Membership by holding 10,000 SciHub Tokens.
+                            You have successfully unlocked Professional Membership by holding 1,000 SciHub Tokens.
                         </Paragraph>
 
                         <Title level={4} style={{ marginTop: "2rem", marginBottom: "1.5rem", color: "#1a1a1a", fontSize: isMobile ? "18px" : "20px" }}>
