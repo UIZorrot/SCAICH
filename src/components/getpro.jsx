@@ -172,7 +172,7 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                                     - Open API access<br />
                                     - Integration with the SCAI model<br />
                                     - Access to the paper database<br />
-                                    - Requires holding 10,000,000 SciHub Tokens
+                                    - Requires holding 1,000 SciHub Tokens
                                 </Paragraph>
                             </div>
                         </div>
@@ -211,11 +211,11 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                         </Title>
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
                             <Text strong style={{ fontWeight: "600" }}>
-                                Holding 10,000 SciHub Tokens is Our Commitment
+                                Holding 1,000 SciHub Tokens is Our Commitment
                             </Text>
                         </Paragraph>
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
-                            We uphold the open and free spirit of Sci-Hub. By holding 10,000 SciHub Tokens in any Web3 wallet, you will gain access to the Pro version. We will never initiate any transactions on your behalf. SciHub is now available on <Tag color="default">BNB Testnet</Tag> and <Tag color="default">Solana Mainnet</Tag>.
+                            We uphold the open and free spirit of Sci-Hub. By holding 1,000 SciHub Tokens in any Web3 wallet, you will gain access to the Pro version. We will never initiate any transactions on your behalf. SciHub is now available on <Tag color="default">BNB Testnet</Tag> and <Tag color="default">Solana Mainnet</Tag>.
                         </Paragraph>
 
                         <div style={cardContainerStyle}>
@@ -257,7 +257,7 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                                     - Open API access<br />
                                     - Integration with the SCAI model<br />
                                     - Access to the paper database<br />
-                                    - Requires holding 10,000,000 SciHub Tokens
+                                    - Requires holding 1,000 SciHub Tokens
                                 </Paragraph>
                             </div>
                         </div>
