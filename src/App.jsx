@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Input, Typography, Button, Drawer, notification, Modal } from "antd";
+import { Input, Typography, Button, Drawer, notification, Modal, Card, List } from "antd";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { SciHubModal } from "./components/getpro.jsx";
-import { MenuOutlined, HomeOutlined, GlobalOutlined, KeyOutlined, HistoryOutlined } from "@ant-design/icons";
+import { MenuOutlined, HomeOutlined, GlobalOutlined, KeyOutlined, HistoryOutlined, LinkOutlined, CommentOutlined, DatabaseOutlined } from "@ant-design/icons";
 import "./App.css";
 import { WalletSelector } from "./components/walletselector.jsx";
 import html2canvas from "html2canvas";
@@ -15,12 +15,12 @@ import { UserGuidelineModal } from "./components/guild.jsx";
 import { UpdateModal } from "./components/updatelog.jsx";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { useAccount, useSignMessage, useReadContract } from "wagmi";
-import { bscTestnet } from "wagmi/chains"; // 引入 BNB Testnet 链配置
+import { bscTestnet } from "wagmi/chains";
 import ChatModal from "./components/chatpage.jsx";
 
 const { Title, Text, Paragraph } = Typography;
 
-// ERC-20/BEP-20 代币的 ABI（包括 balanceOf 和 decimals）
+// ERC-20/BEP-20 代币的 ABI
 const ERC20_ABI = [
   {
     constant: true,
@@ -46,7 +46,7 @@ export default function SearchApp() {
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
   const { connection } = useConnection();
-  const [balance, setBalance] = useState(0); // Solana 代币余额
+  const [balance, setBalance] = useState(0);
   const [openAccessOnly, setOpenAccessOnly] = useState(false);
   const [solanaSignature, setSolanaSignature] = useState(null);
   const [solanaAddress, setSolanaAddress] = useState(null);
@@ -55,7 +55,7 @@ export default function SearchApp() {
   const { publicKey, signMessage, connected } = useWallet();
   const { address: bnbAccount } = useAccount();
   const { signMessage: signBnbMessage } = useSignMessage();
-  const [pro, setPro] = useState(false); // 会员状态
+  const [pro, setPro] = useState(false);
   const [upVisible, setUpVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -72,11 +72,11 @@ export default function SearchApp() {
 
   // BNB Testnet 代币地址
   const BNB_TOKEN_ADDRESS = "0x8082B8b47D92E4AC80aa205Eace902C5ee6BeCEe";
-  const REQUIRED_AMOUNT = 1000; // 会员要求的代币数量（1000 个代币）
-  const REQUIRED_AMOUNT_BNB = 1000; // 会员要求的代币数量（1000 个代币）
+  const REQUIRED_AMOUNT = 1000;
+  const REQUIRED_AMOUNT_BNB = 1000;
 
   // 获取小数位
-  const { data: decimalsData, error: decimalsError } = useReadContract({
+  const { data: decimalsData } = useReadContract({
     address: BNB_TOKEN_ADDRESS,
     abi: ERC20_ABI,
     functionName: "decimals",
@@ -87,7 +87,7 @@ export default function SearchApp() {
   const decimals = decimalsData ? Number(decimalsData) : 18;
 
   // 获取 BNB Testnet 代币余额
-  const { data: bnbBalanceData, error: bnbBalanceError } = useReadContract({
+  const { data: bnbBalanceData } = useReadContract({
     address: BNB_TOKEN_ADDRESS,
     abi: ERC20_ABI,
     functionName: "balanceOf",
@@ -103,17 +103,7 @@ export default function SearchApp() {
     console.log("BNB Decimals:", decimals);
     console.log("Raw BNB Balance Data:", bnbBalanceData);
     console.log("BNB Balance (tokens):", bnbBalance);
-
-    // if (decimalsError) {
-    //   console.error("Error fetching decimals:", decimalsError);
-    //   alert("Failed to fetch token decimals. Using default value (18).");
-    // }
-
-    // if (bnbBalanceError) {
-    //   console.error("Error fetching BNB balance:", bnbBalanceError);
-    //   alert("Failed to fetch BNB Testnet balance. Please ensure your wallet is connected to BNB Testnet.");
-    // }
-  }, [bnbAccount, decimals, bnbBalanceData, decimalsError, bnbBalanceError]);
+  }, [bnbAccount, decimals, bnbBalanceData]);
 
   useEffect(() => {
     const signSolanaMessage = async () => {
@@ -222,7 +212,6 @@ export default function SearchApp() {
 
   const TOKEN_MINT_ADDRESS = "GxdTh6udNstGmLLk9ztBb6bkrms7oLbrJp5yzUaVpump";
 
-  // 获取 Solana 代币余额
   useEffect(() => {
     if (publicKey) {
       (async function getBalanceEvery10Seconds() {
@@ -234,7 +223,7 @@ export default function SearchApp() {
             }
           );
           const tokenAmount = newBalance.value?.[0]?.account?.data?.parsed?.info?.tokenAmount?.amount || 0;
-          setBalance(Number(tokenAmount) / Math.pow(10, 6)); // Solana 代币有 6 位小数
+          setBalance(Number(tokenAmount) / Math.pow(10, 6));
           console.log("Solana SciHub balance:", tokenAmount);
         } catch (error) {
           console.error("Error fetching Solana balance:", error);
@@ -246,15 +235,13 @@ export default function SearchApp() {
     }
   }, [publicKey, connection]);
 
-  // 判断会员状态
   useEffect(() => {
-    const solanaBalanceInTokens = balance; // Solana 余额（已转换为代币单位）
-    const bnbBalanceInTokens = bnbBalance; // BNB 余额（已转换为代币单位）
+    const solanaBalanceInTokens = balance;
+    const bnbBalanceInTokens = bnbBalance;
 
     console.log("Solana Balance (tokens):", solanaBalanceInTokens);
     console.log("BNB Balance (tokens):", bnbBalanceInTokens);
 
-    // 如果任一余额 >= 1000，则为会员
     const isPro = solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT_BNB;
     setPro(isPro);
     console.log("Is Pro:", isPro);
@@ -406,6 +393,25 @@ export default function SearchApp() {
     setChatModalVisible(true);
     setSelectedSource(source);
   };
+
+  // 新功能数据
+  const features = [
+    {
+      title: "YNE Support",
+      description: "Access detailed paper analysis via YesNoError integration.",
+      icon: <LinkOutlined style={{ fontSize: "24px", color: "#1890ff" }} />,
+    },
+    {
+      title: "Deep Research",
+      description: "Engage in AI-driven conversations with papers (Pro feature).",
+      icon: <CommentOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />,
+    },
+    {
+      title: "Multi-Database Search",
+      description: "Search across Sci-Hub, OpenAlex, arXiv, and PubMed.",
+      icon: <DatabaseOutlined style={{ fontSize: "24px", color: "#000000" }} />,
+    },
+  ];
 
   return (
     <div
@@ -602,10 +608,42 @@ export default function SearchApp() {
               />
             }
             style={{
-              width: "100%",
+              width: "92%",
               marginBottom: "10px",
             }}
           />
+          {/* 新功能展示块 */}
+          {!loading && results.length === 0 && (
+            <div className="features-container">
+              <Title level={4} style={{ margin: "0 0 24px 0", textAlign: "center" }}>
+                Explore Our Features
+              </Title>
+              <List
+                grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
+                dataSource={features}
+                renderItem={(item) => (
+                  <List.Item>
+                    <Card
+                      hoverable
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.9)",
+                        borderRadius: "16px",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                        height: "100%",
+                        body:{ padding: "16px", textAlign: "center" }
+                      }}
+                    >
+                      {item.icon}
+                      <Title level={5} style={{ margin: "8px 0" }}>
+                        {item.title}
+                      </Title>
+                      <Text>{item.description}</Text>
+                    </Card>
+                  </List.Item>
+                )}
+              />
+            </div>
+          )}
           {!loading && results.length === 0 && (
             <div>
               <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
@@ -650,8 +688,8 @@ export default function SearchApp() {
                   handleShareImageSearch={handleShareImage}
                   isMobile={isMobile}
                   onReadFullText={handleReadFullText}
-                  pro={pro} // 传递 pro 状态
-                  setModalVisible={setModalVisible} // 传递 setModalVisible 函数
+                  pro={pro}
+                  setModalVisible={setModalVisible}
                 />
               </div>
             </div>

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch, List, Space, Typography, Button } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { FileTextOutlined, SearchOutlined, LinkOutlined, DownOutlined } from "@ant-design/icons"; // 导入图标
+import articlesMerged from "../articles_merged.json"; // 导入 articles_merged.json
 
 const { Title, Text } = Typography;
 
@@ -27,11 +28,25 @@ function SearchResult({
   handleShareImageSearch,
   isMobile,
   onReadFullText,
-  pro, // 接收 pro 状态
-  setModalVisible, // 接收 setModalVisible 函数
+  pro,
+  setModalVisible,
 }) {
   const [showScihub, setShowScihub] = useState(false);
   const [displayCount, setDisplayCount] = useState(5);
+  const [matchedArticles, setMatchedArticles] = useState({});
+
+  // 在组件挂载时构建 title 到 article 的映射
+  useEffect(() => {
+    const articleMap = {};
+    articlesMerged.forEach((article) => {
+      articleMap[article.title.toLowerCase()] = {
+        id: article.id,
+        paperid: article.paperid,
+      };
+    });
+    console.log(articleMap);
+    setMatchedArticles(articleMap);
+  }, []);
 
   const toggleScihub = (checked) => {
     setShowScihub(checked);
@@ -57,13 +72,11 @@ function SearchResult({
     setDisplayCount((prevCount) => prevCount + 5);
   };
 
-  // 处理“Deep Research Full Paper”按钮点击
+  // 处理“Deep Research Full Paper”或“View Fulltext”按钮点击
   const handleFullPaperClick = (doi, source) => {
     if (pro) {
-      // 如果是会员，调用 onReadFullText 打开 ChatModal
       onReadFullText(doi, source);
     } else {
-      // 如果不是会员，打开 SciHubModal
       setModalVisible(true);
     }
   };
@@ -236,10 +249,7 @@ function SearchResult({
                 />
               )}
               <span dangerouslySetInnerHTML={{ __html: highlight(result.title) }} />
-
             </Title>
-
-
             <Text
               type="secondary"
               style={{ fontSize: "14px", color: "#42e57e" }}
@@ -248,7 +258,7 @@ function SearchResult({
                 ? result.author.slice(0, 50) + "..."
                 : result.author.slice(0, 50)}{" "}
               - {result.year} -{" "}
-              {result.location > 30
+              {result.location.length > 30
                 ? result.location.slice(0, 30) + "..."
                 : result.location.slice(0, 30)}
             </Text>
@@ -266,23 +276,60 @@ function SearchResult({
               />
             )}
             <p>
-              <Text type="secondary"
-                style={{ fontSize: "12px" }}><i>DOI: {result.doi}</i>
+              <Text type="secondary" style={{ fontSize: "12px" }}>
+                <i>DOI: {result.doi}</i>
               </Text>
             </p>
-            {(result.source === "scihub" || result.source === "arxiv") && (
+            <div style={{ display: "flex", gap: "8px", marginTop: 8 }}>
+              {/* View Fulltext 按钮 - 蓝色 */}
               <Button
-                type="outlined"
+                type="primary"
+                icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
                 style={{
-                  marginTop: 8,
-                  color: "#575dff",
-                  borderColor: "#575dff",
+                  color: "#ffffff",
+                  background: "#1890ff",
                 }}
-                onClick={() => handleFullPaperClick(result.doi, result.source)} // 使用新的点击处理函数
+                onClick={() => {
+                  window.open(result.url, "_blank");
+                }}
               >
-                Deep Research Full Paper 👑
+                View Fulltext
               </Button>
-            )}
+              {/* Deep Research 按钮 - 红色，仅限 scihub 或 arxiv */}
+              {(result.source === "scihub" || result.source === "arxiv") && (
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined style={{ color: "#ffffff" }} />}
+                  style={{
+                    color: "#ffffff",
+                    background: "#ff4d4f",
+                  }}
+                  onClick={() => handleFullPaperClick(result.doi, result.source)}
+                >
+                  Deep Research
+                </Button>
+              )}
+              {/* View YNE Result 按钮 - 黑色，仅限 title 命中 */}
+              {matchedArticles[result.title.toLowerCase()] && (
+                <Button
+                  type="primary"
+                  icon={<LinkOutlined style={{ color: "#ffffff" }} />}
+                  style={{
+                    color: "#ffffff",
+                    background: "#000000",
+                  }}
+                  onClick={() => {
+                    const { id, paperid } = matchedArticles[result.title.toLowerCase()];
+                    window.open(
+                      `https://yesnoerror.com/d/${paperid}/${id}`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  View YNE Result
+                </Button>
+              )}
+            </div>
           </List.Item>
         )}
       />

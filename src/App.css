@@ -311,3 +311,20 @@ p {
   border-bottom: 2px solid #CECECE;
   padding: 12px 0;
 }
+
+.features-container {
+  width: 100%;
+  padding: 16px;
+  border-radius: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .features-container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+}

@@ -23,6 +23,28 @@ export const UpdateModal = ({ visible, onClose }) => {
             closable={false}
             style={{ overflow: "auto", maxHeight: "75vh", zIndex: 10 }}
         >
+        <div>
+                <Title level={4}>
+                    V1.1 - 2025.05.03
+                </Title>
+                <div style={{ marginTop: "24px" }}>
+                    <Title level={5}>Integrate With YNE</Title>
+                    <Paragraph>
+                       We added the YNE current dataset into the search engine, and will sync with the YNE overtime. YNE is a well-known Desci project focus on the paper auditing.
+                    </Paragraph>
+
+                    <Title level={5}>UI adoption</Title>
+                    <Paragraph>
+                        We made series of adjustment in UI design and make the overall website more easy to use.
+                    </Paragraph>
+
+                    <Title level={5}>BNB AI Hackathon</Title>
+                    <Paragraph>
+                        SCAICH is still parts of BNB AI Hackathon. We issued test tokens on the BNB network at <a href="https://search.scai.sh/">search.scai.sh</a>, or claim test tokens at <a href="https://scihubfaccut.vercel.app/">scihubfaccut.vercel.app</a>.
+                    </Paragraph>
+                </div>
+            </div>
+
             <div>
                 <Title level={4}>
                     V1.0 - 2025.04.12
