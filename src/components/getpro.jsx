@@ -128,8 +128,9 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                         <Title level={3} style={{ marginTop: "1rem", color: "#1a1a1a", fontSize: isMobile ? "20px" : "24px" }}>
                             <strong>Congratulations</strong>
                         </Title>
+                        {/* You have successfully unlocked Professional Membership by holding 1,000 SciHub Tokens. */}
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
-                            You have successfully unlocked Professional Membership by holding 1,000 SciHub Tokens.
+                            You have successfully unlocked Professional Membership by Login with Web3 Wallet.
                         </Paragraph>
 
                         <Title level={4} style={{ marginTop: "2rem", marginBottom: "1.5rem", color: "#1a1a1a", fontSize: isMobile ? "18px" : "20px" }}>
@@ -207,15 +208,16 @@ export const SciHubModal = ({ visible, onClose, isPro, sciHubTokens = 0 }) => {
                 >
                     <div style={{ textAlign: "center", padding: isMobile ? "1rem" : "1.5rem" }}>
                         <Title level={3} style={{ marginTop: "1rem", color: "#1a1a1a", fontSize: isMobile ? "20px" : "24px" }}>
-                            <strong>Professional Membership</strong>
+                            <strong>Join Our Movement</strong>
                         </Title>
-                        <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
+                        {/* <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
                             <Text strong style={{ fontWeight: "600" }}>
                                 Holding 1,000 SciHub Tokens is Our Commitment
                             </Text>
-                        </Paragraph>
+                        </Paragraph> */}
+                        {/*   We uphold the open and free spirit of Sci-Hub. By holding 1,000 SciHub Tokens in any Web3 wallet, you will gain access to the Pro version. We will never initiate any transactions on your behalf. SciHub is now available on <Tag color="default">BNB Testnet</Tag> and <Tag color="default">Solana Mainnet</Tag>. */}
                         <Paragraph style={{ fontSize: isMobile ? "14px" : "16px", color: "#595959" }}>
-                            We uphold the open and free spirit of Sci-Hub. By holding 1,000 SciHub Tokens in any Web3 wallet, you will gain access to the Pro version. We will never initiate any transactions on your behalf. SciHub is now available on <Tag color="default">BNB Testnet</Tag> and <Tag color="default">Solana Mainnet</Tag>.
+                            To gain access to Professional function, you only need to login with any BNB/Solana web3 wallet. Meanwhile, if you find the project benefits to you, please help to support <Tag color="default">Scihub Token</Tag>.
                         </Paragraph>
 
                         <div style={cardContainerStyle}>

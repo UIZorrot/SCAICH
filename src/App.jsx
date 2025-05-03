@@ -72,8 +72,8 @@ export default function SearchApp() {
 
   // BNB Testnet 代币地址
   const BNB_TOKEN_ADDRESS = "0x8082B8b47D92E4AC80aa205Eace902C5ee6BeCEe";
-  const REQUIRED_AMOUNT = 1000;
-  const REQUIRED_AMOUNT_BNB = 1000;
+  const REQUIRED_AMOUNT = 0;
+  const REQUIRED_AMOUNT_BNB = 0;
 
   // 获取小数位
   const { data: decimalsData } = useReadContract({
@@ -242,10 +242,10 @@ export default function SearchApp() {
     console.log("Solana Balance (tokens):", solanaBalanceInTokens);
     console.log("BNB Balance (tokens):", bnbBalanceInTokens);
 
-    const isPro = solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT_BNB;
+    const isPro = (solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT_BNB) && (bnbSignature || solanaSignature);
     setPro(isPro);
     console.log("Is Pro:", isPro);
-  }, [balance, bnbBalance]);
+  }, [balance, bnbBalance, bnbSignature, solanaSignature]);
 
   const isDuplicateHistory = (query) => {
     return searchHistory.some((historyItem) => historyItem.query === query);
