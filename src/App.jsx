@@ -98,12 +98,12 @@ export default function SearchApp() {
 
   const bnbBalance = bnbBalanceData ? Number(bnbBalanceData) / Math.pow(10, decimals) : 0;
 
-  useEffect(() => {
-    console.log("BNB Account:", bnbAccount);
-    console.log("BNB Decimals:", decimals);
-    console.log("Raw BNB Balance Data:", bnbBalanceData);
-    console.log("BNB Balance (tokens):", bnbBalance);
-  }, [bnbAccount, decimals, bnbBalanceData]);
+  // useEffect(() => {
+  //   console.log("BNB Account:", bnbAccount);
+  //   console.log("BNB Decimals:", decimals);
+  //   console.log("Raw BNB Balance Data:", bnbBalanceData);
+  //   console.log("BNB Balance (tokens):", bnbBalance);
+  // }, [bnbAccount, decimals, bnbBalanceData]);
 
   useEffect(() => {
     const signSolanaMessage = async () => {
@@ -149,7 +149,7 @@ export default function SearchApp() {
       }
     };
     signBnb();
-  }, [bnbAccount, signBnbMessage]);
+  }, [bnbAccount]);
 
   const openNotification = () => {
     api.open({
@@ -630,7 +630,7 @@ export default function SearchApp() {
                         borderRadius: "16px",
                         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                         height: "100%",
-                        body:{ padding: "16px", textAlign: "center" }
+                        body: { padding: "16px", textAlign: "center" }
                       }}
                     >
                       {item.icon}
