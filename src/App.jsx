@@ -16,6 +16,7 @@ import { InviteCodeGuideModal } from "./components/InviteCodeGuideModal.jsx"; //
 
 const { Title, Text } = Typography;
 
+
 const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) => {
   const [loginType, setLoginType] = useState("invite"); // invite 或 userId
   const [inviteCode, setInviteCode] = useState("");
@@ -543,6 +544,16 @@ export default function SearchApp() {
     },
   ];
 
+
+  const [backgroundImage, setBackgroundImage] = useState("/bg4.jpg"); // 初始背景
+
+  const handleBackgroundSwitch = () => {
+    const backgrounds = ["/bg2.jpg", "/bg3.jpg", "/bg4.jpg"];
+    const currentIndex = backgrounds.indexOf(backgroundImage);
+    const nextIndex = (currentIndex + 1) % backgrounds.length; // 循环切换
+    setBackgroundImage(backgrounds[nextIndex]);
+  };
+
   return (
     <div
       style={{
@@ -557,7 +568,11 @@ export default function SearchApp() {
     >
       {contextHolder}
       <div className="body">
-        <img src="/bg.png" alt="Background" style={{ backgroundSize: "cover", position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }} />
+        <img
+          src={backgroundImage}
+          alt="Background"
+          style={{ backgroundSize: "cover", position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }}
+        />
       </div>
       <div
         className="navbar"
@@ -616,13 +631,7 @@ export default function SearchApp() {
         </Text>
         {isMobile ? (
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "20px", zIndex: 10 }}>
-            <Button
-              type="default"
-              ghost
-              onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}
-            >
-              {isLoggedIn ? "Profile" : "Login"}
-            </Button>
+
             {isLoggedIn && (
               <Button
                 icon={<LogoutOutlined />}
@@ -648,12 +657,21 @@ export default function SearchApp() {
           </div>
         ) : (
           <div style={{ display: "flex", gap: "20px", alignItems: "center", marginRight: "20px", zIndex: 10 }}>
-            {/* <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showModal}>
+
+            <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showModal}>
               Guidelines
             </Button>
-            <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showUpModal}>
+            {/* <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showUpModal}>
               Update Logs
             </Button> */}
+            <Button
+              type="default"
+              ghost
+              onClick={handleBackgroundSwitch}
+              style={{ borderRadius: "4px" }}
+            >
+              Switch Background
+            </Button>
             <Button
               type="default"
               ghost
@@ -693,12 +711,17 @@ export default function SearchApp() {
             <Button href="https://www.scihub.fans/">
               <GlobalOutlined /> Scihub Community
             </Button> */}
-            {/* <Button style={{ borderRadius: "4px" }} onClick={showModal}>
+            <Button style={{ borderRadius: "4px" }} onClick={showModal}>
               Guidelines
             </Button>
-            <Button style={{ borderRadius: "4px" }} onClick={showUpModal}>
+            {/* <Button style={{ borderRadius: "4px" }} onClick={showUpModal}>
               Update Logs
             </Button> */}
+            <Button
+              type="default"
+              onClick={handleBackgroundSwitch}
+              style={{ borderRadius: "4px" }}
+            >Switch Background</Button>
             <Button
               type="default"
               style={{ borderRadius: "4px" }}
@@ -842,7 +865,7 @@ export default function SearchApp() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            backgroundColor: results.length > 0 ? "#E9E7FF" : "rgba(255, 255, 255, 0.12)",
+            backgroundColor: "rgba(255, 255, 255, 0.4)",
             backdropFilter: "blur(6px)",
           }}
         >
@@ -881,7 +904,7 @@ export default function SearchApp() {
               )}
             </div>
           )}
-          <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: results.length > 0 ? "20px" : "0px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
+          <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: results.length > 0 ? "40px" : "20px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
             <Input.Search
               placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
               enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
