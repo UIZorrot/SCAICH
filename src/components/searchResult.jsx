@@ -212,7 +212,7 @@ function SearchResult({
                 cursor: "pointer",
               }}
             >
-              {result.url.includes("bnbchain") && (
+              {/* {result.url.includes("bnbchain") && (
                 <img
                   src="bnblogo.png"
                   alt="bnblogo"
@@ -247,7 +247,7 @@ function SearchResult({
                   width={10}
                   style={{ marginRight: 10 }}
                 />
-              )}
+              )} */}
               <span dangerouslySetInnerHTML={{ __html: highlight(result.title) }} />
             </Title>
             <Text
