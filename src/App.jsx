@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Input, Typography, Button, Drawer, notification, Modal, Card, List } from "antd";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { SciHubModal } from "./components/getpro.jsx";
-import { MenuOutlined, HomeOutlined, GlobalOutlined, KeyOutlined, HistoryOutlined, LinkOutlined, CommentOutlined, DatabaseOutlined } from "@ant-design/icons";
+import { Input, Typography, Button, Drawer, notification, Modal, Card, List, Space, Radio, Avatar, Row, Col } from "antd";
+import { MenuOutlined, HomeOutlined, GlobalOutlined, KeyOutlined, HistoryOutlined, LinkOutlined, CommentOutlined, DatabaseOutlined, LockOutlined, CopyOutlined, UserOutlined, UploadOutlined, ExportOutlined, LogoutOutlined } from "@ant-design/icons";
 import "./App.css";
-import { WalletSelector } from "./components/walletselector.jsx";
 import html2canvas from "html2canvas";
 import { LoadingComponent } from "./components/Loading.jsx";
 import Summary from "./components/summary.jsx";
@@ -14,53 +9,255 @@ import SearchResult from "./components/searchResult.jsx";
 import { UserGuidelineModal } from "./components/guild.jsx";
 import { UpdateModal } from "./components/updatelog.jsx";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
-import { useAccount, useSignMessage, useReadContract } from "wagmi";
-import { bscTestnet } from "wagmi/chains";
 import ChatModal from "./components/chatpage.jsx";
+import { motion } from "framer-motion";
+import ProfileModal from "./components/ProfileModal.jsx"; // 新增导入
+import { InviteCodeGuideModal } from "./components/InviteCodeGuideModal.jsx"; // 新增导入
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
-// ERC-20/BEP-20 代币的 ABI
-const ERC20_ABI = [
-  {
-    constant: true,
-    inputs: [{ name: "_owner", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ name: "balance", type: "uint256" }],
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "decimals",
-    outputs: [{ name: "", type: "uint8" }],
-    type: "function",
-  },
-];
+const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) => {
+  const [loginType, setLoginType] = useState("invite"); // invite 或 userId
+  const [inviteCode, setInviteCode] = useState("");
+  const [userIdInput, setUserIdInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showIdModal, setShowIdModal] = useState(false);
+  const [tempUserId, setTempUserId] = useState("");
+  const [inviteGuideVisible, setInviteGuideVisible] = useState(false); // 新增状态
+
+  const handleLogin = async () => {
+    if (loginType === "invite" && !inviteCode) {
+      notification.error({ message: "Please enter an invite code" });
+      return;
+    }
+    if (loginType === "userId" && !userIdInput) {
+      notification.error({ message: "Please enter a user ID" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (loginType === "invite") {
+        const response = await fetch(`https://api.scai.sh/invite?code=${encodeURIComponent(inviteCode)}`);
+        const data = await response.json();
+        if (data.success) {
+          setTempUserId(data.user_id);
+          setShowIdModal(true);
+        } else {
+          notification.error({ message: data.message });
+        }
+      } else {
+        const response = await fetch(`https://api.scai.sh/verify-user?user_id=${encodeURIComponent(userIdInput)}`);
+        const data = await response.json();
+        if (data.success) {
+          setUserId(userIdInput);
+          setIsLoggedIn(true);
+          localStorage.setItem("userId", userIdInput);
+          localStorage.setItem("loginTime", new Date().toISOString());
+          notification.success({ message: "Logged in successfully!" });
+          onClose();
+        } else {
+          notification.error({ message: data.message });
+        }
+      }
+    } catch (error) {
+      notification.error({ message: `Failed to ${loginType === "invite" ? "verify invite code" : "verify user ID"}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveId = () => {
+    setUserId(tempUserId);
+    setIsLoggedIn(true);
+    localStorage.setItem("userId", tempUserId);
+    localStorage.setItem("loginTime", new Date().toISOString());
+    notification.success({ message: "Logged in successfully! Please save your User ID." });
+    setShowIdModal(false);
+    onClose();
+  };
+
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(tempUserId);
+    notification.success({ message: "User ID copied to clipboard!" });
+  };
+
+  return (
+    <>
+      <Modal
+        open={visible}
+        onCancel={onClose}
+        footer={null}
+        width={isMobile ? "90%" : 450}
+        style={{ borderRadius: "16px" }}
+        bodyStyle={{
+          background: "rgba(255, 255, 255, 0.1)",
+          backdropFilter: "blur(12px)",
+          borderRadius: "16px",
+          padding: "32px",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Space direction="vertical" size="large" style={{ width: "100%", textAlign: "center" }}>
+            <LockOutlined style={{ fontSize: "32px", color: "#ff2222" }} />
+            <Title level={4} style={{ color: "#333", margin: 0 }}>
+              Login to SCAICH
+            </Title>
+            <Text style={{ color: "#666" }}>
+              {loginType === "invite"
+                ? "Enter your invite code to unlock SCAICH. Contact admin for a code."
+                : "Enter your user ID to log in."}
+            </Text>
+            <Radio.Group
+              value={loginType}
+              onChange={(e) => setLoginType(e.target.value)}
+              style={{ marginBottom: 16 }}
+            >
+              <Radio.Button value="invite">Invite Code</Radio.Button>
+              <Radio.Button value="userId">User ID</Radio.Button>
+            </Radio.Group>
+            <Input
+              placeholder={loginType === "invite" ? "Enter your invite code" : "Enter your user ID"}
+              value={loginType === "invite" ? inviteCode : userIdInput}
+              onChange={(e) => (loginType === "invite" ? setInviteCode(e.target.value) : setUserIdInput(e.target.value))}
+              prefix={<KeyOutlined style={{ color: "#999" }} />}
+              style={{
+                background: "rgba(255, 255, 255, 0.2)",
+                borderRadius: "8px",
+                padding: "10px",
+                color: "#333",
+              }}
+            />
+            <Button
+              type="primary"
+              block
+              loading={loading}
+              onClick={handleLogin}
+              style={{
+                background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px",
+                height: "40px",
+                transition: "transform 0.2s",
+                marginBottom: 0,
+              }}
+              onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+              onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            >
+              {loginType === "invite" ? "Verify and Login" : "Login"}
+            </Button>
+            <Button
+              type="default"
+              block
+              onClick={() => setInviteGuideVisible(true)} // 打开模态框
+              style={{
+                marginTop: 0,
+                border: "1px solid rgba(255, 24, 24, 0.8)",
+                color: "#ff4d4f",
+                borderRadius: "8px",
+                padding: "10px",
+                height: "40px",
+                background: "transparent",
+                transition: "all 0.2s",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 24, 24, 0.1)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              How to Get Invite Code
+            </Button>
+          </Space>
+        </motion.div>
+      </Modal>
+      <Modal
+        open={showIdModal}
+        onCancel={() => setShowIdModal(false)}
+        footer={null}
+        width={isMobile ? "90%" : 450}
+        style={{ borderRadius: "16px" }}
+        bodyStyle={{
+          background: "rgba(255, 255, 255, 0.1)",
+          backdropFilter: "blur(12px)",
+          borderRadius: "16px",
+          padding: "32px",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Space direction="vertical" size="large" style={{ width: "100%", textAlign: "center" }}>
+            <Title level={4} style={{ color: "#333", margin: 0 }}>
+              Your User ID
+            </Title>
+            <Text style={{ color: "#ff4d4f" }}>
+              Please save this User ID securely. You'll need it to log in again.
+            </Text>
+            <Input
+              value={tempUserId}
+              disabled
+              style={{
+                background: "rgba(255, 255, 255, 0.2)",
+                border: "1px solid rgba(255, 255, 255, 0.3)",
+                borderRadius: "8px",
+                padding: "10px",
+                color: "#333",
+                textAlign: "center",
+              }}
+            />
+            <Space>
+              <Button
+                type="default"
+                icon={<CopyOutlined />}
+                onClick={handleCopyId}
+                style={{ borderRadius: "8px" }}
+              >
+                Copy ID
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleSaveId}
+                style={{
+                  background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
+                  border: "none",
+                  borderRadius: "8px",
+                }}
+              >
+                Save and Continue
+              </Button>
+            </Space>
+          </Space>
+        </motion.div>
+      </Modal>
+      <InviteCodeGuideModal visible={inviteGuideVisible} onClose={() => setInviteGuideVisible(false)} /> {/* 新增模态框 */}
+    </>
+  );
+};
+
 
 export default function SearchApp() {
-  const network = WalletAdapterNetwork.Devnet;
   const [canvasResults, setCanvasResults] = useState(0);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
-  const { connection } = useConnection();
-  const [balance, setBalance] = useState(0);
   const [openAccessOnly, setOpenAccessOnly] = useState(false);
-  const [solanaSignature, setSolanaSignature] = useState(null);
-  const [solanaAddress, setSolanaAddress] = useState(null);
-  const [bnbSignature, setBnbSignature] = useState(null);
-  const [bnbAddress, setBnbAddress] = useState(null);
-  const { publicKey, signMessage, connected } = useWallet();
-  const { address: bnbAccount } = useAccount();
-  const { signMessage: signBnbMessage } = useSignMessage();
-  const [pro, setPro] = useState(false);
+  const [userId, setUserId] = useState(localStorage.getItem("userId") || "");
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("userId"));
   const [upVisible, setUpVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [hisVisible, sethisVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [searchHistory, setSearchHistory] = useState(() => {
     const storedHistory = localStorage.getItem("searchHistory");
     return storedHistory ? JSON.parse(storedHistory) : [];
@@ -70,96 +267,49 @@ export default function SearchApp() {
   const [selectedPaperId, setSelectedPaperId] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
 
-  // BNB Testnet 代币地址
-  const BNB_TOKEN_ADDRESS = "0x8082B8b47D92E4AC80aa205Eace902C5ee6BeCEe";
-  const REQUIRED_AMOUNT = 0;
-  const REQUIRED_AMOUNT_BNB = 0;
-
-  // 获取小数位
-  const { data: decimalsData } = useReadContract({
-    address: BNB_TOKEN_ADDRESS,
-    abi: ERC20_ABI,
-    functionName: "decimals",
-    chainId: bscTestnet.id,
-    enabled: !!bnbAccount,
-  });
-
-  const decimals = decimalsData ? Number(decimalsData) : 18;
-
-  // 获取 BNB Testnet 代币余额
-  const { data: bnbBalanceData } = useReadContract({
-    address: BNB_TOKEN_ADDRESS,
-    abi: ERC20_ABI,
-    functionName: "balanceOf",
-    args: [bnbAccount],
-    chainId: bscTestnet.id,
-    enabled: !!bnbAccount,
-  });
-
-  const bnbBalance = bnbBalanceData ? Number(bnbBalanceData) / Math.pow(10, decimals) : 0;
-
-  // useEffect(() => {
-  //   console.log("BNB Account:", bnbAccount);
-  //   console.log("BNB Decimals:", decimals);
-  //   console.log("Raw BNB Balance Data:", bnbBalanceData);
-  //   console.log("BNB Balance (tokens):", bnbBalance);
-  // }, [bnbAccount, decimals, bnbBalanceData]);
-
-  useEffect(() => {
-    const signSolanaMessage = async () => {
-      if (publicKey && signMessage) {
-        try {
-          const message = publicKey.toString();
-          const encodedMessage = new TextEncoder().encode(message);
-          const signature = await signMessage(encodedMessage);
-          setSolanaAddress(publicKey.toString());
-          setSolanaSignature(Buffer.from(signature).toString("base64"));
-          console.log("Solana Address:", publicKey.toString());
-          console.log("Solana Signature:", Buffer.from(signature).toString("base64"));
-        } catch (error) {
-          console.error("Solana signing error:", error);
-        }
+  // 验证用户 ID
+  const verifyUserId = async (userId) => {
+    try {
+      const response = await fetch(`https://api.scai.sh/verify-user?user_id=${encodeURIComponent(userId)}`);
+      const data = await response.json();
+      if (!data.success) {
+        localStorage.removeItem("userId");
+        localStorage.removeItem("loginTime");
+        setUserId("");
+        setIsLoggedIn(false);
+        setLoginModalVisible(true);
+        notification.error({ message: "Invalid user ID. Please log in again." });
+        return false;
       }
-    };
-    signSolanaMessage();
-  }, [publicKey]);
-
-  useEffect(() => {
-    const signBnb = async () => {
-      if (bnbAccount && !publicKey) {
-        try {
-          const message = bnbAccount;
-          signBnbMessage(
-            { message },
-            {
-              onSuccess: (signature) => {
-                setBnbAddress(bnbAccount);
-                setBnbSignature(signature);
-                console.log("BNB Address:", bnbAccount);
-                console.log("BNB Signature:", signature);
-              },
-              onError: (error) => {
-                console.error("BNB signing error:", error);
-              },
-            }
-          );
-        } catch (error) {
-          console.error("BNB signing error:", error);
-        }
-      }
-    };
-    signBnb();
-  }, [bnbAccount]);
-
-  const openNotification = () => {
-    api.open({
-      message: "Link Copied",
-      description: "You can share it to others via link",
-      placement: "bottomRight",
-      duration: 2,
-    });
+      return true;
+    } catch (error) {
+      console.error("Error verifying user ID:", error);
+      localStorage.removeItem("userId");
+      localStorage.removeItem("loginTime");
+      setUserId("");
+      setIsLoggedIn(false);
+      setLoginModalVisible(true);
+      notification.error({ message: "Failed to verify user ID. Please log in again." });
+      return false;
+    }
   };
 
+  // 页面加载时验证用户 ID
+  useEffect(() => {
+    if (userId) {
+      verifyUserId(userId).then((isValid) => {
+        if (isValid) {
+          setIsLoggedIn(true);
+        } else {
+          setLoginModalVisible(true);
+        }
+      });
+    } else {
+      setLoginModalVisible(true);
+    }
+  }, [userId]);
+
+  // 处理 URL 参数
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     setIsFromLocal(false);
@@ -200,7 +350,12 @@ export default function SearchApp() {
     const compressedResults = compressAndEncode(truncatedResults);
     const compressedSummary = compressAndEncode(summary);
     const link = `${window.location.origin}/search?query=${compressedQuery}&result=${compressedResults}&summary=${compressedSummary}`;
-    openNotification();
+    api.open({
+      message: "Link Copied",
+      description: "You can share it to others via link",
+      placement: "bottomRight",
+      duration: 2,
+    });
     navigator.clipboard.writeText(link);
   };
 
@@ -209,43 +364,6 @@ export default function SearchApp() {
   };
 
   const iconColor = openAccessOnly ? "#FF4D4F" : "#BFBFBF";
-
-  const TOKEN_MINT_ADDRESS = "GxdTh6udNstGmLLk9ztBb6bkrms7oLbrJp5yzUaVpump";
-
-  useEffect(() => {
-    if (publicKey) {
-      (async function getBalanceEvery10Seconds() {
-        try {
-          const newBalance = await connection.getParsedTokenAccountsByOwner(
-            publicKey,
-            {
-              mint: new PublicKey(TOKEN_MINT_ADDRESS),
-            }
-          );
-          const tokenAmount = newBalance.value?.[0]?.account?.data?.parsed?.info?.tokenAmount?.amount || 0;
-          setBalance(Number(tokenAmount) / Math.pow(10, 6));
-          console.log("Solana SciHub balance:", tokenAmount);
-        } catch (error) {
-          console.error("Error fetching Solana balance:", error);
-          setBalance(0);
-        }
-      })();
-    } else {
-      setBalance(0);
-    }
-  }, [publicKey, connection]);
-
-  useEffect(() => {
-    const solanaBalanceInTokens = balance;
-    const bnbBalanceInTokens = bnbBalance;
-
-    console.log("Solana Balance (tokens):", solanaBalanceInTokens);
-    console.log("BNB Balance (tokens):", bnbBalanceInTokens);
-
-    const isPro = (solanaBalanceInTokens >= REQUIRED_AMOUNT || bnbBalanceInTokens >= REQUIRED_AMOUNT_BNB) && (bnbSignature || solanaSignature);
-    setPro(isPro);
-    console.log("Is Pro:", isPro);
-  }, [balance, bnbBalance, bnbSignature, solanaSignature]);
 
   const isDuplicateHistory = (query) => {
     return searchHistory.some((historyItem) => historyItem.query === query);
@@ -284,17 +402,22 @@ export default function SearchApp() {
   };
 
   const handleSearch = async () => {
+    if (!isLoggedIn || !userId) {
+      notification.error({ message: "Please log in to use the app" });
+      setLoginModalVisible(true);
+      return;
+    }
+
+    const isValid = await verifyUserId(userId);
+    if (!isValid) return;
+
     if (query.replace(" ", "") === "") {
       return;
     }
     setLoading(true);
     try {
-      let res_limit = 5;
-      if (pro) {
-        res_limit = 10;
-      }
       const response = await fetch(
-        `https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=${res_limit}&oa=${openAccessOnly}`,
+        `https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`,
         {
           method: "GET",
           mode: "cors",
@@ -306,19 +429,19 @@ export default function SearchApp() {
         }
       );
       const data = await response.json();
-      console.log(data);
       setIsFromLocal(false);
       setResults(data.results);
       setSummary(data.summary);
 
       if (!isDuplicateHistory(query)) {
         const newHistory = [{ query, results: data.results, summary: data.summary }, ...searchHistory];
-        const trimmedHistory = newHistory.slice(0, maxHistory);
+        const trimmedHistory = newHistory.slice(0, 20);
         setSearchHistory(trimmedHistory);
         localStorage.setItem("searchHistory", JSON.stringify(trimmedHistory));
       }
     } catch (error) {
       console.error("Error fetching search results:", error);
+      notification.error({ message: "Failed to fetch search results" });
     } finally {
       setLoading(false);
     }
@@ -331,7 +454,6 @@ export default function SearchApp() {
   };
 
   const [searchLoadingIndex, setSearchLoadingIndex] = useState(0);
-  const maxHistory = pro ? 20 : 5;
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -388,22 +510,30 @@ export default function SearchApp() {
     setUpVisible(false);
   };
 
-  const handleReadFullText = (paperId, source) => {
+  const handleReadFullText = async (paperId, source) => {
+    if (!isLoggedIn || !userId) {
+      notification.error({ message: "Please log in to use Deep Research" });
+      setLoginModalVisible(true);
+      return;
+    }
+
+    const isValid = await verifyUserId(userId);
+    if (!isValid) return;
+
     setSelectedPaperId(paperId);
     setChatModalVisible(true);
     setSelectedSource(source);
   };
 
-  // 新功能数据
   const features = [
     {
-      title: "YNE Support",
-      description: "Access detailed paper analysis via YesNoError integration.",
+      title: "Desci Integration",
+      description: "Access detailed paper analysis via Web3 Desci integration.",
       icon: <LinkOutlined style={{ fontSize: "24px", color: "#1890ff" }} />,
     },
     {
       title: "Deep Research",
-      description: "Engage in AI-driven conversations with papers (Pro feature).",
+      description: "Engage in AI-driven conversations with the fulltext papers.",
       icon: <CommentOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />,
     },
     {
@@ -438,6 +568,7 @@ export default function SearchApp() {
           alignItems: "center",
           backgroundColor: "transparent",
           boxShadow: "none",
+          marginBottom: 12,
         }}
       >
         <div className="nav-links" style={{ display: "flex", gap: "20px", alignItems: "center", marginLeft: 30 }}>
@@ -485,39 +616,118 @@ export default function SearchApp() {
         </Text>
         {isMobile ? (
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "20px", zIndex: 10 }}>
-            <WalletSelector />
+            <Button
+              type="default"
+              ghost
+              onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}
+            >
+              {isLoggedIn ? "Profile" : "Login"}
+            </Button>
+            {isLoggedIn && (
+              <Button
+                icon={<LogoutOutlined />}
+                danger
+                style={{
+                  background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#fff",
+                }}
+                onClick={() => {
+                  localStorage.removeItem("userId");
+                  localStorage.removeItem("loginTime");
+                  setUserId("");
+                  setIsLoggedIn(false);
+                  setLoginModalVisible(true);
+                  notification.info({ message: "Logged out successfully" });
+                }}
+              >
+                Logout
+              </Button>
+            )}
           </div>
         ) : (
           <div style={{ display: "flex", gap: "20px", alignItems: "center", marginRight: "20px", zIndex: 10 }}>
-            <Button type="default" color="default" ghost style={{ borderRadius: "4px" }} onClick={showModal}>
-              Guildlines
+            {/* <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showModal}>
+              Guidelines
             </Button>
-            <Button type="default" color="default" ghost style={{ borderRadius: "4px" }} onClick={showUpModal}>
+            <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showUpModal}>
               Update Logs
+            </Button> */}
+            <Button
+              type="default"
+              ghost
+              onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}
+            >
+              {isLoggedIn ? "Profile" : "Login"}
             </Button>
-            <Button type="default" color="default" ghost style={{ borderRadius: "4px" }} onClick={() => setModalVisible(true)}>
-              {pro ? "Welcome Scihub Pro 👑" : "Get Pro 👑"}
-            </Button>
-            <WalletSelector />
+            {isLoggedIn && (
+              <Button
+                icon={<LogoutOutlined />}
+                danger
+                style={{
+                  background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#fff",
+                }}
+                onClick={() => {
+                  localStorage.removeItem("userId");
+                  localStorage.removeItem("loginTime");
+                  setUserId("");
+                  setIsLoggedIn(false);
+                  setLoginModalVisible(true);
+                  notification.info({ message: "Logged out successfully" });
+                }}
+              >
+                Logout
+              </Button>
+            )}
           </div>
         )}
         <Drawer title="Menu" placement="left" onClose={() => setMenuVisible(false)} open={menuVisible} bodyStyle={{ padding: "20px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-            <Button href="https://sci-hub.se/">
+            {/* <Button href="https://sci-hub.se/">
               <HomeOutlined /> Scihub Official
             </Button>
             <Button href="https://www.scihub.fans/">
               <GlobalOutlined /> Scihub Community
-            </Button>
-            <Button style={{ borderRadius: "4px" }} onClick={showModal}>
-              Guildlines
+            </Button> */}
+            {/* <Button style={{ borderRadius: "4px" }} onClick={showModal}>
+              Guidelines
             </Button>
             <Button style={{ borderRadius: "4px" }} onClick={showUpModal}>
               Update Logs
+            </Button> */}
+            <Button
+              type="default"
+              style={{ borderRadius: "4px" }}
+              onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}
+            >
+              {isLoggedIn ? "Profile" : "Login"}
             </Button>
-            <Button type="default" color="default" style={{ borderRadius: "4px" }} onClick={() => setModalVisible(true)}>
-              {pro ? "👑 Welcome Scihub Pro" : "👑 Get Pro"}
-            </Button>
+            {isLoggedIn && (
+              <Button
+                icon={<LogoutOutlined />}
+                danger
+                style={{
+                  background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#fff",
+                }}
+                onClick={() => {
+                  localStorage.removeItem("userId");
+                  localStorage.removeItem("loginTime");
+                  setUserId("");
+                  setIsLoggedIn(false);
+                  setLoginModalVisible(true);
+                  notification.info({ message: "Logged out successfully" });
+                }}
+              >
+                Logout
+              </Button>
+            )}
             <Title level={5} style={{ marginTop: 10 }}>
               Search History
             </Title>
@@ -548,159 +758,254 @@ export default function SearchApp() {
           </div>
         </Drawer>
       </div>
-      <div
-        className="SearchArea"
-        style={{
-          margin: results.length === 0 ? "auto" : "2vw",
-          paddingBottom: results.length === 0 ? "16px" : "16px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          backgroundColor: results.length > 0 ? "#E9E7FF" : "rgba(255, 255, 255, 0.12)",
-          backdropFilter: "blur(6px)",
-        }}
-      >
-        {results.length === 0 ? (
-          <div>
-            {!isMobile ? (
-              <div style={{ zIndex: 2, display: "flex", alignItems: "center", margin: "30px", marginTop: 44 }}>
-                <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <Title level={4} style={{ margin: 0, fontSize: "36px", fontWeight: "800" }}>
-                      SCAICH
-                    </Title>
-                    <Text style={{ margin: 0, marginLeft: "12px", fontSize: "32px", fontWeight: "300" }}> | SCAI search engine</Text>
+      {!isLoggedIn ? (
+        <div
+          style={{
+            width: "80%",
+            margin: "auto",
+            padding: "32px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            background: "rgba(255, 255, 255, 0.12)",
+            backdropFilter: "blur(6px)",
+            borderRadius: "32px",
+          }}
+        >
+          <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "30px 0" }}>
+            <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginBottom: "12px", borderRadius: "72px" }} />
+            <Title level={2} style={{ margin: 0, fontSize: isMobile ? "28px" : "36px", fontWeight: "800", color: "#333" }}>
+              SCAICH
+            </Title>
+            <Text style={{ margin: "8px 0", fontSize: isMobile ? "16px" : "20px", fontWeight: "300", color: "#333" }}>
+              SCAI Search Engine
+            </Text>
+            <Text style={{ margin: 0, fontSize: isMobile ? "12px" : "16px", fontWeight: "300", color: "#333" }}>
+              Your AI Gateway to Open-Access Scientific Research
+            </Text>
+          </div>
+          <Button
+            type="primary"
+            size="large"
+            onClick={() => setLoginModalVisible(true)}
+            style={{ background: "linear-gradient(45deg, rgba(255, 24, 55, 0.95), rgb(255, 96, 131))", borderRadius: "8px", marginBottom: "24px" }}
+          >
+            Login with Invite Code or User ID
+          </Button>
+          <div className="features-container">
+            <Title level={3} style={{ margin: "0 0 28px 0", textAlign: "center", color: "#333" }}>
+              Discover Our Features
+            </Title>
+            <List
+              grid={{ gutter: 24, xs: 1, sm: 2, md: 3 }}
+              dataSource={features}
+              renderItem={(item, index) => (
+                <List.Item>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <Card
+                      hoverable
+                      className="feature-card"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.15)",
+                        borderRadius: "16px",
+                        border: "2px solid transparent",
+                        backgroundClip: "padding-box",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)",
+                        backdropFilter: "blur(10px)",
+                      }}
+                      bodyStyle={{ padding: "16px", textAlign: "center" }}
+                    >
+                      <div style={{ background: item.gradient, padding: "2px", borderRadius: "12px", display: "inline-block" }}>
+                        {item.icon}
+                      </div>
+                      <Title level={5} style={{ margin: "12px 0 8px", color: "#333", fontWeight: 700 }}>
+                        {item.title}
+                      </Title>
+                      <Text style={{ color: "#333", fontWeight: 300 }}>{item.description}</Text>
+                    </Card>
+                  </motion.div>
+                </List.Item>
+              )}
+            />
+          </div>
+        </div>
+      ) : (
+        <div
+          className="SearchArea"
+          style={{
+            margin: results.length === 0 ? "auto" : "2vw",
+            paddingBottom: results.length === 0 ? "16px" : "16px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            backgroundColor: results.length > 0 ? "#E9E7FF" : "rgba(255, 255, 255, 0.12)",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          {results.length === 0 && (
+            <div>
+              {!isMobile ? (
+                <div style={{ zIndex: 2, display: "flex", alignItems: "center", margin: "30px", marginTop: 44 }}>
+                  <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <Title level={4} style={{ margin: 0, fontSize: "36px", fontWeight: "800" }}>
+                        SCAICH
+                      </Title>
+                      <Text style={{ margin: 0, marginLeft: "12px", fontSize: "32px", fontWeight: "300" }}>
+                        | SCAI search engine
+                      </Text>
+                    </div>
+                    <Text style={{ margin: 0, fontSize: "16px", fontWeight: "300" }}>
+                      Your AI Gateway to Open-Access Scientific Research
+                    </Text>
                   </div>
-                  <Text style={{ margin: 0, fontSize: "16px", fontWeight: "300" }}>Your AI Gateway to Open-Access Scientific Research</Text>
                 </div>
-              </div>
-            ) : (
-              <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
-                <Title level={4} style={{ margin: 0, fontSize: "32px", fontWeight: "800" }}>
-                  SCAICH
+              ) : (
+                <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                  <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
+                  <Title level={4} style={{ margin: 0, fontSize: "32px", fontWeight: "800" }}>
+                    SCAICH
+                  </Title>
+                  <Text style={{ margin: 0, marginLeft: "12px", fontSize: "20px", fontWeight: "300" }}>
+                    SCAI search engine
+                  </Text>
+                  <Text style={{ margin: 0, fontSize: "12px", fontWeight: "300" }}>
+                    Your AI Gateway to Open-Access Scientific Research
+                  </Text>
+                </div>
+              )}
+            </div>
+          )}
+          <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: results.length > 0 ? "20px" : "0px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
+            <Input.Search
+              placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
+              enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
+              size="large"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onSearch={handleSearch}
+              loading={false}
+              addonBefore={
+                <KeyOutlined
+                  style={{
+                    fontSize: 20,
+                    color: iconColor,
+                    cursor: "pointer",
+                    marginLeft: 8,
+                  }}
+                  onClick={handleSuffixClick}
+                />
+              }
+              style={{
+                width: "96%",
+                marginBottom: "10px",
+              }}
+            />
+            {!loading && results.length === 0 && (
+              <div className="features-container">
+                <Title level={3} style={{ margin: "0 0 28px 0", textAlign: "center", color: "#333" }}>
+                  Discover Our Features
                 </Title>
-                <Text style={{ margin: 0, marginLeft: "12px", fontSize: "20px", fontWeight: "300" }}>SCAI search engine</Text>
-                <Text style={{ margin: 0, fontSize: "12px", fontWeight: "300" }}>Your AI Gateway to Open-Access Scientific Research</Text>
+                <List
+                  grid={{ gutter: 24, xs: 1, sm: 2, md: 3 }}
+                  dataSource={features}
+                  renderItem={(item, index) => (
+                    <List.Item>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                      >
+                        <Card
+                          hoverable
+                          className="feature-card"
+                          style={{
+                            background: "rgba(255, 255, 255, 0.15)",
+                            borderRadius: "16px",
+                            border: "2px solid transparent",
+                            backgroundClip: "padding-box",
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)",
+                            backdropFilter: "blur(10px)",
+                            padding: "16px", textAlign: "center"
+                          }}
+                        >
+                          <div style={{ background: item.gradient, padding: "2px", borderRadius: "12px", display: "inline-block" }}>
+                            {item.icon}
+                          </div>
+                          <Title level={5} style={{ margin: "12px 0 8px", color: "#333", fontWeight: 700 }}>
+                            {item.title}
+                          </Title>
+                          <Text style={{ color: "#333", fontWeight: 300 }}>{item.description}</Text>
+                        </Card>
+                      </motion.div>
+                    </List.Item>
+                  )}
+                />
+              </div>
+            )}
+            {!loading && results.length === 0 && (
+              <div>
+                <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
+                  <a>
+                    <span style={{ color: "#333" }}>Try:</span>{" "}
+                    <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={() => setQuery("The History of Scihub")}>
+                      The History of Sci-hub
+                    </span>{" "}
+                    <span style={{ color: "#333" }}>·</span>{" "}
+                    <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={() => setQuery("The Principle of Deep Learning")}>
+                      The Principle of Deep Learning
+                    </span>
+                  </a>
+                </Text>
               </div>
             )}
           </div>
-        ) : null}
-        <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: results.length > 0 ? "20px" : "0px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
-          <Input.Search
-            placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
-            enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
-            size="large"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onSearch={handleSearch}
-            loading={false}
-            addonBefore={
-              <KeyOutlined
-                style={{
-                  fontSize: 20,
-                  color: iconColor,
-                  cursor: "pointer",
-                  marginLeft: 8,
-                }}
-                onClick={handleSuffixClick}
-              />
-            }
-            style={{
-              width: "92%",
-              marginBottom: "10px",
-            }}
-          />
-          {/* 新功能展示块 */}
-          {!loading && results.length === 0 && (
-            <div className="features-container">
-              <Title level={4} style={{ margin: "0 0 24px 0", textAlign: "center" }}>
-                Explore Our Features
-              </Title>
-              <List
-                grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
-                dataSource={features}
-                renderItem={(item) => (
-                  <List.Item>
-                    <Card
-                      hoverable
-                      style={{
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
-                        borderRadius: "16px",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                        height: "100%",
-                        body: { padding: "16px", textAlign: "center" }
-                      }}
-                    >
-                      {item.icon}
-                      <Title level={5} style={{ margin: "8px 0" }}>
-                        {item.title}
-                      </Title>
-                      <Text>{item.description}</Text>
-                    </Card>
-                  </List.Item>
-                )}
-              />
-            </div>
-          )}
-          {!loading && results.length === 0 && (
-            <div>
-              <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
-                <a>
-                  <span style={{ color: "#333" }}>Try:</span>{" "}
-                  <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={(e) => setQuery("The History of Scihub")}>
-                    The History of Sci-hub
-                  </span>{" "}
-                  <span style={{ color: "#333" }}>·</span>{" "}
-                  <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={(e) => setQuery("The Principle of Deep Learning")}>
-                    The Principle of Deep Learning
-                  </span>
-                </a>
-              </Text>
+          {loading && <LoadingComponent loading={loading} />}
+          {results.length > 0 && (
+            <div style={{ width: "96%" }}>
+              <div className="respanel">
+                <div className="respanel1">
+                  {summary && (
+                    <Summary
+                      isLocal={isFromLocal}
+                      summary={summary}
+                      pro={true}
+                      isCollapsed={isCollapsed}
+                      handleToggle={handleToggle}
+                      handleDownloadImage={handleDownloadImage}
+                      handleShareImage={handleShareImage}
+                      isMobile={isMobile}
+                    />
+                  )}
+                </div>
+                <div className="respanel2">
+                  <SearchResult
+                    query={query}
+                    results={results}
+                    classOver="results-list"
+                    handleDownloadImageSearch={handleDownloadImageSearch}
+                    handleShareImageSearch={handleShareImage}
+                    isMobile={isMobile}
+                    onReadFullText={handleReadFullText}
+                    pro={true}
+                    setModalVisible={setModalVisible}
+                  />
+                </div>
+              </div>
+              <div style={{ width: "100%", alignContent: "center", alignItems: "center", textAlign: "center", marginTop: "15px" }}>
+                <Text style={{ marginBottom: "15px", color: "#999999", opacity: 0.7 }}>
+                  Due to the network condition, the base model can be switch from Deepseek to GPT accordingly.
+                </Text>
+              </div>
             </div>
           )}
         </div>
-        {loading && <LoadingComponent loading={loading} />}
-        {results.length > 0 && (
-          <div style={{ width: "100%" }}>
-            <div className="respanel">
-              <div className="respanel1">
-                {summary && (
-                  <Summary
-                    isLocal={isFromLocal}
-                    summary={summary}
-                    pro={pro}
-                    isCollapsed={isCollapsed}
-                    handleToggle={handleToggle}
-                    handleDownloadImage={handleDownloadImage}
-                    handleShareImage={handleShareImage}
-                    isMobile={isMobile}
-                  />
-                )}
-              </div>
-              <div className="respanel2">
-                <SearchResult
-                  query={query}
-                  results={results}
-                  classOver="results-list"
-                  handleDownloadImageSearch={handleDownloadImageSearch}
-                  handleShareImageSearch={handleShareImage}
-                  isMobile={isMobile}
-                  onReadFullText={handleReadFullText}
-                  pro={pro}
-                  setModalVisible={setModalVisible}
-                />
-              </div>
-            </div>
-            <div style={{ width: "100%", alignContent: "center", alignItems: "center", textAlign: "center", marginTop: "15px" }}>
-              <Text style={{ marginBottom: "15px", color: "#999999", opacity: 0.7 }}>
-                Due to the network condition, the base model can be switch from Deepseek to GPT accordingly.
-              </Text>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
       <div
         className="footer"
         style={{
@@ -723,7 +1028,6 @@ export default function SearchApp() {
         <img src="/logobnbgf.png" alt="Milvus" className="footer-logo" />
       </div>
       <UpdateModal visible={upVisible} onClose={handleUpCancel} />
-      <SciHubModal isPro={pro} visible={modalVisible} onClose={() => setModalVisible(false)} />
       <UserGuidelineModal visible={isModalVisible} onClose={handleCancel} />
       <Modal
         open={chatModalVisible}
@@ -735,12 +1039,9 @@ export default function SearchApp() {
       >
         <Title level={4} style={{ marginLeft: 20 }}>
           Fulltext Deep Research
-          <Button size="small" style={{ background: "red", border: 0, color: "#fff", marginLeft: 8, fontSize: 14, fontWeight: "bold" }}>
-            Pro 👑
-          </Button>
         </Title>
         <Text style={{ marginLeft: 20, marginBottom: 20, fontSize: "16px", fontWeight: "300" }}>
-          The initialization of the paper may takes about 1 minutes
+          The initialization of the paper may take about 1 minute
         </Text>
         <ChatModal
           visible={chatModalVisible}
@@ -749,6 +1050,23 @@ export default function SearchApp() {
           onClose={() => setChatModalVisible(false)}
         />
       </Modal>
+      <LoginModal
+        visible={loginModalVisible}
+        onClose={() => setLoginModalVisible(false)}
+        setUserId={setUserId}
+        setIsLoggedIn={setIsLoggedIn}
+        isMobile={isMobile}
+      />
+      <ProfileModal
+        visible={profileModalVisible}
+        onClose={() => setProfileModalVisible(false)}
+        userId={userId}
+        isMobile={isMobile}
+        setUserId={setUserId}
+        setIsLoggedIn={setIsLoggedIn}
+        setLoginModalVisible={setLoginModalVisible}
+        setHisVisible={sethisVisible}
+      />
     </div>
   );
 }

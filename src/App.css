@@ -328,3 +328,84 @@ p {
     border-radius: 12px;
   }
 }
+
+.feature-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #ffffff;
+}
+
+.feature-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+  font-size: 24px !important;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: rotate(10deg);
+}
+
+.feature-icon.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .features-container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .feature-card {
+    padding: 12px;
+  }
+
+  .feature-icon {
+    font-size: 20px !important;
+  }
+
+  .feature-card h5 {
+    font-size: 16px;
+  }
+
+  .feature-card .ant-typography {
+    font-size: 14px;
+  }
+}
+
+/* 头像上传按钮 */
+.avatar-upload-label {
+  transition: transform 0.3s;
+}
+
+.avatar-upload-label:hover {
+  transform: scale(1.1);
+}
+
+/* 卡片按钮 */
+.action-button {
+  transition: all 0.3s;
+}
+
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
