@@ -39,11 +39,6 @@ export const UserGuidelineModal = ({ visible, onClose }) => {
                         Simply enter your query in the search bar and click the button on the right to see the results.
                     </Paragraph>
 
-                    <Title level={5}>Result</Title>
-                    <Paragraph>
-                        If a result has the Sci-Hub raven icon, it means the paper is available on the Sci-Hub site. You can access the full paper via the provided link.
-                    </Paragraph>
-
                     <Title level={5}>Assistant</Title>
                     <Paragraph>
                         We’ve integrated an LLM model to help you better understand your query. The based model can be switch between Deepseek© and ChatGPT© Automatically.
@@ -53,6 +48,16 @@ export const UserGuidelineModal = ({ visible, onClose }) => {
                     <Paragraph>
                         Access your search history by clicking the top-left button. You can also download your search results as images by using the download button on the right.
                     </Paragraph>
+
+                    <Title level={5}>Support</Title>
+                    <Paragraph>
+                        Join our Telegram group at{" "}
+                        <a href="https://t.me/WTFDeSci" target="_blank" rel="noopener noreferrer">
+                            t.me/WTFDeSci
+                        </a>
+                        and get any help you encounter during the usage.
+                    </Paragraph>
+
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "center", marginTop: "24px" }}>
