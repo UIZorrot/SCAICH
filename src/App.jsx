@@ -904,7 +904,7 @@ export default function SearchApp() {
               )}
             </div>
           )}
-          <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: results.length > 0 ? "40px" : "20px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
+          <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: (results.length === 0 || isMobile) ? "0px" : "40px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
             <Input.Search
               placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
               enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
@@ -1042,7 +1042,7 @@ export default function SearchApp() {
       >
         <img src="/logo2.png" alt="Deepseek" className="footer-logo" />
         <img src="/logo3.png" alt="SCI-HUB" className="footer-logo" />
-        <img src="/logo4.png" alt="Scihub Community" className="footer-logo" />
+        {/* <img src="/logo4.png" alt="Scihub Community" className="footer-logo" /> */}
         <img src="/logo5.png" alt="Milvus" className="footer-logo" />
         <img src="/logo6.png" alt="Deepseek" className="footer-logo" />
         <img src="/logo7.png" alt="SCI-HUB" className="footer-logo" />

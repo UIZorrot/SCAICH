@@ -140,7 +140,7 @@ function SearchResult({
           >
             {isMobile ? (
               <>
-                <Switch
+                {/* <Switch
                   checked={showScihub}
                   onChange={toggleScihub}
                   checkedChildren="On"
@@ -149,13 +149,13 @@ function SearchResult({
                     backgroundColor: showScihub ? "#ff4d4f" : "#bfbfbf",
                     borderColor: showScihub ? "#ff4d4f" : "#bfbfbf",
                   }}
-                />
-                <Text style={{ marginRight: "8px" }}>Scihub Result</Text>
+                /> */}
+                {/* <Text style={{ marginRight: "8px" }}>Scihub Result</Text> */}
               </>
             ) : (
               <>
-                <Text style={{ marginRight: "8px" }}>Scihub Result</Text>
-                <Switch
+                {/* <Text style={{ marginRight: "8px" }}>Scihub Result</Text> */}
+                {/* <Switch
                   checked={showScihub}
                   onChange={toggleScihub}
                   checkedChildren="On"
@@ -164,7 +164,7 @@ function SearchResult({
                     backgroundColor: showScihub ? "#ff4d4f" : "#bfbfbf",
                     borderColor: showScihub ? "#ff4d4f" : "#bfbfbf",
                   }}
-                />
+                /> */}
               </>
             )}
           </Space>
