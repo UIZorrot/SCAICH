@@ -10,7 +10,7 @@ import { UserGuidelineModal } from "./components/guild.jsx";
 import { UpdateModal } from "./components/updatelog.jsx";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import ChatModal from "./components/chatpage.jsx";
-import { motion } from "framer-motion";
+import { color, motion } from "framer-motion";
 import ProfileModal from "./components/ProfileModal.jsx"; // 新增导入
 import { InviteCodeGuideModal } from "./components/InviteCodeGuideModal.jsx"; // 新增导入
 import { useNavigate } from "react-router-dom"; // 新增导入
@@ -993,8 +993,9 @@ export default function SearchApp() {
               <div>
                 <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
                   <a>
-                    <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "}
-                    {/* <span
+                    {/* <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "} */}
+                    <span onClick={() => navigate("/ad")} style={{ color: "#fff" }}> Try: </span>{" "}
+                    <span
                       style={{ cursor: "pointer", color: "#383FFF" }}
                       onClick={() => setQuery("The History of Scihub")}
                     >
@@ -1006,7 +1007,7 @@ export default function SearchApp() {
                       onClick={() => setQuery("The Principle of Deep Learning")}
                     >
                       The Principle of Deep Learning
-                    </span> */}
+                    </span>
                   </a>
                 </Text>
               </div>
