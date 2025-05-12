@@ -293,7 +293,7 @@ function SearchResult({
                   window.open(result.url, "_blank");
                 }}
               >
-                View Fulltext
+                {(result.source === "scihub" || result.source === "arxiv") ? "View Fulltext" : "View Source"}
               </Button>
               {/* Deep Research 按钮 - 红色，仅限 scihub 或 arxiv */}
               {(result.source === "scihub" || result.source === "arxiv") && (
