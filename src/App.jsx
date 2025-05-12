@@ -13,6 +13,7 @@ import ChatModal from "./components/chatpage.jsx";
 import { motion } from "framer-motion";
 import ProfileModal from "./components/ProfileModal.jsx"; // 新增导入
 import { InviteCodeGuideModal } from "./components/InviteCodeGuideModal.jsx"; // 新增导入
+import { useNavigate } from "react-router-dom"; // 新增导入
 
 const { Title, Text } = Typography;
 
@@ -267,6 +268,7 @@ export default function SearchApp() {
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [selectedPaperId, setSelectedPaperId] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
+  const navigate = useNavigate();
 
   // 验证用户 ID
   const verifyUserId = async (userId) => {
@@ -930,59 +932,81 @@ export default function SearchApp() {
               }}
             />
             {!loading && results.length === 0 && (
-              <div className="features-container">
-                <Title level={3} style={{ margin: "0 0 28px 0", textAlign: "center", color: "#333" }}>
+              <div className="features-container" style={{ padding: '0 16px' }}>
+                <Title level={3} style={{ margin: '0 0 28px 0', textAlign: 'center', color: '#333' }}>
                   Discover Our Features
                 </Title>
-                <List
-                  grid={{ gutter: 24, xs: 1, sm: 2, md: 3 }}
-                  dataSource={features}
-                  renderItem={(item, index) => (
-                    <List.Item>
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '24px',
+                  flexWrap: 'wrap',
+                  margin: '0 auto'
+                }}>
+                  {features.slice(0, 3).map((item, index) => (
+                    <motion.div
+                      key={item.title}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      style={{
+                        flex: '1 1 0',
+                        minWidth: 250,
+                      }}
+                    >
+                      <Card
+                        hoverable
+                        className="feature-card"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.15)',
+                          borderRadius: '16px',
+                          border: '2px solid transparent',
+                          backgroundClip: 'padding-box',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)',
+                          backdropFilter: 'blur(10px)',
+                          padding: '16px',
+                          textAlign: 'center',
+                          height: '100%'
+                        }}
                       >
-                        <Card
-                          hoverable
-                          className="feature-card"
-                          style={{
-                            background: "rgba(255, 255, 255, 0.15)",
-                            borderRadius: "16px",
-                            border: "2px solid transparent",
-                            backgroundClip: "padding-box",
-                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)",
-                            backdropFilter: "blur(10px)",
-                            padding: "16px", textAlign: "center"
-                          }}
-                        >
-                          <div style={{ background: item.gradient, padding: "2px", borderRadius: "12px", display: "inline-block" }}>
-                            {item.icon}
-                          </div>
-                          <Title level={5} style={{ margin: "12px 0 8px", color: "#333", fontWeight: 700 }}>
-                            {item.title}
-                          </Title>
-                          <Text style={{ color: "#333", fontWeight: 300 }}>{item.description}</Text>
-                        </Card>
-                      </motion.div>
-                    </List.Item>
-                  )}
-                />
+                        <div style={{
+                          background: item.gradient,
+                          padding: '2px',
+                          borderRadius: '12px',
+                          display: 'inline-block'
+                        }}>
+                          {item.icon}
+                        </div>
+                        <Title level={5} style={{ margin: '12px 0 8px', color: '#333', fontWeight: 700 }}>
+                          {item.title}
+                        </Title>
+                        <Text style={{ color: '#333', fontWeight: 300 }}>
+                          {item.description}
+                        </Text>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             )}
             {!loading && results.length === 0 && (
               <div>
                 <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
                   <a>
-                    <span style={{ color: "#333" }}>Try:</span>{" "}
-                    <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={() => setQuery("The History of Scihub")}>
+                    <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "}
+                    {/* <span
+                      style={{ cursor: "pointer", color: "#383FFF" }}
+                      onClick={() => setQuery("The History of Scihub")}
+                    >
                       The History of Sci-hub
                     </span>{" "}
                     <span style={{ color: "#333" }}>·</span>{" "}
-                    <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={() => setQuery("The Principle of Deep Learning")}>
+                    <span
+                      style={{ cursor: "pointer", color: "#383FFF" }}
+                      onClick={() => setQuery("The Principle of Deep Learning")}
+                    >
                       The Principle of Deep Learning
-                    </span>
+                    </span> */}
                   </a>
                 </Text>
               </div>
@@ -1028,7 +1052,8 @@ export default function SearchApp() {
             </div>
           )}
         </div>
-      )}
+      )
+      }
       <div
         className="footer"
         style={{
@@ -1090,6 +1115,6 @@ export default function SearchApp() {
         setLoginModalVisible={setLoginModalVisible}
         setHisVisible={sethisVisible}
       />
-    </div>
+    </div >
   );
 }
