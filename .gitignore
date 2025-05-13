@@ -8,6 +8,7 @@ __pycache__
 # testing
 /coverage
 .env
+.env-local
 # production
 /build
 sci-hub-doi-2022-02-12.txt
