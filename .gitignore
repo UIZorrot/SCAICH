@@ -27,3 +27,4 @@ yarn-error.log*
 existing_dois.json
 *.sqlite
 backup
+*.db
