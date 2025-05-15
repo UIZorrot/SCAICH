@@ -102,7 +102,7 @@ const UnifiedWalletProvider = () => {
                     />
                   }
                 />
-                <Route
+                {/* <Route
                   path="/ad"
                   element={
                     <AdPage
@@ -111,7 +111,7 @@ const UnifiedWalletProvider = () => {
                       handleBackgroundSwitch={handleBackgroundSwitch}
                     />
                   }
-                />
+                /> */}
                 <Route
                   path="*"
                   element={
