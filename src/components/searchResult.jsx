@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Switch, List, Space, Typography, Button, Select } from "antd";
 import { FileTextOutlined, SearchOutlined, LinkOutlined, DownOutlined } from "@ant-design/icons";
+import axios from "axios"; // Add axios for API requests
 import articlesMerged from "../articles_merged.json";
 
-const { Title, Text, Option } = Typography;
+const { Title, Text } = Typography;
 
+// ExpandAbstract component remains unchanged
 function ExpandAbstract({ abstract }) {
   const [isExpanded, setIsExpanded] = useState(false);
   return (
@@ -36,9 +38,10 @@ function SearchResult({
   const [matchedArticles, setMatchedArticles] = useState({});
   const [sortField, setSortField] = useState("similarity");
   const [sortDirection, setSortDirection] = useState("desc");
-  const [defaultSort, setDefaultSort] = useState({ field: "similarity", direction: "desc" }); // Store default sort
+  const [defaultSort, setDefaultSort] = useState({ field: "similarity", direction: "desc" });
+  const [sciNetAvailability, setSciNetAvailability] = useState({}); // New state for Sci-Net full-text
 
-  // Build title-to-article mapping and set default sort on mount or results change
+  // Build title-to-article mapping and check Sci-Net availability
   useEffect(() => {
     const articleMap = {};
     articlesMerged.forEach((article) => {
@@ -49,10 +52,39 @@ function SearchResult({
     });
     setMatchedArticles(articleMap);
 
-    // Update default sort when results change
+    // Reset sort
     setDefaultSort({ field: "similarity", direction: "desc" });
     setSortField("similarity");
     setSortDirection("desc");
+
+    // Check Sci-Net availability for articles without full-text
+    const checkSciNet = async () => {
+      const articlesToCheck = results.filter(
+        (result) => result.doi && result.source !== "scihub" && result.source !== "arxiv"
+      );
+
+      const availabilityMap = { ...sciNetAvailability };
+      for (const article of articlesToCheck) {
+        // Skip if already checked
+        if (article.doi in availabilityMap) continue;
+
+        try {
+          const response = await axios.post("https://sci-net.xyz/search", {
+            doi: article.doi,
+          });
+          // Store true if sci-net is true, false otherwise
+          availabilityMap[article.doi] = response.data?.["sci-net"] === true;
+        } catch (error) {
+          console.error(`Error checking Sci-Net for DOI ${article.doi}:`, error);
+          availabilityMap[article.doi] = false; // Assume unavailable on error
+        }
+      }
+      setSciNetAvailability(availabilityMap);
+    };
+
+    if (results.length > 0) {
+      checkSciNet();
+    }
   }, [results]);
 
   const toggleScihub = (checked) => {
@@ -83,9 +115,7 @@ function SearchResult({
         case "similarity":
           valueA = similarityOrder[a.similarity] || 0;
           valueB = similarityOrder[b.similarity] || 0;
-          return sortDirection === "asc"
-            ? valueB - valueA // Higher relevance first
-            : valueA - valueB;
+          return sortDirection === "asc" ? valueB - valueA : valueA - valueB;
         case "year":
           valueA = a.year || 0;
           valueB = b.year || 0;
@@ -108,9 +138,7 @@ function SearchResult({
           : valueB.localeCompare(valueA);
       }
 
-      return sortDirection === "asc"
-        ? valueA - valueB
-        : valueB - valueA;
+      return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
     });
   };
 
@@ -294,13 +322,24 @@ function SearchResult({
                 icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
                 style={{
                   color: "#ffffff",
-                  background: "#1890ff",
+                  background:
+                    sciNetAvailability[result.doi] === true
+                      ? "#52c41a" // Green for Sci-Net full-text
+                      : "#1890ff", // Default blue
                 }}
                 onClick={() => {
-                  window.open(result.url, "_blank");
+                  const url =
+                    sciNetAvailability[result.doi] === true
+                      ? `https://sci-net.xyz/${result.doi}` // Sci-Net full-text URL
+                      : result.url; // Original URL
+                  window.open(url, "_blank");
                 }}
               >
-                {(result.source === "scihub" || result.source === "arxiv") ? "View Fulltext" : "View Source"}
+                {sciNetAvailability[result.doi] === true
+                  ? "Fulltext Sci-Net"
+                  : result.source === "scihub" || result.source === "arxiv"
+                  ? "View Fulltext"
+                  : "View Source"}
               </Button>
               {(result.source === "scihub" || result.source === "arxiv") && (
                 <Button

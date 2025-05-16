@@ -17,6 +17,7 @@
     "@types/react": "^19.0.8",
     "antd": "^5.23.3",
     "assert": "^2.1.0",
+    "axios": "^1.9.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
