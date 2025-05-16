@@ -34,10 +34,11 @@ function SearchResult({
   const [showScihub, setShowScihub] = useState(false);
   const [displayCount, setDisplayCount] = useState(5);
   const [matchedArticles, setMatchedArticles] = useState({});
-  const [sortField, setSortField] = useState("similarity"); // Default sort by similarity
-  const [sortDirection, setSortDirection] = useState("desc"); // Default descending
+  const [sortField, setSortField] = useState("similarity");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [defaultSort, setDefaultSort] = useState({ field: "similarity", direction: "desc" }); // Store default sort
 
-  // Build title-to-article mapping on mount
+  // Build title-to-article mapping and set default sort on mount or results change
   useEffect(() => {
     const articleMap = {};
     articlesMerged.forEach((article) => {
@@ -47,7 +48,12 @@ function SearchResult({
       };
     });
     setMatchedArticles(articleMap);
-  }, []);
+
+    // Update default sort when results change
+    setDefaultSort({ field: "similarity", direction: "desc" });
+    setSortField("similarity");
+    setSortDirection("desc");
+  }, [results]);
 
   const toggleScihub = (checked) => {
     setShowScihub(checked);
@@ -64,14 +70,12 @@ function SearchResult({
     return res_r.join(" ");
   }
 
-  // Define similarity order
   const similarityOrder = {
     "highly relevant": 3,
     "somewhat relevant": 2,
     "barely related": 1,
   };
 
-  // Sorting function
   const sortResults = (results) => {
     return [...results].sort((a, b) => {
       let valueA, valueB;
@@ -79,7 +83,9 @@ function SearchResult({
         case "similarity":
           valueA = similarityOrder[a.similarity] || 0;
           valueB = similarityOrder[b.similarity] || 0;
-          break;
+          return sortDirection === "asc"
+            ? valueB - valueA // Higher relevance first
+            : valueA - valueB;
         case "year":
           valueA = a.year || 0;
           valueB = b.year || 0;
@@ -126,11 +132,15 @@ function SearchResult({
     }
   };
 
-  // Handle sort change
   const handleSortChange = (value) => {
-    const [field, direction] = value.split("_");
-    setSortField(field);
-    setSortDirection(direction);
+    if (value === "default") {
+      setSortField(defaultSort.field);
+      setSortDirection(defaultSort.direction);
+    } else {
+      const [field, direction] = value.split("_");
+      setSortField(field);
+      setSortDirection(direction);
+    }
   };
 
   return (
@@ -186,12 +196,12 @@ function SearchResult({
             width: isMobile ? "100%" : "auto",
           }}
         >
-          {/* Sorting Dropdown */}
           <Select
             defaultValue="similarity_desc"
             style={{ width: isMobile ? "100%" : 200, marginRight: 5 }}
             onChange={handleSortChange}
             options={[
+              { value: "default", label: "Default Sort" },
               { value: "similarity_desc", label: "Relevance (High to Low)" },
               { value: "similarity_asc", label: "Relevance (Low to High)" },
               { value: "year_desc", label: "Year (Newest First)" },
