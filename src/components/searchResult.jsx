@@ -240,10 +240,10 @@ function SearchResult({
           const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
           const buttonText = result.scinet
             ? "Fulltext Sci-Net"
-            : result.is_oa
-            ? "View Fulltext"
-            : "View Source";
-          const buttonColor = result.scinet ? "#52c41a" : "#1890ff";
+            : (result.is_oa || result.source === "scihub" || result.source === "arixv")
+              ? "View Fulltext"
+              : "View Source";
+          const buttonColor = result.scinet ? "#52c41a" : (result.is_oa || result.source === "scihub" || result.source === "arixv") ? "#52c41a" : "#1890ff";
           const buttonUrl = result.scinet
             ? `https://sci-net.xyz/${cleanDoi}`
             : result.url;

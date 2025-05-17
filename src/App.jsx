@@ -530,18 +530,20 @@ export default function SearchApp() {
 
   const features = [
     {
-      title: "Desci Integration",
-      description: "Access detailed paper analysis via Web3 Desci integration.",
-      icon: <LinkOutlined style={{ fontSize: "24px", color: "#1890ff" }} />,
+      title: "Data Storage & Contribution",
+      description: "Store papers and vectors with Irys decentralized tech. Explore via Scibox and earn points by uploading data!",
+      icon: <UploadOutlined style={{ fontSize: "24px", color: "#1890ff" }} />,
+      link: "https://scibox.store/",
     },
     {
-      title: "Deep Research",
-      description: "Engage in AI-driven conversations with the fulltext papers.",
+      title: "Paper Sharing Community",
+      description: "Join Sci-Net, maintained by SCI-Hub's founder, to access new papers and engage with the community!",
       icon: <CommentOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />,
+      link: "https://sci-net.xyz/",
     },
     {
       title: "Multi-Database Search",
-      description: "Search across Sci-Hub, OpenAlex, arXiv, and PubMed.",
+      description: "Search across Sci-Hub, OpenAlex, arXiv, PubMed and Web3 supported database like YNE.",
       icon: <DatabaseOutlined style={{ fontSize: "24px", color: "#000000" }} />,
     },
   ];
@@ -819,7 +821,7 @@ export default function SearchApp() {
           </Button>
           <div className="features-container">
             <Title level={3} style={{ margin: "0 0 28px 0", textAlign: "center", color: "#333" }}>
-              Discover Our Features
+              Tools & Update
             </Title>
             <List
               grid={{ gutter: 24, xs: 1, sm: 2, md: 3 }}
@@ -842,7 +844,7 @@ export default function SearchApp() {
                         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)",
                         backdropFilter: "blur(10px)",
                       }}
-                      bodyStyle={{ padding: "16px", textAlign: "center" }}
+                      onClick={() => { item.link && window.open(item.link, "_blank") }} // 添加点击跳转
                     >
                       <div style={{ background: item.gradient, padding: "2px", borderRadius: "12px", display: "inline-block" }}>
                         {item.icon}
@@ -934,7 +936,7 @@ export default function SearchApp() {
             {!loading && results.length === 0 && (
               <div className="features-container" style={{ padding: '0 16px' }}>
                 <Title level={3} style={{ margin: '0 0 28px 0', textAlign: 'center', color: '#333' }}>
-                  Discover Our Features
+                  Tools & Update
                 </Title>
                 <div style={{
                   display: 'flex',
@@ -968,6 +970,7 @@ export default function SearchApp() {
                           textAlign: 'center',
                           height: '100%'
                         }}
+                        onClick={() => item.link && window.open(item.link, "_blank")}
                       >
                         <div style={{
                           background: item.gradient,
@@ -994,7 +997,7 @@ export default function SearchApp() {
                 <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
                   <a>
                     {/* <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "} */}
-                    <span onClick={() => navigate("/ad")} style={{ color: "#fff" }}> Try: </span>{" "}
+                    <span onClick={() => navigate("/ad")} style={{ color: "#000" }}> Try: </span>{" "}
                     <span
                       style={{ cursor: "pointer", color: "#383FFF" }}
                       onClick={() => setQuery("The History of Scihub")}
