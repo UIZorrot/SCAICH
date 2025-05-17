@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { Switch, List, Space, Typography, Button, Select } from "antd";
 import { FileTextOutlined, SearchOutlined, LinkOutlined, DownOutlined } from "@ant-design/icons";
-import axios from "axios"; // Add axios for API requests
 import articlesMerged from "../articles_merged.json";
 
 const { Title, Text } = Typography;
 
-// ExpandAbstract component remains unchanged
 function ExpandAbstract({ abstract }) {
   const [isExpanded, setIsExpanded] = useState(false);
   return (
@@ -39,9 +37,7 @@ function SearchResult({
   const [sortField, setSortField] = useState("similarity");
   const [sortDirection, setSortDirection] = useState("desc");
   const [defaultSort, setDefaultSort] = useState({ field: "similarity", direction: "desc" });
-  const [sciNetAvailability, setSciNetAvailability] = useState({}); // New state for Sci-Net full-text
 
-  // Build title-to-article mapping and check Sci-Net availability
   useEffect(() => {
     const articleMap = {};
     articlesMerged.forEach((article) => {
@@ -52,40 +48,10 @@ function SearchResult({
     });
     setMatchedArticles(articleMap);
 
-    // Reset sort
     setDefaultSort({ field: "similarity", direction: "desc" });
     setSortField("similarity");
     setSortDirection("desc");
-
-    // Check Sci-Net availability for articles without full-text
-    const checkSciNet = async () => {
-      const articlesToCheck = results.filter(
-        (result) => result.doi && result.source !== "scihub" && result.source !== "arxiv"
-      );
-
-      const availabilityMap = { ...sciNetAvailability };
-      for (const article of articlesToCheck) {
-        // Skip if already checked
-        if (article.doi in availabilityMap) continue;
-
-        try {
-          const response = await axios.post("https://sci-net.xyz/search", {
-            doi: article.doi,
-          });
-          // Store true if sci-net is true, false otherwise
-          availabilityMap[article.doi] = response.data?.["sci-net"] === true;
-        } catch (error) {
-          console.error(`Error checking Sci-Net for DOI ${article.doi}:`, error);
-          availabilityMap[article.doi] = false; // Assume unavailable on error
-        }
-      }
-      setSciNetAvailability(availabilityMap);
-    };
-
-    if (results.length > 0) {
-      checkSciNet();
-    }
-  }, [results]);
+  }, []);
 
   const toggleScihub = (checked) => {
     setShowScihub(checked);
@@ -270,112 +236,114 @@ function SearchResult({
         className={classOver}
         itemLayout="vertical"
         dataSource={displayedResults}
-        renderItem={(result, index) => (
-          <List.Item>
-            <Title
-              onClick={() => {
-                window.open(result.url, "_blank");
-              }}
-              level={5}
-              style={{
-                marginBottom: "0.5vw",
-                color: "#575dff",
-                marginTop: "0",
-                cursor: "pointer",
-              }}
-            >
-              <span dangerouslySetInnerHTML={{ __html: highlight(result.title) }} />
-            </Title>
-            <Text
-              type="secondary"
-              style={{ fontSize: "14px", color: "#42e57e" }}
-            >
-              {result.author.length > 50
-                ? result.author.slice(0, 50) + "..."
-                : result.author.slice(0, 50)}{" "}
-              - {result.year} -{" "}
-              {result.location.length > 30
-                ? result.location.slice(0, 30) + "..."
-                : result.location.slice(0, 30)}
-            </Text>
-            <Text>
-              {" "}
-              | <i>Similarity: {result.similarity}</i>{" "}
-            </Text>
-            {handleDownloadImageSearch ? (
-              <ExpandAbstract abstract={result.abstract.replace("Abstract", "")} />
-            ) : (
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: result.abstract.replace("Abstract", ""),
-                }}
-              />
-            )}
-            <p>
-              <Text type="secondary" style={{ fontSize: "12px" }}>
-                <i>DOI: {result.doi}</i>
-              </Text>
-            </p>
-            <div style={{ display: "flex", gap: "8px", marginTop: 8 }}>
-              <Button
-                type="primary"
-                icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
-                style={{
-                  color: "#ffffff",
-                  background:
-                    sciNetAvailability[result.doi] === true
-                      ? "#52c41a" // Green for Sci-Net full-text
-                      : "#1890ff", // Default blue
-                }}
+        renderItem={(result, index) => {
+          const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
+          const buttonText = result.scinet
+            ? "Fulltext Sci-Net"
+            : result.is_oa
+            ? "View Fulltext"
+            : "View Source";
+          const buttonColor = result.scinet ? "#52c41a" : "#1890ff";
+          const buttonUrl = result.scinet
+            ? `https://sci-net.xyz/${cleanDoi}`
+            : result.url;
+
+          return (
+            <List.Item>
+              <Title
                 onClick={() => {
-                  const url =
-                    sciNetAvailability[result.doi] === true
-                      ? `https://sci-net.xyz/${result.doi}` // Sci-Net full-text URL
-                      : result.url; // Original URL
-                  window.open(url, "_blank");
+                  window.open(result.url, "_blank");
+                }}
+                level={5}
+                style={{
+                  marginBottom: "0.5vw",
+                  color: "#575dff",
+                  marginTop: "0",
+                  cursor: "pointer",
                 }}
               >
-                {sciNetAvailability[result.doi] === true
-                  ? "Fulltext Sci-Net"
-                  : result.source === "scihub" || result.source === "arxiv"
-                  ? "View Fulltext"
-                  : "View Source"}
-              </Button>
-              {(result.source === "scihub" || result.source === "arxiv") && (
-                <Button
-                  type="primary"
-                  icon={<SearchOutlined style={{ color: "#ffffff" }} />}
-                  style={{
-                    color: "#ffffff",
-                    background: "#ff4d4f",
+                <span dangerouslySetInnerHTML={{ __html: highlight(result.title) }} />
+              </Title>
+              <Text
+                type="secondary"
+                style={{ fontSize: "14px", color: "#42e57e" }}
+              >
+                {result.author.length > 50
+                  ? result.author.slice(0, 50) + "..."
+                  : result.author.slice(0, 50)}{" "}
+                - {result.year} -{" "}
+                {result.location.length > 30
+                  ? result.location.slice(0, 30) + "..."
+                  : result.location.slice(0, 30)}
+              </Text>
+              <Text>
+                {" "}
+                | <i>Similarity: {result.similarity}</i>{" "}
+              </Text>
+              {handleDownloadImageSearch ? (
+                <ExpandAbstract abstract={result.abstract.replace("Abstract", "")} />
+              ) : (
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: result.abstract.replace("Abstract", ""),
                   }}
-                  onClick={() => handleFullPaperClick(result.doi, result.source)}
-                >
-                  Deep Research
-                </Button>
+                />
               )}
-              {matchedArticles[result.title.toLowerCase()] && (
+              <p>
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  <i>DOI: {result.doi}</i>
+                </Text>
+              </p>
+              <div style={{ display: "flex", gap: "8px", marginTop: 8 }}>
                 <Button
                   type="primary"
-                  icon={<LinkOutlined style={{ color: "#ffffff" }} />}
+                  icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
                   style={{
                     color: "#ffffff",
-                    background: "#000000",
+                    background: buttonColor,
                   }}
                   onClick={() => {
-                    const { id, paperid } = matchedArticles[result.title.toLowerCase()];
-                    window.open(
-                      `https://yesnoerror.com/d/${paperid}/${id}`,
-                      "_blank"
-                    );
+                    window.open(buttonUrl, "_blank");
                   }}
                 >
-                  View YNE Result
+                  {buttonText}
                 </Button>
-              )}
-            </div>
-          </List.Item>
-        )}
+                {(result.source === "scihub" || result.source === "arxiv") && (
+                  <Button
+                    type="primary"
+                    icon={<SearchOutlined style={{ color: "#ffffff" }} />}
+                    style={{
+                      color: "#ffffff",
+                      background: "#ff4d4f",
+                    }}
+                    onClick={() => handleFullPaperClick(result.doi, result.source)}
+                  >
+                    Deep Research
+                  </Button>
+                )}
+                {matchedArticles[result.title.toLowerCase()] && (
+                  <Button
+                    type="primary"
+                    icon={<LinkOutlined style={{ color: "#ffffff" }} />}
+                    style={{
+                      color: "#ffffff",
+                      background: "#000000",
+                    }}
+                    onClick={() => {
+                      const { id, paperid } = matchedArticles[result.title.toLowerCase()];
+                      window.open(
+                        `https://yesnoerror.com/d/${paperid}/${id}`,
+                        "_blank"
+                      );
+                    }}
+                  >
+                    View YNE Result
+                  </Button>
+                )}
+              </div>
+            </List.Item>
+          );
+        }}
       />
       {displayCount < filteredResults.length && (
         <div style={{ textAlign: "center", marginTop: "15px" }}>
