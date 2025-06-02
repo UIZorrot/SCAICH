@@ -785,7 +785,8 @@ export default function SearchApp() {
           </div>
         </Drawer>
       </div>
-      {!isLoggedIn ? (
+      {/* TODO: Trial */}
+      {(!isLoggedIn || false) ? (
         <div
           style={{
             width: "80%",
