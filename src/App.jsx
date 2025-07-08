@@ -786,279 +786,475 @@ export default function SearchApp() {
         </Drawer>
       </div>
       {/* TODO: Trial */}
-      {(!isLoggedIn || false) ? (
-        <div
-          style={{
-            width: "80%",
-            margin: "auto",
-            padding: "32px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            background: "rgba(255, 255, 255, 0.12)",
-            backdropFilter: "blur(6px)",
-            borderRadius: "32px",
-          }}
-        >
-          <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "30px 0" }}>
-            <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginBottom: "12px", borderRadius: "72px" }} />
-            <Title level={2} style={{ margin: 0, fontSize: isMobile ? "28px" : "36px", fontWeight: "800", color: "#333" }}>
-              SCAICH
-            </Title>
-            <Text style={{ margin: "8px 0", fontSize: isMobile ? "16px" : "20px", fontWeight: "300", color: "#333" }}>
-              SCAI Search Engine
-            </Text>
-            <Text style={{ margin: 0, fontSize: isMobile ? "12px" : "16px", fontWeight: "300", color: "#333" }}>
-              Your AI Gateway to Open-Access Scientific Research
-            </Text>
+      {
+        // (!isLoggedIn || false) ? (
+        //   <div
+        //     style={{
+        //       width: "80%",
+        //       margin: "auto",
+        //       padding: "32px",
+        //       display: "flex",
+        //       flexDirection: "column",
+        //       alignItems: "center",
+        //       background: "rgba(255, 255, 255, 0.12)",
+        //       backdropFilter: "blur(6px)",
+        //       borderRadius: "32px",
+        //     }}
+        //   >
+        //     <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "30px 0" }}>
+        //       <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginBottom: "12px", borderRadius: "72px" }} />
+        //       <Title level={2} style={{ margin: 0, fontSize: isMobile ? "28px" : "36px", fontWeight: "800", color: "#333" }}>
+        //         SCAICH
+        //       </Title>
+        //       <Text style={{ margin: "8px 0", fontSize: isMobile ? "16px" : "20px", fontWeight: "300", color: "#333" }}>
+        //         SCAI Search Engine
+        //       </Text>
+        //       <Text style={{ margin: 0, fontSize: isMobile ? "12px" : "16px", fontWeight: "300", color: "#333" }}>
+        //         Your AI Gateway to Open-Access Scientific Research
+        //       </Text>
+        //     </div>
+        //     <Button
+        //       type="primary"
+        //       size="large"
+        //       onClick={() => setLoginModalVisible(true)}
+        //       style={{ background: "linear-gradient(45deg, rgba(255, 24, 55, 0.95), rgb(255, 96, 131))", borderRadius: "8px", marginBottom: "24px" }}
+        //     >
+        //       Login with Invite Code or User ID
+        //     </Button>
+        //     <div className="features-container">
+        //       <Title level={3} style={{ margin: "0 0 28px 0", textAlign: "center", color: "#333" }}>
+        //         Tools & Update
+        //       </Title>
+        //       <List
+        //         grid={{ gutter: 24, xs: 1, sm: 2, md: 3 }}
+        //         dataSource={features}
+        //         renderItem={(item, index) => (
+        //           <List.Item>
+        //             <motion.div
+        //               initial={{ opacity: 0, y: 20 }}
+        //               animate={{ opacity: 1, y: 0 }}
+        //               transition={{ duration: 0.5, delay: index * 0.1 }}
+        //             >
+        //               <Card
+        //                 hoverable
+        //                 className="feature-card"
+        //                 style={{
+        //                   background: "rgba(255, 255, 255, 0.15)",
+        //                   borderRadius: "16px",
+        //                   border: "2px solid transparent",
+        //                   backgroundClip: "padding-box",
+        //                   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)",
+        //                   backdropFilter: "blur(10px)",
+        //                 }}
+        //                 onClick={() => { item.link && window.open(item.link, "_blank") }} // 添加点击跳转
+        //               >
+        //                 <div style={{ background: item.gradient, padding: "2px", borderRadius: "12px", display: "inline-block" }}>
+        //                   {item.icon}
+        //                 </div>
+        //                 <Title level={5} style={{ margin: "12px 0 8px", color: "#333", fontWeight: 700 }}>
+        //                   {item.title}
+        //                 </Title>
+        //                 <Text style={{ color: "#333", fontWeight: 300 }}>{item.description}</Text>
+        //               </Card>
+        //             </motion.div>
+        //           </List.Item>
+        //         )}
+        //       />
+        //     </div>
+        //   </div>
+        // ) : (
+        //   <div
+        //     className="SearchArea"
+        //     style={{
+        //       margin: results.length === 0 ? "auto" : "2vw",
+        //       paddingBottom: results.length === 0 ? "16px" : "16px",
+        //       display: "flex",
+        //       flexDirection: "column",
+        //       alignItems: "center",
+        //       backgroundColor: "rgba(255, 255, 255, 0.4)",
+        //       backdropFilter: "blur(6px)",
+        //     }}
+        //   >
+        //     {results.length === 0 && (
+        //       <div>
+        //         {!isMobile ? (
+        //           <div style={{ zIndex: 2, display: "flex", alignItems: "center", margin: "30px", marginTop: 44 }}>
+        //             <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
+        //             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        //               <div style={{ display: "flex", alignItems: "center" }}>
+        //                 <Title level={4} style={{ margin: 0, fontSize: "36px", fontWeight: "800" }}>
+        //                   SCAICH
+        //                 </Title>
+        //                 <Text style={{ margin: 0, marginLeft: "12px", fontSize: "32px", fontWeight: "300" }}>
+        //                   | SCAI search engine
+        //                 </Text>
+        //               </div>
+        //               <Text style={{ margin: 0, fontSize: "16px", fontWeight: "300" }}>
+        //                 Your AI Gateway to Open-Access Scientific Research
+        //               </Text>
+        //             </div>
+        //           </div>
+        //         ) : (
+        //           <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        //             <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
+        //             <Title level={4} style={{ margin: 0, fontSize: "32px", fontWeight: "800" }}>
+        //               SCAICH
+        //             </Title>
+        //             <Text style={{ margin: 0, marginLeft: "12px", fontSize: "20px", fontWeight: "300" }}>
+        //               SCAI search engine
+        //             </Text>
+        //             <Text style={{ margin: 0, fontSize: "12px", fontWeight: "300" }}>
+        //               Your AI Gateway to Open-Access Scientific Research
+        //             </Text>
+        //           </div>
+        //         )}
+        //       </div>
+        //     )}
+        //     <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: (results.length === 0 || isMobile) ? "0px" : "40px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
+        //       <Input.Search
+        //         placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
+        //         enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
+        //         size="large"
+        //         value={query}
+        //         onChange={(e) => setQuery(e.target.value)}
+        //         onSearch={handleSearch}
+        //         loading={false}
+        //         addonBefore={
+        //           <KeyOutlined
+        //             style={{
+        //               fontSize: 20,
+        //               color: iconColor,
+        //               cursor: "pointer",
+        //               marginLeft: 8,
+        //             }}
+        //             onClick={handleSuffixClick}
+        //           />
+        //         }
+        //         style={{
+        //           width: "96%",
+        //           marginBottom: "10px",
+        //         }}
+        //       />
+        //       {!loading && results.length === 0 && (
+        //         <div className="features-container" style={{ padding: '0 16px' }}>
+        //           <Title level={3} style={{ margin: '0 0 28px 0', textAlign: 'center', color: '#333' }}>
+        //             Tools & Update
+        //           </Title>
+        //           <div style={{
+        //             display: 'flex',
+        //             justifyContent: 'center',
+        //             gap: '24px',
+        //             flexWrap: 'wrap',
+        //             margin: '0 auto'
+        //           }}>
+        //             {features.slice(0, 3).map((item, index) => (
+        //               <motion.div
+        //                 key={item.title}
+        //                 initial={{ opacity: 0, y: 20 }}
+        //                 animate={{ opacity: 1, y: 0 }}
+        //                 transition={{ duration: 0.5, delay: index * 0.1 }}
+        //                 style={{
+        //                   flex: '1 1 0',
+        //                   minWidth: 250,
+        //                 }}
+        //               >
+        //                 <Card
+        //                   hoverable
+        //                   className="feature-card"
+        //                   style={{
+        //                     background: 'rgba(255, 255, 255, 0.15)',
+        //                     borderRadius: '16px',
+        //                     border: '2px solid transparent',
+        //                     backgroundClip: 'padding-box',
+        //                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)',
+        //                     backdropFilter: 'blur(10px)',
+        //                     padding: '16px',
+        //                     textAlign: 'center',
+        //                     height: '100%'
+        //                   }}
+        //                   onClick={() => item.link && window.open(item.link, "_blank")}
+        //                 >
+        //                   <div style={{
+        //                     background: item.gradient,
+        //                     padding: '2px',
+        //                     borderRadius: '12px',
+        //                     display: 'inline-block'
+        //                   }}>
+        //                     {item.icon}
+        //                   </div>
+        //                   <Title level={5} style={{ margin: '12px 0 8px', color: '#333', fontWeight: 700 }}>
+        //                     {item.title}
+        //                   </Title>
+        //                   <Text style={{ color: '#333', fontWeight: 300 }}>
+        //                     {item.description}
+        //                   </Text>
+        //                 </Card>
+        //               </motion.div>
+        //             ))}
+        //           </div>
+        //         </div>
+        //       )}
+        //       {!loading && results.length === 0 && (
+        //         <div>
+        //           <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
+        //             <a>
+        //               {/* <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "} */}
+        //               <span onClick={() => navigate("/ad")} style={{ color: "#000" }}> Try: </span>{" "}
+        //               <span
+        //                 style={{ cursor: "pointer", color: "#383FFF" }}
+        //                 onClick={() => setQuery("The History of Scihub")}
+        //               >
+        //                 The History of Sci-hub
+        //               </span>{" "}
+        //               <span style={{ color: "#333" }}>·</span>{" "}
+        //               <span
+        //                 style={{ cursor: "pointer", color: "#383FFF" }}
+        //                 onClick={() => setQuery("The Principle of Deep Learning")}
+        //               >
+        //                 The Principle of Deep Learning
+        //               </span>
+        //             </a>
+        //           </Text>
+        //         </div>
+        //       )}
+        //     </div>
+        //     {loading && <LoadingComponent loading={loading} />}
+        //     {results.length > 0 && (
+        //       <div style={{ width: "96%" }}>
+        //         <div className="respanel">
+        //           <div className="respanel1">
+        //             {summary && (
+        //               <Summary
+        //                 isLocal={isFromLocal}
+        //                 summary={summary}
+        //                 pro={true}
+        //                 isCollapsed={isCollapsed}
+        //                 handleToggle={handleToggle}
+        //                 handleDownloadImage={handleDownloadImage}
+        //                 handleShareImage={handleShareImage}
+        //                 isMobile={isMobile}
+        //               />
+        //             )}
+        //           </div>
+        //           <div className="respanel2">
+        //             <SearchResult
+        //               query={query}
+        //               results={results}
+        //               classOver="results-list"
+        //               handleDownloadImageSearch={handleDownloadImageSearch}
+        //               handleShareImageSearch={handleShareImage}
+        //               isMobile={isMobile}
+        //               onReadFullText={handleReadFullText}
+        //               pro={true}
+        //               setModalVisible={setModalVisible}
+        //             />
+        //           </div>
+        //         </div>
+        //         <div style={{ width: "100%", alignContent: "center", alignItems: "center", textAlign: "center", marginTop: "15px" }}>
+        //           <Text style={{ marginBottom: "15px", color: "#999999", opacity: 0.7 }}>
+        //             Due to the network condition, the base model can be switch from Deepseek to GPT accordingly.
+        //           </Text>
+        //         </div>
+        //       </div>
+        //     )}
+        //   </div>
+        // )
+      }
+      <div
+        className="SearchArea"
+        style={{
+          margin: results.length === 0 ? "auto" : "2vw",
+          paddingBottom: results.length === 0 ? "16px" : "16px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.4)",
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        {results.length === 0 && (
+          <div>
+            {!isMobile ? (
+              <div style={{ zIndex: 2, display: "flex", alignItems: "center", margin: "30px", marginTop: 44 }}>
+                <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Title level={4} style={{ margin: 0, fontSize: "36px", fontWeight: "800" }}>
+                      SCAICH
+                    </Title>
+                    <Text style={{ margin: 0, marginLeft: "12px", fontSize: "32px", fontWeight: "300" }}>
+                      | SCAI search engine
+                    </Text>
+                  </div>
+                  <Text style={{ margin: 0, fontSize: "16px", fontWeight: "300" }}>
+                    Your AI Gateway to Open-Access Scientific Research
+                  </Text>
+                </div>
+              </div>
+            ) : (
+              <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
+                <Title level={4} style={{ margin: 0, fontSize: "32px", fontWeight: "800" }}>
+                  SCAICH
+                </Title>
+                <Text style={{ margin: 0, marginLeft: "12px", fontSize: "20px", fontWeight: "300" }}>
+                  SCAI search engine
+                </Text>
+                <Text style={{ margin: 0, fontSize: "12px", fontWeight: "300" }}>
+                  Your AI Gateway to Open-Access Scientific Research
+                </Text>
+              </div>
+            )}
           </div>
-          <Button
-            type="primary"
+        )}
+        <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: (results.length === 0 || isMobile) ? "0px" : "40px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
+          <Input.Search
+            placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
+            enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
             size="large"
-            onClick={() => setLoginModalVisible(true)}
-            style={{ background: "linear-gradient(45deg, rgba(255, 24, 55, 0.95), rgb(255, 96, 131))", borderRadius: "8px", marginBottom: "24px" }}
-          >
-            Login with Invite Code or User ID
-          </Button>
-          <div className="features-container">
-            <Title level={3} style={{ margin: "0 0 28px 0", textAlign: "center", color: "#333" }}>
-              Tools & Update
-            </Title>
-            <List
-              grid={{ gutter: 24, xs: 1, sm: 2, md: 3 }}
-              dataSource={features}
-              renderItem={(item, index) => (
-                <List.Item>
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onSearch={handleSearch}
+            loading={false}
+            addonBefore={
+              <KeyOutlined
+                style={{
+                  fontSize: 20,
+                  color: iconColor,
+                  cursor: "pointer",
+                  marginLeft: 8,
+                }}
+                onClick={handleSuffixClick}
+              />
+            }
+            style={{
+              width: "96%",
+              marginBottom: "10px",
+            }}
+          />
+          {!loading && results.length === 0 && (
+            <div className="features-container" style={{ padding: '0 16px' }}>
+              <Title level={3} style={{ margin: '0 0 28px 0', textAlign: 'center', color: '#333' }}>
+                Tools & Update
+              </Title>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '24px',
+                flexWrap: 'wrap',
+                margin: '0 auto'
+              }}>
+                {features.slice(0, 3).map((item, index) => (
                   <motion.div
+                    key={item.title}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
+                    style={{
+                      flex: '1 1 0',
+                      minWidth: 250,
+                    }}
                   >
                     <Card
                       hoverable
                       className="feature-card"
                       style={{
-                        background: "rgba(255, 255, 255, 0.15)",
-                        borderRadius: "16px",
-                        border: "2px solid transparent",
-                        backgroundClip: "padding-box",
-                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)",
-                        backdropFilter: "blur(10px)",
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        borderRadius: '16px',
+                        border: '2px solid transparent',
+                        backgroundClip: 'padding-box',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)',
+                        backdropFilter: 'blur(10px)',
+                        padding: '16px',
+                        textAlign: 'center',
+                        height: '100%'
                       }}
-                      onClick={() => { item.link && window.open(item.link, "_blank") }} // 添加点击跳转
+                      onClick={() => item.link && window.open(item.link, "_blank")}
                     >
-                      <div style={{ background: item.gradient, padding: "2px", borderRadius: "12px", display: "inline-block" }}>
+                      <div style={{
+                        background: item.gradient,
+                        padding: '2px',
+                        borderRadius: '12px',
+                        display: 'inline-block'
+                      }}>
                         {item.icon}
                       </div>
-                      <Title level={5} style={{ margin: "12px 0 8px", color: "#333", fontWeight: 700 }}>
+                      <Title level={5} style={{ margin: '12px 0 8px', color: '#333', fontWeight: 700 }}>
                         {item.title}
                       </Title>
-                      <Text style={{ color: "#333", fontWeight: 300 }}>{item.description}</Text>
+                      <Text style={{ color: '#333', fontWeight: 300 }}>
+                        {item.description}
+                      </Text>
                     </Card>
                   </motion.div>
-                </List.Item>
-              )}
-            />
-          </div>
-        </div>
-      ) : (
-        <div
-          className="SearchArea"
-          style={{
-            margin: results.length === 0 ? "auto" : "2vw",
-            paddingBottom: results.length === 0 ? "16px" : "16px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.4)",
-            backdropFilter: "blur(6px)",
-          }}
-        >
-          {results.length === 0 && (
+                ))}
+              </div>
+            </div>
+          )}
+          {!loading && results.length === 0 && (
             <div>
-              {!isMobile ? (
-                <div style={{ zIndex: 2, display: "flex", alignItems: "center", margin: "30px", marginTop: 44 }}>
-                  <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      <Title level={4} style={{ margin: 0, fontSize: "36px", fontWeight: "800" }}>
-                        SCAICH
-                      </Title>
-                      <Text style={{ margin: 0, marginLeft: "12px", fontSize: "32px", fontWeight: "300" }}>
-                        | SCAI search engine
-                      </Text>
-                    </div>
-                    <Text style={{ margin: 0, fontSize: "16px", fontWeight: "300" }}>
-                      Your AI Gateway to Open-Access Scientific Research
-                    </Text>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "72px", marginRight: "12px", borderRadius: "72px" }} />
-                  <Title level={4} style={{ margin: 0, fontSize: "32px", fontWeight: "800" }}>
-                    SCAICH
-                  </Title>
-                  <Text style={{ margin: 0, marginLeft: "12px", fontSize: "20px", fontWeight: "300" }}>
-                    SCAI search engine
-                  </Text>
-                  <Text style={{ margin: 0, fontSize: "12px", fontWeight: "300" }}>
-                    Your AI Gateway to Open-Access Scientific Research
-                  </Text>
-                </div>
-              )}
-            </div>
-          )}
-          <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: (results.length === 0 || isMobile) ? "0px" : "40px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
-            <Input.Search
-              placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
-              enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
-              size="large"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onSearch={handleSearch}
-              loading={false}
-              addonBefore={
-                <KeyOutlined
-                  style={{
-                    fontSize: 20,
-                    color: iconColor,
-                    cursor: "pointer",
-                    marginLeft: 8,
-                  }}
-                  onClick={handleSuffixClick}
-                />
-              }
-              style={{
-                width: "96%",
-                marginBottom: "10px",
-              }}
-            />
-            {!loading && results.length === 0 && (
-              <div className="features-container" style={{ padding: '0 16px' }}>
-                <Title level={3} style={{ margin: '0 0 28px 0', textAlign: 'center', color: '#333' }}>
-                  Tools & Update
-                </Title>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: '24px',
-                  flexWrap: 'wrap',
-                  margin: '0 auto'
-                }}>
-                  {features.slice(0, 3).map((item, index) => (
-                    <motion.div
-                      key={item.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      style={{
-                        flex: '1 1 0',
-                        minWidth: 250,
-                      }}
-                    >
-                      <Card
-                        hoverable
-                        className="feature-card"
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.15)',
-                          borderRadius: '16px',
-                          border: '2px solid transparent',
-                          backgroundClip: 'padding-box',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)',
-                          backdropFilter: 'blur(10px)',
-                          padding: '16px',
-                          textAlign: 'center',
-                          height: '100%'
-                        }}
-                        onClick={() => item.link && window.open(item.link, "_blank")}
-                      >
-                        <div style={{
-                          background: item.gradient,
-                          padding: '2px',
-                          borderRadius: '12px',
-                          display: 'inline-block'
-                        }}>
-                          {item.icon}
-                        </div>
-                        <Title level={5} style={{ margin: '12px 0 8px', color: '#333', fontWeight: 700 }}>
-                          {item.title}
-                        </Title>
-                        <Text style={{ color: '#333', fontWeight: 300 }}>
-                          {item.description}
-                        </Text>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {!loading && results.length === 0 && (
-              <div>
-                <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
-                  <a>
-                    {/* <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "} */}
-                    <span onClick={() => navigate("/ad")} style={{ color: "#000" }}> Try: </span>{" "}
-                    <span
-                      style={{ cursor: "pointer", color: "#383FFF" }}
-                      onClick={() => setQuery("The History of Scihub")}
-                    >
-                      The History of Sci-hub
-                    </span>{" "}
-                    <span style={{ color: "#333" }}>·</span>{" "}
-                    <span
-                      style={{ cursor: "pointer", color: "#383FFF" }}
-                      onClick={() => setQuery("The Principle of Deep Learning")}
-                    >
-                      The Principle of Deep Learning
-                    </span>
-                  </a>
-                </Text>
-              </div>
-            )}
-          </div>
-          {loading && <LoadingComponent loading={loading} />}
-          {results.length > 0 && (
-            <div style={{ width: "96%" }}>
-              <div className="respanel">
-                <div className="respanel1">
-                  {summary && (
-                    <Summary
-                      isLocal={isFromLocal}
-                      summary={summary}
-                      pro={true}
-                      isCollapsed={isCollapsed}
-                      handleToggle={handleToggle}
-                      handleDownloadImage={handleDownloadImage}
-                      handleShareImage={handleShareImage}
-                      isMobile={isMobile}
-                    />
-                  )}
-                </div>
-                <div className="respanel2">
-                  <SearchResult
-                    query={query}
-                    results={results}
-                    classOver="results-list"
-                    handleDownloadImageSearch={handleDownloadImageSearch}
-                    handleShareImageSearch={handleShareImage}
-                    isMobile={isMobile}
-                    onReadFullText={handleReadFullText}
-                    pro={true}
-                    setModalVisible={setModalVisible}
-                  />
-                </div>
-              </div>
-              <div style={{ width: "100%", alignContent: "center", alignItems: "center", textAlign: "center", marginTop: "15px" }}>
-                <Text style={{ marginBottom: "15px", color: "#999999", opacity: 0.7 }}>
-                  Due to the network condition, the base model can be switch from Deepseek to GPT accordingly.
-                </Text>
-              </div>
+              <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
+                <a>
+                  {/* <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "} */}
+                  <span onClick={() => navigate("/ad")} style={{ color: "#000" }}> Try: </span>{" "}
+                  <span
+                    style={{ cursor: "pointer", color: "#383FFF" }}
+                    onClick={() => setQuery("The History of Scihub")}
+                  >
+                    The History of Sci-hub
+                  </span>{" "}
+                  <span style={{ color: "#333" }}>·</span>{" "}
+                  <span
+                    style={{ cursor: "pointer", color: "#383FFF" }}
+                    onClick={() => setQuery("The Principle of Deep Learning")}
+                  >
+                    The Principle of Deep Learning
+                  </span>
+                </a>
+              </Text>
             </div>
           )}
         </div>
-      )
-      }
+        {loading && <LoadingComponent loading={loading} />}
+        {results.length > 0 && (
+          <div style={{ width: "96%" }}>
+            <div className="respanel">
+              <div className="respanel1">
+                {summary && (
+                  <Summary
+                    isLocal={isFromLocal}
+                    summary={summary}
+                    pro={true}
+                    isCollapsed={isCollapsed}
+                    handleToggle={handleToggle}
+                    handleDownloadImage={handleDownloadImage}
+                    handleShareImage={handleShareImage}
+                    isMobile={isMobile}
+                  />
+                )}
+              </div>
+              <div className="respanel2">
+                <SearchResult
+                  query={query}
+                  results={results}
+                  classOver="results-list"
+                  handleDownloadImageSearch={handleDownloadImageSearch}
+                  handleShareImageSearch={handleShareImage}
+                  isMobile={isMobile}
+                  onReadFullText={handleReadFullText}
+                  pro={true}
+                  setModalVisible={setModalVisible}
+                />
+              </div>
+            </div>
+            <div style={{ width: "100%", alignContent: "center", alignItems: "center", textAlign: "center", marginTop: "15px" }}>
+              <Text style={{ marginBottom: "15px", color: "#999999", opacity: 0.7 }}>
+                Due to the network condition, the base model can be switch from Deepseek to GPT accordingly.
+              </Text>
+            </div>
+          </div>
+        )}
+      </div>
       <div
         className="footer"
         style={{
@@ -1070,7 +1266,8 @@ export default function SearchApp() {
           flexWrap: "wrap",
         }}
       >
-        <span>Powered By <img src="/1e9dd61f74c6ec7657ed8a93d3df1d9.png" alt="Deepseek" className="footer-logo" /></span>
+        <img src="/1e9dd61f74c6ec7657ed8a93d3df1d9.png" alt="Deepseek" className="footer-logo" />
+        <img src="/1e9dd61f74c6ec7657ed8a93d3df1d9.png" alt="Deepseek" className="footer-logo" />
         {/* <img src="/logo3.png" alt="SCI-HUB" className="footer-logo" /> */}
         {/* <img src="/logo4.png" alt="Scihub Community" className="footer-logo" /> */}
         {/* <img src="/logo5.png" alt="Milvus" className="footer-logo" />
