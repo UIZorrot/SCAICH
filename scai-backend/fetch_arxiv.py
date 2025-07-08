@@ -49,7 +49,7 @@ class PaperSearcher:
 
             for result in search1.results():
                 paper_data = {
-                    "source": "a",
+                    "source": "arxiv",
                     "doi": result.entry_id,
                     "title": result.title,
                     "author": [(author.name + ", ") for author in result.authors],
@@ -58,12 +58,13 @@ class PaperSearcher:
                     "scihub_url": result.entry_id,
                     "url": result.entry_id,
                     "referencecount": "Not Available",
+                    "location": "arxiv"
                 }
                 papers.append(paper_data)
 
             for result in search.results():
                 paper_data = {
-                    "source": "a",
+                    "source": "arxiv",
                     "doi": result.entry_id,
                     "title": result.title,
                     "author": [(author.name + ", ") for author in result.authors],
@@ -72,6 +73,7 @@ class PaperSearcher:
                     "scihub_url": result.entry_id,
                     "url": result.entry_id,
                     "referencecount": "Not Available",
+                    "location": "arxiv"
                 }
                 papers.append(paper_data)
         except Exception as e:

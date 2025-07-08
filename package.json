@@ -5,6 +5,8 @@
   "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72",
   "dependencies": {
     "@ant-design/icons": "^5.6.0",
+    "@irys/upload": "^0.0.15",
+    "@irys/upload-solana": "^0.1.8",
     "@rainbow-me/rainbowkit": "^2.2.4",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.35",
@@ -21,6 +23,7 @@
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
+    "dotenv": "^17.0.1",
     "framer-motion": "^12.9.4",
     "html2canvas": "^1.4.1",
     "https-browserify": "^1.0.0",

@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciBox PDF Uploader</title>
+    <style>
+        :root {
+            /* Core colors */
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            
+            /* Accent colors */
+            --accent: #6366F1;
+            --accent-hover: #4F46E5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            
+            /* UI elements */
+            --border: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.1);
+            --overlay: rgba(15, 23, 42, 0.8);
+            --glass: rgba(255, 255, 255, 0.03);
+            
+            /* Effects */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --glow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 95%;
+            margin: 0 auto;
+        }
+
+        .pdf-uploader {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: minmax(700px, 1fr) 380px;
+            gap: 2rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-lg);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .metadata {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: grid;
+            gap: 1rem;
+            animation: slideUp 0.3s ease;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-group label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .input-group input,
+        .input-group textarea {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+            outline: none;
+        }
+
+        .input-group input {
+            height: 42px;
+        }
+
+        .input-group textarea {
+            min-height: 80px;
+            max-height: 120px;
+            resize: vertical;
+        }
+
+        .dropzone {
+            background: var(--glass);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: slideUp 0.3s ease;
+        }
+
+        .dropzone:hover {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        .dropzone .upload-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .dropzone .icon {
+            width: 24px;
+            height: 24px;
+            color: var(--text-secondary);
+        }
+
+        .dropzone .text {
+            text-align: left;
+        }
+
+        .dropzone .text .primary {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .dropzone .text .secondary {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .side-panel {
+            border-left: 1px solid var(--border);
+            padding-left: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .side-panel .upload-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .status {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .warning strong {
+            color: var(--warning);
+        }
+
+        .steps {
+            background: var(--glass);
+            border-radius: 16px;
+            padding: 1.25rem;
+            animation: slideUp 0.3s ease;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            animation: slideUp 0.3s ease;
+            animation-fill-mode: both;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .step-content {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .step-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: var(--glass);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .step.active {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .step.active .step-number {
+            background: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .step.active .step-status {
+            background: var(--accent);
+            color: var(--text-primary);
+            border-color: var(--accent-hover);
+        }
+
+        .step.completed {
+            opacity: 0.75;
+        }
+
+        .step.completed .step-number {
+            background: var(--success);
+            color: var(--text-primary);
+        }
+
+        .step.completed .step-status {
+            background: var(--success);
+            color: var(--text-primary);
+            border-color: var(--success);
+        }
+
+        .button {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .button:hover {
+            background: var(--accent);
+            border-color: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--glow);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (max-width: 1200px) {
+            .pdf-uploader {
+                grid-template-columns: 1fr;
+            }
+
+            .side-panel {
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding: 1.5rem 0 0;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .pdf-uploader {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .action-buttons .button {
+            width: 100%;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .wallet-selector {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            z-index: 1001;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .wallet-selector h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .wallet-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .wallet-option:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: var(--glow);
+        }
+
+        .wallet-option img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .wallet-option span {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .upload-result {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .upload-result h3 {
+            color: var(--success);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .upload-result a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .upload-result a:hover {
+            color: var(--accent-hover);
+        }
+
+        .progress {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--glass);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-hover) 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .pdf-uploader {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .metadata, .dropzone, .steps {
+            animation: slideUp 0.3s ease;
+        }
+
+        .step {
+            animation: slideUp 0.3s ease;
+            animation-fill-mode: both;
+        }
+
+        .step:nth-child(1) { animation-delay: 0.1s; }
+        .step:nth-child(2) { animation-delay: 0.2s; }
+        .step:nth-child(3) { animation-delay: 0.3s; }
+        .step:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <div class="container">
+        <div class="pdf-uploader">
+            <div class="main-content">
+                <div class="header">
+                    <h1>SciBox PDF Uploader</h1>
+                </div>
+
+                <div class="metadata">
+                    <div class="input-group">
+                        <label>Paper Title</label>
+                        <input type="text" id="titleInput" placeholder="Enter the title of your paper">
+                    </div>
+                    <div class="input-group">
+                        <label>DOI</label>
+                        <input type="text" id="doiInput" placeholder="e.g., 10.1234/journal.paper">
+                    </div>
+                    <div class="input-group">
+                        <label>Authors</label>
+                        <input type="text" id="authorsInput" placeholder="Separate multiple authors with commas">
+                    </div>
+                    <div class="input-group">
+                        <label>Abstract</label>
+                        <textarea id="abstractInput" placeholder="Brief summary of your paper"></textarea>
+                    </div>
+                </div>
+
+                <div class="dropzone" id="dropZone">
+                    <div class="upload-content">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <div class="text">
+                            <span class="primary">Drop your PDF file here</span>
+                            <span class="secondary">or click to browse</span>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" accept=".pdf" style="display: none">
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <div class="upload-section">
+                    <div class="status" id="status">Not connected</div>
+                    
+                    <div class="warning" id="warningMessage">
+                        <strong>⚠️ Important:</strong> Please keep this page open during the upload process.
+                    </div>
+
+                    <div class="progress" id="progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">Preparing upload...</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="button" id="connectBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 7h-7m0 0v7m0-7l7 7m-7-7H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-3"/>
+                            </svg>
+                            Connect Wallet
+                        </button>
+                        <button class="button" id="uploadBtn" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Upload PDF
+                        </button>
+                    </div>
+
+                    <div class="steps" id="uploadSteps">
+                        <div class="step" data-step="connect">
+                            <div class="step-number">1</div>
+                            <div class="step-content">Connect Wallet</div>
+                            <div class="step-status">Pending</div>
+                        </div>
+                        <div class="step" data-step="prepare">
+                            <div class="step-number">2</div>
+                            <div class="step-content">Prepare Upload</div>
+                            <div class="step-status">Pending</div>
+                        </div>
+                        <div class="step" data-step="fund">
+                            <div class="step-number">3</div>
+                            <div class="step-content">Fund Transaction</div>
+                            <div class="step-status">Pending</div>
+                        </div>
+                        <div class="step" data-step="upload">
+                            <div class="step-number">4</div>
+                            <div class="step-content">Upload Files</div>
+                            <div class="step-status">Pending</div>
+                        </div>
+                    </div>
+
+                    <div class="upload-result" id="uploadResult"></div>
+                </div>
+
+                <a href="https://uploader.irys.xyz/8jE1vfpLF1WX1caQX27xjdt5rtGaCWGSEZYjis1CDsiu/index.html" class="button free-upload" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    or Upload for Free with more steps
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://uploader.irys.xyz/Cip4wmuMv1K3bmcL4vYoZuV2aQQnnzViqwHm6PCei3QX/bundle.js"></script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script>
+        class PDFUploader {
+            constructor() {
+                this.MAX_FILE_SIZE = 50 * 1024 * 1024;
+                this.RPC_ENDPOINT = 'https://mainnet.helius-rpc.com/?api-key=3ba5d042-cc72-4f2b-b26e-8db8d298aa10';
+                this.uploadState = {
+                    walletConnected: false,
+                    filePrepared: false,
+                    funded: false,
+                    uploading: false
+                };
+                this.initElements();
+                this.initEventListeners();
+                this.wallet = null;
+                this.irys = null;
+            }
+
+            initElements() {
+                this.elements = {
+                    status: document.getElementById('status'),
+                    connectBtn: document.getElementById('connectBtn'),
+                    uploadBtn: document.getElementById('uploadBtn'),
+                    dropZone: document.getElementById('dropZone'),
+                    fileInput: document.getElementById('fileInput'),
+                    titleInput: document.getElementById('titleInput'),
+                    doiInput: document.getElementById('doiInput'),
+                    authorsInput: document.getElementById('authorsInput'),
+                    abstractInput: document.getElementById('abstractInput'),
+                    warningMessage: document.getElementById('warningMessage'),
+                    uploadSteps: document.getElementById('uploadSteps'),
+                    progress: document.getElementById('progress'),
+                    progressFill: document.getElementById('progressFill'),
+                    progressText: document.getElementById('progressText'),
+                    uploadResult: document.getElementById('uploadResult')
+                };
+            }
+
+            initEventListeners() {
+                this.elements.connectBtn.addEventListener('click', () => this.connectWallet());
+                this.elements.uploadBtn.addEventListener('click', () => this.uploadPDF());
+                this.elements.dropZone.addEventListener('click', () => this.elements.fileInput.click());
+                this.elements.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                this.initDropZone();
+            }
+
+            initDropZone() {
+                this.elements.dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.elements.dropZone.classList.add('drag-over');
+                });
+
+                this.elements.dropZone.addEventListener('dragleave', () => {
+                    this.elements.dropZone.classList.remove('drag-over');
+                });
+
+                this.elements.dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.elements.dropZone.classList.remove('drag-over');
+                    const file = e.dataTransfer.files[0];
+                    if (file) this.handleFile(file);
+                });
+            }
+
+            async connectWallet() {
+                try {
+                    // 检查是否有可用的钱包
+                    if (window.solana) {
+                        this.wallet = window.solana;
+                    } else if (window.phantom?.solana) {
+                        this.wallet = window.phantom.solana;
+                    } else {
+                        this.elements.status.textContent = 'Please install a Solana wallet';
+                        return;
+                    }
+
+                    // 连接钱包
+                    const response = await this.wallet.connect();
+                    if (!response.publicKey) {
+                        throw new Error('Failed to get public key from wallet');
+                    }
+
+                    this.elements.status.textContent = `Connected: ${response.publicKey.toString().slice(0,4)}...${response.publicKey.toString().slice(-4)}`;
+                    this.elements.connectBtn.textContent = 'Connected';
+                    
+                    // 初始化 Irys
+                    await this.initializeIrys();
+                    this.uploadState.walletConnected = true;
+                    this.updateStep('prepare');
+                } catch (error) {
+                    console.error('Wallet connection error:', error);
+                    this.elements.status.textContent = 'Connection failed: ' + (error.message || 'Unknown error');
+                    this.elements.uploadBtn.disabled = true;
+                }
+            }
+
+            async initializeIrys() {
+                try {
+                    console.log('Starting Irys initialization');
+                    console.log('Wallet state:', {
+                        wallet: this.wallet,
+                        publicKey: this.wallet?.publicKey,
+                        connected: this.wallet?.isConnected
+                    });
+
+                    if (!this.wallet || !this.wallet.publicKey) {
+                        throw new Error('Wallet not connected');
+                    }
+
+                    // Convert public key to Solana PublicKey object
+                    const publicKey = new solanaWeb3.PublicKey(this.wallet.publicKey.toString());
+
+                    console.log('Creating Irys instance...');
+                    // Initialize Irys with the correct configuration for Solana
+                    this.irys = await WebIrys.WebUploader(WebIrys.WebSolana)
+                        .withProvider({
+                            provider: this.wallet,
+                            publicKey: publicKey,
+                            signMessage: async (msg) => {
+                                console.log('Signing message:', msg);
+                                const signedMessage = await this.wallet.signMessage(msg);
+                                console.log('Signed message:', signedMessage);
+                                return signedMessage.signature || signedMessage;
+                            },
+                            sendTransaction: async (tx) => {
+                                console.log('Sending transaction:', tx);
+                                const { signature } = await this.wallet.signAndSendTransaction(tx);
+                                console.log('Transaction signature:', signature);
+                                return signature;
+                            }
+                        })
+                        .withRpc(this.RPC_ENDPOINT);
+
+                    console.log('Irys instance created:', this.irys);
+
+                    try {
+                        console.log('Testing Irys connection...');
+                        await this.irys.getBalance();
+                        console.log('Irys connection successful');
+                        this.elements.status.textContent = `Ready to upload (${this.irys.address.slice(0,4)}...${this.irys.address.slice(-4)})`;
+                    } catch (error) {
+                        console.error('RPC connection test failed:', error);
+                        this.elements.status.textContent = 'RPC connection failed. Please try again later.';
+                        this.elements.uploadBtn.disabled = true;
+                        return;
+                    }
+                    
+                    if (this.pdfFile) {
+                        this.elements.uploadBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Irys initialization error:', error);
+                    console.error('Error stack:', error.stack);
+                    this.elements.status.textContent = 'Initialization failed: ' + error.message;
+                    this.elements.uploadBtn.disabled = true;
+                }
+            }
+
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file) this.handleFile(file);
+            }
+
+            validateMetadata() {
+                const title = this.elements.titleInput.value.trim();
+                const doi = this.elements.doiInput.value.trim();
+                const authors = this.elements.authorsInput.value.trim();
+                const abstract = this.elements.abstractInput.value.trim();
+
+                // DOI 格式验证 (只验证基本前缀，允许更灵活的后缀格式)
+                const doiRegex = /^10\.\d+\/.+/;
+                if (doi && !doiRegex.test(doi)) {
+                    alert('Please enter a valid DOI format starting with "10."');
+                    return false;
+                }
+
+                // 标题长度检查
+                if (title && title.length > 500) {
+                    alert('Title is too long (max 500 characters)');
+                    return false;
+                }
+
+                // 作者格式检查
+                if (authors) {
+                    const authorList = authors.split(',').map(author => author.trim());
+                    if (authorList.some(author => author.length > 100)) {
+                        alert('Author names are too long (max 100 characters per author)');
+                        return false;
+                    }
+                }
+
+                // 摘要长度检查
+                if (abstract && abstract.length > 5000) {
+                    alert('Abstract is too long (max 5000 characters)');
+                    return false;
+                }
+
+                return true;
+            }
+
+            validatePDF(file) {
+                // 文件类型检查
+                if (!file.type.match('application/pdf')) {
+                    alert('Please select a PDF file');
+                    return false;
+                }
+
+                // 文件大小检查
+                if (file.size > this.MAX_FILE_SIZE) {
+                    alert(`File size exceeds the limit of ${this.MAX_FILE_SIZE / (1024 * 1024)}MB`);
+                    return false;
+                }
+
+                // 文件名长度检查
+                if (file.name.length > 100) {
+                    alert('File name is too long (max 100 characters)');
+                    return false;
+                }
+
+                return true;
+            }
+
+            handleFile(file) {
+                if (!this.validatePDF(file)) {
+                    return;
+                }
+                this.pdfFile = file;
+                this.elements.uploadBtn.disabled = !this.irys;
+                this.elements.dropZone.innerHTML = `<p>Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)</p>`;
+            }
+
+            async retry(fn, { maxAttempts = 3, initialDelay = 1000, factor = 1.5 } = {}) {
+                let attempt = 1;
+                let delay = initialDelay;
+
+                while (attempt <= maxAttempts) {
+                    try {
+                        return await fn();
+                    } catch (error) {
+                        if (attempt === maxAttempts) {
+                            throw error;
+                        }
+                        console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= factor;
+                        attempt++;
+                    }
+                }
+            }
+
+            async fundUpload(file) {
+                try {
+                    this.elements.status.textContent = 'Calculating upload cost...';
+                    const price = await this.irys.getPrice(file.size);
+                    
+                    this.elements.status.textContent = `Funding transaction...`;
+                    
+                    // 使用 retry 函数进行重试
+                    await this.retry(async () => {
+                        await this.irys.fund(price);
+                    });
+
+                    this.elements.status.textContent = 'Funding successful';
+                    this.updateStep('fund', 'Completed');
+                    return true;
+                } catch (error) {
+                    console.error('Funding error:', error);
+                    let errorMessage = 'Funding failed: ';
+                    
+                    if (error.message.includes('403')) {
+                        errorMessage += 'RPC endpoint access denied. Please try again later.';
+                    } else if (error.message.includes('failed to get recent blockhash')) {
+                        errorMessage += 'Unable to connect to Solana network. Please try again later.';
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    
+                    this.elements.status.textContent = errorMessage;
+                    this.updateStep('fund', 'Failed');
+                    return false;
+                }
+            }
+
+            async processPDF(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const arrayBuffer = reader.result;
+                            const bytes = new Uint8Array(arrayBuffer);
+                            const chunks = [];
+                            
+                            for (let i = 0; i < bytes.length; i += this.MAX_CHUNK_SIZE) {
+                                const chunk = bytes.slice(i, i + this.MAX_CHUNK_SIZE);
+                                const base64Chunk = btoa(
+                                    chunk.reduce((data, byte) => data + String.fromCharCode(byte), '')
+                                );
+                                chunks.push(base64Chunk);
+                            }
+                            resolve(chunks);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            async uploadPDF() {
+                if (!this.pdfFile || !this.irys) {
+                    alert('Please connect to a wallet and select a PDF file');
+                    return;
+                }
+
+                if (!this.validateMetadata()) {
+                    return;
+                }
+
+                const confirmUpload = await this.showConfirmDialog(
+                    'Starting Upload Process',
+                    'The upload process requires three steps:\n\n' +
+                    '1. Sign the transaction\n' +
+                    '2. Fund the upload\n' +
+                    '3. Upload the files\n\n' +
+                    'Please do not close this page until the process is complete.\n\n' +
+                    'Do you want to continue?'
+                );
+
+                if (!confirmUpload) {
+                    return;
+                }
+
+                this.elements.warningMessage.style.display = 'block';
+                
+                try {
+                    this.elements.uploadBtn.disabled = true;
+                    this.elements.progress.style.display = 'block';
+                    
+                    // Prepare step
+                    this.updateStep('prepare', 'Calculating cost...');
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Give UI time to update
+
+                    // Fund step
+                    this.updateStep('fund', 'Requesting funding...');
+                    if (!await this.fundUpload(this.pdfFile)) {
+                        this.updateStep('fund', 'Failed');
+                        return;
+                    }
+                    this.uploadState.funded = true;
+
+                    // Upload step
+                    this.updateStep('upload', 'Uploading...');
+                    this.uploadState.uploading = true;
+
+                    // Upload metadata if available
+                    if (this.elements.titleInput.value.trim() || this.elements.authorsInput.value.trim() || this.elements.abstractInput.value.trim()) {
+                        this.elements.status.textContent = 'Uploading metadata...';
+                        const metadata = {
+                            title: this.elements.titleInput.value.trim() || '',
+                            doi: this.elements.doiInput.value.trim(),
+                            authors: this.elements.authorsInput.value.trim(),
+                            abstract: this.elements.abstractInput.value.trim()
+                        };
+
+                        const metadataTags = [
+                            { name: "App-Name", value: "scivault" },
+                            { name: "Content-Type", value: "application/json" },
+                            { name: "Version", value: "2.0.0" },
+                            { name: "doi", value: this.elements.doiInput.value.trim() }
+                        ];
+
+                        if (this.elements.titleInput.value.trim()) metadataTags.push({ name: "title", value: this.elements.titleInput.value.trim() });
+                        if (this.elements.authorsInput.value.trim()) metadataTags.push({ name: "authors", value: this.elements.authorsInput.value.trim() });
+
+                        const metadataReceipt = await this.irys.upload(JSON.stringify(metadata), { tags: metadataTags });
+                        this.metadataId = metadataReceipt.id;
+                    }
+
+                    // Upload PDF
+                    this.elements.status.textContent = 'Uploading PDF...';
+                    const pdfTags = [
+                        { name: "App-Name", value: "scivault" },
+                        { name: "Content-Type", value: "application/pdf" },
+                        { name: "Version", value: "2.0.0" },
+                        { name: "doi", value: this.elements.doiInput.value.trim() }
+                    ];
+
+                    if (this.elements.titleInput.value.trim()) pdfTags.push({ name: "title", value: this.elements.titleInput.value.trim() });
+
+                    const receipt = await this.irys.uploadFile(this.pdfFile, { tags: pdfTags });
+                    
+                    this.elements.uploadResult.style.display = 'block';
+                    let resultHtml = `
+                        <h3>Upload Successful!</h3>
+                        <p>PDF ID: <a href="https://gateway.irys.xyz/${receipt.id}" target="_blank">View</a></p>
+                    `;
+                    
+                    this.elements.uploadResult.innerHTML = resultHtml;
+                    this.elements.status.textContent = 'Upload complete!';
+                    this.updateStep('upload', 'Completed');
+                    this.elements.warningMessage.style.display = 'none';
+                } catch (error) {
+                    this.handleUploadError(error);
+                } finally {
+                    this.elements.uploadBtn.disabled = false;
+                    this.uploadState.uploading = false;
+                }
+            }
+
+            updateProgress(current, total) {
+                const percentage = (current / total) * 100;
+                this.elements.progressFill.style.width = `${percentage}%`;
+                this.elements.progressText.textContent = `Uploading chunk ${current}/${total}`;
+            }
+
+            updateStep(step, status = 'pending') {
+                const steps = ['connect', 'prepare', 'fund', 'upload'];
+                this.currentStep = step;
+                
+                steps.forEach(s => {
+                    const stepEl = this.elements.uploadSteps.querySelector(`[data-step="${s}"]`);
+                    stepEl.classList.remove('active', 'completed');
+                    if (s === step) {
+                        stepEl.classList.add('active');
+                    } else if (steps.indexOf(s) < steps.indexOf(step)) {
+                        stepEl.classList.add('completed');
+                    }
+                    
+                    const statusEl = stepEl.querySelector('.step-status');
+                    if (s === step) {
+                        statusEl.textContent = status;
+                    } else if (steps.indexOf(s) < steps.indexOf(step)) {
+                        statusEl.textContent = 'Completed';
+                    } else {
+                        statusEl.textContent = 'Pending';
+                    }
+                });
+            }
+
+            async showConfirmDialog(title, message) {
+                return new Promise(resolve => {
+                    const dialog = document.createElement('div');
+                    dialog.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: var(--bg-secondary);
+                        padding: 24px;
+                        border-radius: 16px;
+                        box-shadow: var(--shadow-lg);
+                        z-index: 1001;
+                        max-width: 400px;
+                        width: 90%;
+                    `;
+                    
+                    dialog.innerHTML = `
+                        <h3 style="margin: 0 0 16px 0;">${title}</h3>
+                        <p style="white-space: pre-line; margin-bottom: 20px;">${message}</p>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                            <button class="button" style="width: auto;" id="cancelBtn">Cancel</button>
+                            <button class="button" style="width: auto;" id="confirmBtn">Continue</button>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(dialog);
+                    
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: var(--overlay);
+                        z-index: 1000;
+                    `;
+                    document.body.appendChild(overlay);
+                    
+                    const cleanup = () => {
+                        document.body.removeChild(dialog);
+                        document.body.removeChild(overlay);
+                    };
+                    
+                    dialog.querySelector('#cancelBtn').onclick = () => {
+                        cleanup();
+                        resolve(false);
+                    };
+                    
+                    dialog.querySelector('#confirmBtn').onclick = () => {
+                        cleanup();
+                        resolve(true);
+                    };
+                });
+            }
+
+            handleUploadError(error) {
+                console.error('Upload error:', error);
+                
+                let errorMessage = 'Upload failed: ' + error.message;
+                let retryOption = false;
+                
+                if (this.currentStep === 'fund') {
+                    errorMessage = 'Funding failed. Please try again.';
+                    retryOption = true;
+                } else if (this.currentStep === 'upload') {
+                    errorMessage = 'Upload failed. You can try again without additional funding.';
+                    retryOption = true;
+                }
+                
+                this.showErrorDialog(errorMessage, retryOption);
+                this.elements.status.textContent = 'Upload failed';
+                this.updateStep(this.currentStep, 'Failed');
+            }
+
+            async showErrorDialog(message, showRetry = false) {
+                const result = await this.showConfirmDialog(
+                    'Error',
+                    message + (showRetry ? '\n\nWould you like to retry?' : '')
+                );
+                
+                if (result && showRetry) {
+                    this.uploadPDF();
+                }
+            }
+
+            // Add window close protection
+            addWindowProtection() {
+                if (this.uploadState.uploading) {
+                    window.onbeforeunload = (e) => {
+                        e.preventDefault();
+                        e.returnValue = '';
+                        return '';
+                    };
+                } else {
+                    window.onbeforeunload = null;
+                }
+            }
+        }
+
+        // Initialize uploader when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PDFUploader();
+        });
+    </script>
+</body>
+</html>

@@ -1070,15 +1070,15 @@ export default function SearchApp() {
           flexWrap: "wrap",
         }}
       >
-        <img src="/logo2.png" alt="Deepseek" className="footer-logo" />
-        <img src="/logo3.png" alt="SCI-HUB" className="footer-logo" />
+        <span>Powered By <img src="/1e9dd61f74c6ec7657ed8a93d3df1d9.png" alt="Deepseek" className="footer-logo" /></span>
+        {/* <img src="/logo3.png" alt="SCI-HUB" className="footer-logo" /> */}
         {/* <img src="/logo4.png" alt="Scihub Community" className="footer-logo" /> */}
-        <img src="/logo5.png" alt="Milvus" className="footer-logo" />
+        {/* <img src="/logo5.png" alt="Milvus" className="footer-logo" />
         <img src="/logo6.png" alt="Deepseek" className="footer-logo" />
         <img src="/logo7.png" alt="SCI-HUB" className="footer-logo" />
         <img src="/logo8.png" alt="Scihub Community" className="footer-logo" />
         <img src="/logo9.png" alt="zc" className="footer-logo" />
-        <img src="/logobnbgf.png" alt="Milvus" className="footer-logo" />
+        <img src="/logobnbgf.png" alt="Milvus" className="footer-logo" /> */}
       </div>
       <UpdateModal visible={upVisible} onClose={handleUpCancel} />
       <UserGuidelineModal visible={isModalVisible} onClose={handleCancel} />

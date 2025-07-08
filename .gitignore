@@ -9,9 +9,11 @@ __pycache__
 /coverage
 .env
 .env-local
+/db
 # production
 /build
 sci-hub-doi-2022-02-12.txt
+/ref
 
 # misc
 .DS_Store
