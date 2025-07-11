@@ -34,7 +34,7 @@
 }
 
 .hero-title {
-  
+
   font-size: 4rem !important;
   font-weight: 800 !important;
   margin-bottom: 1rem !important;
@@ -260,12 +260,12 @@
 }
 
 .light-theme .main-search-input .ant-input {
-  background: rgba(211, 211, 211, 0.95) !important;
+  background: #fff !important;
   color: #333 !important;
 }
 
 .light-theme .main-search-input .ant-btn {
-  background: rgba(211, 211, 211, 0.95) !important;
+  background: #fff !important;
   color: black !important;
 }
 
@@ -274,7 +274,7 @@
 }
 
 .dark-theme .main-search-input .ant-input {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: #000 !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: white !important;
 }

@@ -1,5 +1,4 @@
 .search-page {
-  min-height: calc(100vh - 200px);
   padding: 2rem;
   transition: all 0.3s ease;
 }
@@ -14,6 +13,7 @@
 .search-header {
   text-align: center;
   margin-bottom: 3rem;
+
 }
 
 .title-section {
@@ -28,7 +28,7 @@
 }
 
 .light-theme .main-title {
-  color: #333 !important;
+  color: #fff !important;
 }
 
 .dark-theme .main-title {
@@ -42,7 +42,7 @@
 }
 
 .light-theme .subtitle {
-  color: #666 !important;
+  color: #fff !important;
 }
 
 .dark-theme .subtitle {
@@ -54,6 +54,13 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+
+
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .main-search-input {
@@ -61,8 +68,8 @@
 }
 
 .light-theme .main-search-input .ant-input {
-  background: rgba(211, 211, 211, 0.95) !important;
-  color: #333 !important;
+  background: #fff !important;
+  color: #000 !important;
 }
 
 .light-theme .main-search-input .ant-btn {
@@ -84,6 +91,12 @@
   color: rgba(155, 155, 155, 0.6) !important;
 }
 
+.anticon-search{
+  color: #ff4d4f !important;
+}
+
+
+
 .search-options {
   display: flex;
   align-items: center;
@@ -100,8 +113,9 @@
   font-size: 0.9rem;
 }
 
+
 .light-theme .oa-checkbox {
-  color: #666;
+  color: #fff;
 }
 
 .dark-theme .oa-checkbox {
@@ -116,7 +130,7 @@
 }
 
 .light-theme .history-toggle-btn {
-  color: #666 !important;
+  color: #fff !important;
 }
 
 .dark-theme .history-toggle-btn {

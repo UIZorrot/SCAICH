@@ -4,23 +4,28 @@
   right: 0;
   left: 0;
   z-index: 50;
-  width: 90%;
-  margin: 10px auto 0;
-  border-radius: 20px;
-  padding: 10px;
+  background: transparent;
   transition: all 0.3s ease;
 }
 
+.unified-header-next{
+  background-color: #000000;
+  border: 1px solid #fff;
+  border-radius: 20px;
+  margin: 10px auto;
+  width: 95%;
+}
+
 .light-theme .unified-header {
-  background-color: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  /* background-color: rgba(255, 255, 255, 0.95); */
+  /* border: 2px solid rgba(0, 0, 0, 0.15); */
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); */
 }
 
 .dark-theme .unified-header {
-  background-color: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  /* background-color: rgba(0, 0, 0, 0.9); */
+  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); */
 }
 
 .header-nav {
@@ -107,15 +112,9 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  color: #fff;
 }
 
-.light-theme .nav-link {
-  color: #333;
-}
-
-.dark-theme .nav-link {
-  color: white;
-}
 
 .nav-link:hover {
   color: #ff4d4f;
@@ -131,7 +130,8 @@
 
 .nav-link.active {
   font-weight: 600;
-  background-color: rgba(255, 77, 79, 0.2);
+  background-color: #fff;
+  color: #000;
 }
 
 .light-theme .nav-link.active {
@@ -143,13 +143,20 @@
 }
 
 .login-btn {
-  border-radius: 6px !important;
-  padding: 4px 16px !important;
-  height: 36px !important;
-  transition: all 0.2s ease !important;
+  background-color: #ff4d4f;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.light-theme .login-btn {
+
+/* .light-theme .login-btn {
   color: #333 !important;
   border: 2px solid rgba(0, 0, 0, 0.4) !important;
   background: rgba(255, 255, 255, 0.8) !important;
@@ -170,7 +177,7 @@
   color: white !important;
   background-color: rgba(255, 255, 255, 0.1) !important;
   border-color: rgba(255, 255, 255, 0.5) !important;
-}
+} */
 
 .theme-toggle-btn {
   border-radius: 50% !important;

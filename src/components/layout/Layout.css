@@ -1,5 +1,5 @@
 .layout-container {
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -17,13 +17,22 @@
   transition: background-color 0.3s ease;
 }
 
+.layout-background-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
 .layout-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 100px;
+  padding-top: 20px;
   /* Account for fixed header */
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 13vh);
   justify-content: center;
   align-items: center;
 }
@@ -96,3 +105,5 @@
     min-height: calc(100vh - 80px);
   }
 }
+
+

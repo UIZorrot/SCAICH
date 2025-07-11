@@ -24,6 +24,20 @@ const Header = () => {
     { name: "Community", href: "https://discord.gg/JrkYAQTpz7", external: true },
   ];
 
+  // 判断滚动
+  const [isScroll, setIsScroll] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsScroll(true);
+      } else {
+        setIsScroll(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [window.scrollY]);
+
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
@@ -64,7 +78,7 @@ const Header = () => {
   };
 
   return (
-    <header className="unified-header">
+    <header className={`unified-header ${isScroll ? "unified-header-next" : ""}`}>
       <nav className="header-nav">
         <div className="header-content">
           {/* Logo */}
@@ -95,7 +109,8 @@ const Header = () => {
               <span> </span>
               <SignedOut>
                 <SignInButton>
-                  <Button type="text" icon={<UserOutlined />} className="login-btn">
+                  <Button type="text" className="login-btn">
+                    <UserOutlined />
                     Login
                   </Button>
                 </SignInButton>
