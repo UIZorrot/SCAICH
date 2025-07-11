@@ -1,19 +1,31 @@
 import { useState, useEffect } from "react";
-import { Switch, List, Space, Typography, Button, Select } from "antd";
+import { Switch, List, Space, Typography, Button } from "antd";
 import { FileTextOutlined, SearchOutlined, LinkOutlined, DownOutlined } from "@ant-design/icons";
 import articlesMerged from "../articles_merged.json";
+import { useBackground } from "../contexts/BackgroundContext";
 
 const { Title, Text } = Typography;
 
 function ExpandAbstract({ abstract }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { currentTheme } = useBackground();
+
   return (
     <div className="abstract-container">
       <div
         className={isExpanded ? "abstract-content-expanded" : "abstract-content"}
+        style={{
+          color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.9)' : '#333'
+        }}
         dangerouslySetInnerHTML={{ __html: isExpanded ? abstract : abstract }}
       ></div>
-      <p className="abstract-expand" onClick={() => setIsExpanded(!isExpanded)}>
+      <p
+        className="abstract-expand"
+        style={{
+          color: currentTheme.isDark ? '#40a9ff' : '#1890ff'
+        }}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         {isExpanded ? "Collapse" : "Expand"}
       </p>
     </div>
@@ -24,9 +36,6 @@ function SearchResult({
   query,
   results,
   classOver,
-  handleDownloadImageSearch,
-  handleShareImageSearch,
-  isMobile,
   onReadFullText,
   pro,
   setModalVisible,
@@ -37,14 +46,17 @@ function SearchResult({
   const [sortField, setSortField] = useState("similarity");
   const [sortDirection, setSortDirection] = useState("desc");
   const [defaultSort, setDefaultSort] = useState({ field: "similarity", direction: "desc" });
+  const { currentTheme } = useBackground();
 
   useEffect(() => {
     const articleMap = {};
     articlesMerged.forEach((article) => {
-      articleMap[article.title.toLowerCase()] = {
-        id: article.id,
-        paperid: article.paperid,
-      };
+      if (article.title) {
+        articleMap[article.title.toLowerCase()] = {
+          id: article.id,
+          paperid: article.paperid,
+        };
+      }
     });
     setMatchedArticles(articleMap);
 
@@ -53,11 +65,10 @@ function SearchResult({
     setSortDirection("desc");
   }, []);
 
-  const toggleScihub = (checked) => {
-    setShowScihub(checked);
-  };
+
 
   function highlight(res) {
+    if (!res || !query) return res || '';
     let res_r = res.split(" ").map((word) => {
       if (query.toLowerCase().includes(word.toLowerCase())) {
         return `<span style="font-weight: 800;">${word}</span>`;
@@ -91,8 +102,8 @@ function SearchResult({
           valueB = b.referencecount || 0;
           break;
         case "title":
-          valueA = a.title.toLowerCase();
-          valueB = b.title.toLowerCase();
+          valueA = (a.title || '').toLowerCase();
+          valueB = (b.title || '').toLowerCase();
           break;
         default:
           return 0;
@@ -138,242 +149,178 @@ function SearchResult({
   };
 
   return (
-    <div
-      id="search-container"
-      style={{
-        backgroundColor: "white",
-        borderRadius: "32px",
-        padding: "24px",
-      }}
-    >
+    <>
       <div
+        id="search-container"
         style={{
-          display: "flex",
-          alignItems: isMobile ? "flex-start" : "center",
-          justifyContent: "space-between",
-          marginBottom: "10px",
-          gap: "8px",
-          flexDirection: isMobile ? "column" : "row",
+          borderRadius: "32px",
+          padding: "24px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              width: "32px",
-              height: "32px",
-              backgroundColor: "#F4F4F9",
-              borderRadius: "32px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <img
-              src="/search-results-icon.png"
-              alt="Search Results"
-              style={{ width: "20px", height: "20px" }}
-            />
-          </div>
-          <Title
-            level={5}
-            style={{ margin: 0, color: "#000000", fontSize: "20px" }}
-          >
-            Search Results
-          </Title>
-        </div>
-        <div
-          className={isMobile ? "switch-container-mobile" : ""}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            width: isMobile ? "100%" : "auto",
-          }}
-        >
-          <Select
-            defaultValue="similarity_desc"
-            style={{ width: isMobile ? "100%" : 200, marginRight: 5 }}
-            onChange={handleSortChange}
-            options={[
-              { value: "default", label: "Default Sort" },
-              { value: "similarity_desc", label: "Relevance (High to Low)" },
-              { value: "similarity_asc", label: "Relevance (Low to High)" },
-              { value: "year_desc", label: "Year (Newest First)" },
-              { value: "year_asc", label: "Year (Oldest First)" },
-              { value: "referencecount_desc", label: "References (High to Low)" },
-              { value: "referencecount_asc", label: "References (Low to High)" },
-              { value: "title_asc", label: "Title (A to Z)" },
-              { value: "title_desc", label: "Title (Z to A)" },
-            ]}
-          />
-          {handleDownloadImageSearch && (
-            <div
-              style={{
-                marginLeft: "auto",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <img
-                src="/share-icon.png"
-                alt="Share"
-                style={{ cursor: "pointer", width: "20px", height: "20px" }}
-                onClick={handleShareImageSearch}
-              />
-              <img
-                src="/download-icon.png"
-                alt="Download"
-                style={{ cursor: "pointer", width: "20px", height: "20px" }}
-                onClick={handleDownloadImageSearch}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-      <List
-        style={{ paddingRight: "10px" }}
-        className={classOver}
-        itemLayout="vertical"
-        dataSource={displayedResults}
-        renderItem={(result, index) => {
-          const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
-          const buttonText = result.scinet
-            ? "Fulltext Sci-Net"
-            : (result.is_oa || result.source === "scihub" || result.source === "arixv")
-              ? "View Fulltext"
-              : "View Source";
-          const buttonColor = result.scinet ? "#52c41a" : (result.is_oa || result.source === "scihub" || result.source === "arixv") ? "#52c41a" : "#1890ff";
-          const buttonUrl = result.scinet
-            ? `https://sci-net.xyz/${cleanDoi}`
-            : result.url;
 
-          return (
-            <List.Item>
-              <Title
-                onClick={() => {
-                  window.open(result.url, "_blank");
-                }}
-                level={5}
+        <List
+          style={{ paddingRight: "10px" }}
+          className={classOver}
+          itemLayout="vertical"
+          dataSource={displayedResults}
+          renderItem={(result, index) => {
+            const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
+            const buttonText = result.scinet
+              ? "Fulltext Sci-Net"
+              : (result.is_oa || result.source === "scihub" || result.source === "arixv")
+                ? "View Fulltext"
+                : "View Source";
+            const buttonColor = result.scinet ? "#52c41a" : (result.is_oa || result.source === "scihub" || result.source === "arixv") ? "#52c41a" : "#1890ff";
+            const buttonUrl = result.scinet
+              ? `https://sci-net.xyz/${cleanDoi}`
+              : result.url;
+
+            return (
+              <List.Item
                 style={{
-                  marginBottom: "0.5vw",
-                  color: "#575dff",
-                  marginTop: "0",
-                  cursor: "pointer",
+                  background: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
+                  border: currentTheme.isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1rem',
+                  padding: '1rem'
                 }}
               >
-                <span dangerouslySetInnerHTML={{ __html: highlight(result.title) }} />
-              </Title>
-              <Text
-                type="secondary"
-                style={{ fontSize: "14px", color: "#42e57e" }}
-              >
-                {result.author.length > 50
-                  ? result.author.slice(0, 50) + "..."
-                  : result.author.slice(0, 50)}{" "}
-                - {result.year} -{" "}
-                {result.location.length > 30
-                  ? result.location.slice(0, 30) + "..."
-                  : result.location.slice(0, 30)}
-              </Text>
-              <Text>
-                {" "}
-                | <i>Similarity: {result.similarity}</i>{" "}
-              </Text>
-              {handleDownloadImageSearch ? (
-                <ExpandAbstract abstract={result.abstract.replace("Abstract", "")} />
-              ) : (
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: result.abstract.replace("Abstract", ""),
-                  }}
-                />
-              )}
-              <p>
-                <Text type="secondary" style={{ fontSize: "12px" }}>
-                  <i>DOI: {result.doi}</i>
-                </Text>
-              </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: 8 }}>
-                <Button
-                  type="primary"
-                  icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
-                  style={{
-                    color: "#ffffff",
-                    background: buttonColor,
-                  }}
+                <Title
                   onClick={() => {
-                    window.open(buttonUrl, "_blank");
+                    window.open(result.url, "_blank");
+                  }}
+                  level={5}
+                  style={{
+                    marginBottom: "0.5vw",
+                    color: currentTheme.isDark ? "#40a9ff" : "#1890ff",
+                    marginTop: "0",
+                    cursor: "pointer",
                   }}
                 >
-                  {buttonText}
-                </Button>
-                {(result.source === "scihub" || result.source === "arxiv") && (
-                  <Button
-                    type="primary"
-                    icon={<SearchOutlined style={{ color: "#ffffff" }} />}
+                  <span dangerouslySetInnerHTML={{ __html: highlight(result.title) }} />
+                </Title>
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: "14px",
+                    color: currentTheme.isDark ? "#52c41a" : "#389e0d"
+                  }}
+                >
+                  {result.author.length > 50
+                    ? result.author.slice(0, 50) + "..."
+                    : result.author.slice(0, 50)}{" "}
+                  - {result.year} -{" "}
+                  {result.location.length > 30
+                    ? result.location.slice(0, 30) + "..."
+                    : result.location.slice(0, 30)}
+                </Text>
+                <Text style={{ color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.8)' : '#666' }}>
+                  {" "}
+                  | <i>Similarity: {result.similarity}</i>{" "}
+                </Text>
+                {pro ? (
+                  <ExpandAbstract abstract={result.abstract.replace("Abstract", "")} />
+                ) : (
+                  <div
                     style={{
-                      color: "#ffffff",
-                      background: "#ff4d4f",
+                      color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.9)' : '#333'
                     }}
-                    onClick={() => handleFullPaperClick(result.doi, result.source)}
-                  >
-                    Deep Research
-                  </Button>
+                    dangerouslySetInnerHTML={{
+                      __html: result.abstract.replace("Abstract", ""),
+                    }}
+                  />
                 )}
-                {matchedArticles[result.title.toLowerCase()] && (
+                <p>
+                  <Text
+                    type="secondary"
+                    style={{
+                      fontSize: "12px",
+                      color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.6)' : '#999'
+                    }}
+                  >
+                    <i>DOI: {result.doi}</i>
+                  </Text>
+                </p>
+                <div style={{ display: "flex", gap: "8px", marginTop: 8 }}>
                   <Button
                     type="primary"
-                    icon={<LinkOutlined style={{ color: "#ffffff" }} />}
+                    icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
                     style={{
                       color: "#ffffff",
-                      background: "#000000",
+                      background: buttonColor,
                     }}
                     onClick={() => {
-                      const { id, paperid } = matchedArticles[result.title.toLowerCase()];
-                      window.open(
-                        `https://yesnoerror.com/d/${paperid}/${id}`,
-                        "_blank"
-                      );
+                      window.open(buttonUrl, "_blank");
                     }}
                   >
-                    View YNE Result
+                    {buttonText}
                   </Button>
-                )}
-              </div>
-            </List.Item>
-          );
-        }}
-      />
-      {displayCount < filteredResults.length && (
-        <div style={{ textAlign: "center", marginTop: "15px" }}>
-          <Button
-            type="default"
-            shape="round"
-            icon={<DownOutlined />}
-            onClick={handleLoadMore}
-            style={{
-              backgroundColor: "#F4F4F9",
-              borderColor: "#575dff",
-              color: "#575dff",
-              padding: "6px 20px",
-              fontWeight: "500",
-              transition: "all 0.3s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#575dff";
-              e.currentTarget.style.color = "white";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#F4F4F9";
-              e.currentTarget.style.color = "#575dff";
-            }}
-          >
-            More Results
-          </Button>
-        </div>
-      )}
-    </div>
+                  {(result.source === "scihub" || result.source === "arxiv") && (
+                    <Button
+                      type="primary"
+                      icon={<SearchOutlined style={{ color: "#ffffff" }} />}
+                      style={{
+                        color: "#ffffff",
+                        background: "#ff4d4f",
+                      }}
+                      onClick={() => handleFullPaperClick(result.doi, result.source)}
+                    >
+                      Deep Research
+                    </Button>
+                  )}
+                  {result.title && matchedArticles[result.title.toLowerCase()] && (
+                    <Button
+                      type="primary"
+                      icon={<LinkOutlined style={{ color: "#ffffff" }} />}
+                      style={{
+                        color: "#ffffff",
+                        background: "#000000",
+                      }}
+                      onClick={() => {
+                        const { id, paperid } = matchedArticles[result.title.toLowerCase()];
+                        window.open(
+                          `https://yesnoerror.com/d/${paperid}/${id}`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      View YNE Result
+                    </Button>
+                  )}
+                </div>
+              </List.Item>
+            );
+          }}
+        />
+        {displayCount < filteredResults.length && (
+          <div style={{ textAlign: "center", marginTop: "15px" }}>
+            <Button
+              type="default"
+              shape="round"
+              icon={<DownOutlined />}
+              onClick={handleLoadMore}
+              style={{
+                backgroundColor: "#F4F4F9",
+                borderColor: "#575dff",
+                color: "#575dff",
+                padding: "6px 20px",
+                fontWeight: "500",
+                transition: "all 0.3s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#575dff";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#F4F4F9";
+                e.currentTarget.style.color = "#575dff";
+              }}
+            >
+              More Results
+            </Button>
+          </div>
+        )}
+      </div></>
   );
 }
 

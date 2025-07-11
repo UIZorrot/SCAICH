@@ -7,6 +7,12 @@ import AdPage from "./pages/AdPage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { example } from "./example";
 
+// Import new app modules
+import SearchPage from "./app/search/SearchPage";
+import BoxPage from "./app/box/BoxPage";
+import PressPage from "./app/press/PressPage";
+import { BackgroundProvider } from "./contexts/BackgroundContext";
+
 // Solana 相关导入
 import { useMemo } from "react";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
@@ -81,48 +87,55 @@ const UnifiedWalletProvider = () => {
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
             <SolanaWalletProvider>
-              <Routes>
-                <Route
-                  path="/search"
-                  element={
-                    <App
-                      isMobile={isMobile}
-                      backgroundImage={backgroundImage}
-                      handleBackgroundSwitch={handleBackgroundSwitch}
-                    />
-                  }
-                />
-                <Route
-                  path="/redeemspec"
-                  element={
-                    <RedeemSpecPage
-                      isMobile={isMobile}
-                      backgroundImage={backgroundImage}
-                      handleBackgroundSwitch={handleBackgroundSwitch}
-                    />
-                  }
-                />
-                {/* <Route
-                  path="/ad"
-                  element={
-                    <AdPage
-                      isMobile={isMobile}
-                      backgroundImage={backgroundImage}
-                      handleBackgroundSwitch={handleBackgroundSwitch}
-                    />
-                  }
-                /> */}
-                <Route
-                  path="*"
-                  element={
-                    <App
-                      isMobile={isMobile}
-                      backgroundImage={backgroundImage}
-                      handleBackgroundSwitch={handleBackgroundSwitch}
-                    />
-                  }
-                />
-              </Routes>
+              <BackgroundProvider>
+                <Routes>
+                  {/* New unified app routes */}
+                  <Route
+                    path="/app/search"
+                    element={<SearchPage />}
+                  />
+                  <Route
+                    path="/app/box"
+                    element={<BoxPage />}
+                  />
+                  <Route
+                    path="/app/press"
+                    element={<PressPage />}
+                  />
+
+                  {/* Legacy routes for backward compatibility */}
+                  <Route
+                    path="/search"
+                    element={
+                      <App
+                        isMobile={isMobile}
+                        backgroundImage={backgroundImage}
+                        handleBackgroundSwitch={handleBackgroundSwitch}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/redeemspec"
+                    element={
+                      <RedeemSpecPage
+                        isMobile={isMobile}
+                        backgroundImage={backgroundImage}
+                        handleBackgroundSwitch={handleBackgroundSwitch}
+                      />
+                    }
+                  />
+
+                  {/* Default route - redirect to search */}
+                  <Route
+                    path="/"
+                    element={<SearchPage />}
+                  />
+                  <Route
+                    path="*"
+                    element={<SearchPage />}
+                  />
+                </Routes>
+              </BackgroundProvider>
             </SolanaWalletProvider>
           </RainbowKitProvider>
         </QueryClientProvider>

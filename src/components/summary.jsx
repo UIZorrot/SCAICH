@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Typography } from "antd";
 import ReactMarkdown from "react-markdown";
-import { UpOutlined, DownOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
+import { UpOutlined, DownOutlined, CaretUpOutlined, CaretDownOutlined, RobotOutlined } from "@ant-design/icons";
+import { useBackground } from "../contexts/BackgroundContext";
 const { Title } = Typography;
 
 function ExpandAbstract({ abstract }) {
@@ -71,6 +72,7 @@ function Summary({
 }) {
   const [displayedSummary, setDisplayedSummary] = useState("");
   const [isStreaming, setIsStreaming] = useState(!isLocal); // 如果 isLocal 为 true，则不流式
+  const { currentTheme } = useBackground();
 
   useEffect(() => {
     // 检查 localStorage 中是否已有 summary.sum
@@ -119,32 +121,9 @@ function Summary({
 
   return (
     <div
-      id="result-container"
-      style={{
-        height: searchResultHeight,
-        marginBottom: "10px",
-        backgroundColor: "white",
-        borderRadius: "32px",
-        padding: "24px",
-      }}
     >
       <div style={{ display: "flex", alignItems: "center", marginBottom: "10px", gap: "8px" }}>
-        <div
-          style={{
-            width: "32px",
-            height: "32px",
-            backgroundColor: "#F4F4F9",
-            borderRadius: "32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <img src="/assistant-icon.png" alt="Assistant" style={{ width: "20px", height: "20px" }} />
-        </div>
-        <Title level={4} style={{ margin: 0, color: "#000000", fontSize: "20px" }}>
-          SCAI Assistant
-        </Title>
+
         {handleDownloadImage && (
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
             <img
@@ -163,27 +142,50 @@ function Summary({
         )}
       </div>
       <div className="results-list" style={{ paddingRight: "10px" }}>
-        <div style={{ color: "#1C1C1C", marginBottom: 15 }}>
+        <div style={{
+          color: currentTheme.isDark ? "rgba(255, 255, 255, 0.9)" : "#1C1C1C",
+          marginBottom: 15
+        }}>
           {pro && summary.cot !== "" ? (
             <>
-              <Title level={5} style={{ margin: 0, color: "#000000", fontSize: "20px" }} onClick={handleToggle}>
+              <Title level={5} style={{
+                margin: 0,
+                color: currentTheme.isDark ? "#fff" : "#000000",
+                fontSize: "20px"
+              }} onClick={handleToggle}>
                 Think{" "}
                 {isCollapsed ? (
-                  <DownOutlined style={{ fontSize: "14px", color: "#888" }} />
+                  <DownOutlined style={{
+                    fontSize: "14px",
+                    color: currentTheme.isDark ? "#888" : "#888"
+                  }} />
                 ) : (
-                  <UpOutlined style={{ fontSize: "14px", color: "#888" }} />
+                  <UpOutlined style={{
+                    fontSize: "14px",
+                    color: currentTheme.isDark ? "#888" : "#888"
+                  }} />
                 )}
               </Title>
               {!isCollapsed && (
-                <ReactMarkdown style={{ opacity: 0.75, fontSize: "16px" }}>{summary.cot}</ReactMarkdown>
+                <ReactMarkdown style={{
+                  opacity: 0.75,
+                  fontSize: "16px",
+                  color: currentTheme.isDark ? "rgba(255, 255, 255, 0.8)" : "#333"
+                }}>{summary.cot}</ReactMarkdown>
               )}
             </>
           ) : (
             <></>
           )}
         </div>
-        <div style={{ color: "#1C1C1C" }}>
-          <Title level={5} style={{ margin: 0, color: "#000000", fontSize: "20px" }}>
+        <div style={{
+          color: currentTheme.isDark ? "rgba(255, 255, 255, 0.9)" : "#1C1C1C"
+        }}>
+          <Title level={5} style={{
+            margin: 0,
+            color: currentTheme.isDark ? "#fff" : "#000000",
+            fontSize: "20px"
+          }}>
             Result
           </Title>
           {isMobile ? (

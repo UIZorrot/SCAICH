@@ -24,7 +24,6 @@ p {
 
 .respanel1 {
   width: 29.5%;
-  background-color: #ffffff;
   border-radius: 32px
 }
 
@@ -37,7 +36,6 @@ p {
 
 .respanel2 {
   width: 69.5%;
-  background-color: #ffffff;
   border-radius: 32px
 }
 
@@ -185,10 +183,6 @@ p {
   border: none !important;
 }
 
-.ant-input-search .ant-input-search-button .anticon svg {
-  display: none;
-}
-
 /* Loading spinner style */
 .ant-input-search .ant-input-search-button.ant-btn-loading::before {
   opacity: 0.8;
@@ -331,7 +325,6 @@ p {
 
 .feature-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  background-color: #ffffff;
 }
 
 .feature-card:hover {
