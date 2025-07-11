@@ -17,7 +17,6 @@ import { useNavigate } from "react-router-dom"; // 新增导入
 
 const { Title, Text } = Typography;
 
-
 const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) => {
   const [loginType, setLoginType] = useState("invite"); // invite 或 userId
   const [inviteCode, setInviteCode] = useState("");
@@ -100,26 +99,14 @@ const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) =>
           border: "1px solid rgba(255, 255, 255, 0.2)",
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Space direction="vertical" size="large" style={{ width: "100%", textAlign: "center" }}>
             <LockOutlined style={{ fontSize: "32px", color: "#ff2222" }} />
             <Title level={4} style={{ color: "#333", margin: 0 }}>
               Login to SCAICH
             </Title>
-            <Text style={{ color: "#666" }}>
-              {loginType === "invite"
-                ? "Enter your invite code to unlock SCAICH. Contact admin for a code."
-                : "Enter your user ID to log in."}
-            </Text>
-            <Radio.Group
-              value={loginType}
-              onChange={(e) => setLoginType(e.target.value)}
-              style={{ marginBottom: 16 }}
-            >
+            <Text style={{ color: "#666" }}>{loginType === "invite" ? "Enter your invite code to unlock SCAICH. Contact admin for a code." : "Enter your user ID to log in."}</Text>
+            <Radio.Group value={loginType} onChange={(e) => setLoginType(e.target.value)} style={{ marginBottom: 16 }}>
               <Radio.Button value="invite">Invite Code</Radio.Button>
               <Radio.Button value="userId">User ID</Radio.Button>
             </Radio.Group>
@@ -190,18 +177,12 @@ const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) =>
           border: "1px solid rgba(255, 255, 255, 0.2)",
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Space direction="vertical" size="large" style={{ width: "100%", textAlign: "center" }}>
             <Title level={4} style={{ color: "#333", margin: 0 }}>
               Your User ID
             </Title>
-            <Text style={{ color: "#ff4d4f" }}>
-              Please save this User ID securely. You'll need it to log in again.
-            </Text>
+            <Text style={{ color: "#ff4d4f" }}>Please save this User ID securely. You'll need it to log in again.</Text>
             <Input
               value={tempUserId}
               disabled
@@ -215,12 +196,7 @@ const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) =>
               }}
             />
             <Space>
-              <Button
-                type="default"
-                icon={<CopyOutlined />}
-                onClick={handleCopyId}
-                style={{ borderRadius: "8px" }}
-              >
+              <Button type="default" icon={<CopyOutlined />} onClick={handleCopyId} style={{ borderRadius: "8px" }}>
                 Copy ID
               </Button>
               <Button
@@ -242,7 +218,6 @@ const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) =>
     </>
   );
 };
-
 
 export default function SearchApp() {
   const [canvasResults, setCanvasResults] = useState(0);
@@ -419,18 +394,15 @@ export default function SearchApp() {
     }
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`,
-        {
-          method: "GET",
-          mode: "cors",
-          headers: {
-            "Access-Control-Allow-Origin": true,
-            "ngrok-skip-browser-warning": true,
-            "Content-Type": "Authorization",
-          },
-        }
-      );
+      const response = await fetch(`https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`, {
+        method: "GET",
+        mode: "cors",
+        headers: {
+          "Access-Control-Allow-Origin": true,
+          "ngrok-skip-browser-warning": true,
+          "Content-Type": "Authorization",
+        },
+      });
       const data = await response.json();
       setIsFromLocal(false);
       setResults(data.results);
@@ -548,7 +520,6 @@ export default function SearchApp() {
     },
   ];
 
-
   const [backgroundImage, setBackgroundImage] = useState("/bg4.jpg"); // 初始背景
 
   const handleBackgroundSwitch = () => {
@@ -572,11 +543,7 @@ export default function SearchApp() {
     >
       {contextHolder}
       <div className="body">
-        <img
-          src={backgroundImage}
-          alt="Background"
-          style={{ backgroundSize: "cover", position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }}
-        />
+        <img src={backgroundImage} alt="Background" style={{ backgroundSize: "cover", position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }} />
       </div>
       <div
         className="navbar"
@@ -635,7 +602,6 @@ export default function SearchApp() {
         </Text>
         {isMobile ? (
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "20px", zIndex: 10 }}>
-
             {isLoggedIn && (
               <Button
                 icon={<LogoutOutlined />}
@@ -661,26 +627,17 @@ export default function SearchApp() {
           </div>
         ) : (
           <div style={{ display: "flex", gap: "20px", alignItems: "center", marginRight: "20px", zIndex: 10 }}>
-
             <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showModal}>
               Guidelines
             </Button>
             {/* <Button type="default" ghost style={{ borderRadius: "4px" }} onClick={showUpModal}>
               Update Logs
             </Button> */}
-            <Button
-              type="default"
-              ghost
-              onClick={handleBackgroundSwitch}
-              style={{ borderRadius: "4px" }}
-            >
+            <Button type="default" ghost onClick={handleBackgroundSwitch} style={{ borderRadius: "4px" }}>
               Switch Background
             </Button>
-            <Button
-              type="default"
-              ghost
-              onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}
-            >
+
+            <Button type="default" ghost onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}>
               {isLoggedIn ? "Profile" : "Login"}
             </Button>
             {isLoggedIn && (
@@ -721,16 +678,10 @@ export default function SearchApp() {
             {/* <Button style={{ borderRadius: "4px" }} onClick={showUpModal}>
               Update Logs
             </Button> */}
-            <Button
-              type="default"
-              onClick={handleBackgroundSwitch}
-              style={{ borderRadius: "4px" }}
-            >Switch Background</Button>
-            <Button
-              type="default"
-              style={{ borderRadius: "4px" }}
-              onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}
-            >
+            <Button type="default" onClick={handleBackgroundSwitch} style={{ borderRadius: "4px" }}>
+              Switch Background
+            </Button>
+            <Button type="default" style={{ borderRadius: "4px" }} onClick={() => (isLoggedIn ? setProfileModalVisible(true) : setLoginModalVisible(true))}>
               {isLoggedIn ? "Profile" : "Login"}
             </Button>
             {isLoggedIn && (
@@ -1082,13 +1033,9 @@ export default function SearchApp() {
                     <Title level={4} style={{ margin: 0, fontSize: "36px", fontWeight: "800" }}>
                       SCAICH
                     </Title>
-                    <Text style={{ margin: 0, marginLeft: "12px", fontSize: "32px", fontWeight: "300" }}>
-                      | SCAI search engine
-                    </Text>
+                    <Text style={{ margin: 0, marginLeft: "12px", fontSize: "32px", fontWeight: "300" }}>| SCAI search engine</Text>
                   </div>
-                  <Text style={{ margin: 0, fontSize: "16px", fontWeight: "300" }}>
-                    Your AI Gateway to Open-Access Scientific Research
-                  </Text>
+                  <Text style={{ margin: 0, fontSize: "16px", fontWeight: "300" }}>Your AI Gateway to Open-Access Scientific Research</Text>
                 </div>
               </div>
             ) : (
@@ -1097,17 +1044,13 @@ export default function SearchApp() {
                 <Title level={4} style={{ margin: 0, fontSize: "32px", fontWeight: "800" }}>
                   SCAICH
                 </Title>
-                <Text style={{ margin: 0, marginLeft: "12px", fontSize: "20px", fontWeight: "300" }}>
-                  SCAI search engine
-                </Text>
-                <Text style={{ margin: 0, fontSize: "12px", fontWeight: "300" }}>
-                  Your AI Gateway to Open-Access Scientific Research
-                </Text>
+                <Text style={{ margin: 0, marginLeft: "12px", fontSize: "20px", fontWeight: "300" }}>SCAI search engine</Text>
+                <Text style={{ margin: 0, fontSize: "12px", fontWeight: "300" }}>Your AI Gateway to Open-Access Scientific Research</Text>
               </div>
             )}
           </div>
         )}
-        <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: (results.length === 0 || isMobile) ? "0px" : "40px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
+        <div style={{ width: results.length > 0 ? "100%" : "100%", marginTop: results.length === 0 || isMobile ? "0px" : "40px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "20px" }}>
           <Input.Search
             placeholder="Search from 140,672,733 of open-access scientific papers across all fields"
             enterButton={loading ? getLoadingIcon() : <img src="/search.png" alt="search" style={{ width: 20, height: 20, border: "none" }} />}
@@ -1133,17 +1076,19 @@ export default function SearchApp() {
             }}
           />
           {!loading && results.length === 0 && (
-            <div className="features-container" style={{ padding: '0 16px' }}>
-              <Title level={3} style={{ margin: '0 0 28px 0', textAlign: 'center', color: '#333' }}>
+            <div className="features-container" style={{ padding: "0 16px" }}>
+              <Title level={3} style={{ margin: "0 0 28px 0", textAlign: "center", color: "#333" }}>
                 Tools & Update
               </Title>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '24px',
-                flexWrap: 'wrap',
-                margin: '0 auto'
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "24px",
+                  flexWrap: "wrap",
+                  margin: "0 auto",
+                }}
+              >
                 {features.slice(0, 3).map((item, index) => (
                   <motion.div
                     key={item.title}
@@ -1151,7 +1096,7 @@ export default function SearchApp() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     style={{
-                      flex: '1 1 0',
+                      flex: "1 1 0",
                       minWidth: 250,
                     }}
                   >
@@ -1159,32 +1104,32 @@ export default function SearchApp() {
                       hoverable
                       className="feature-card"
                       style={{
-                        background: 'rgba(255, 255, 255, 0.15)',
-                        borderRadius: '16px',
-                        border: '2px solid transparent',
-                        backgroundClip: 'padding-box',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)',
-                        backdropFilter: 'blur(10px)',
-                        padding: '16px',
-                        textAlign: 'center',
-                        height: '100%'
+                        background: "rgba(255, 255, 255, 0.15)",
+                        borderRadius: "16px",
+                        border: "2px solid transparent",
+                        backgroundClip: "padding-box",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.05)",
+                        backdropFilter: "blur(10px)",
+                        padding: "16px",
+                        textAlign: "center",
+                        height: "100%",
                       }}
                       onClick={() => item.link && window.open(item.link, "_blank")}
                     >
-                      <div style={{
-                        background: item.gradient,
-                        padding: '2px',
-                        borderRadius: '12px',
-                        display: 'inline-block'
-                      }}>
+                      <div
+                        style={{
+                          background: item.gradient,
+                          padding: "2px",
+                          borderRadius: "12px",
+                          display: "inline-block",
+                        }}
+                      >
                         {item.icon}
                       </div>
-                      <Title level={5} style={{ margin: '12px 0 8px', color: '#333', fontWeight: 700 }}>
+                      <Title level={5} style={{ margin: "12px 0 8px", color: "#333", fontWeight: 700 }}>
                         {item.title}
                       </Title>
-                      <Text style={{ color: '#333', fontWeight: 300 }}>
-                        {item.description}
-                      </Text>
+                      <Text style={{ color: "#333", fontWeight: 300 }}>{item.description}</Text>
                     </Card>
                   </motion.div>
                 ))}
@@ -1196,18 +1141,15 @@ export default function SearchApp() {
               <Text style={{ marginBottom: 30, display: "flex", textAlign: "center", alignContent: "center", alignItems: "center", color: "#6B6B6B" }}>
                 <a>
                   {/* <span onClick={() => navigate("/ad")}> You Can Support Us by Viewing Few Ads Here</span>{" "} */}
-                  <span onClick={() => navigate("/ad")} style={{ color: "#000" }}> Try: </span>{" "}
-                  <span
-                    style={{ cursor: "pointer", color: "#383FFF" }}
-                    onClick={() => setQuery("The History of Scihub")}
-                  >
+                  <span onClick={() => navigate("/ad")} style={{ color: "#000" }}>
+                    {" "}
+                    Try:{" "}
+                  </span>{" "}
+                  <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={() => setQuery("The History of Scihub")}>
                     The History of Sci-hub
                   </span>{" "}
                   <span style={{ color: "#333" }}>·</span>{" "}
-                  <span
-                    style={{ cursor: "pointer", color: "#383FFF" }}
-                    onClick={() => setQuery("The Principle of Deep Learning")}
-                  >
+                  <span style={{ cursor: "pointer", color: "#383FFF" }} onClick={() => setQuery("The Principle of Deep Learning")}>
                     The Principle of Deep Learning
                   </span>
                 </a>
@@ -1219,38 +1161,13 @@ export default function SearchApp() {
         {results.length > 0 && (
           <div style={{ width: "96%" }}>
             <div className="respanel">
-              <div className="respanel1">
-                {summary && (
-                  <Summary
-                    isLocal={isFromLocal}
-                    summary={summary}
-                    pro={true}
-                    isCollapsed={isCollapsed}
-                    handleToggle={handleToggle}
-                    handleDownloadImage={handleDownloadImage}
-                    handleShareImage={handleShareImage}
-                    isMobile={isMobile}
-                  />
-                )}
-              </div>
+              <div className="respanel1">{summary && <Summary isLocal={isFromLocal} summary={summary} pro={true} isCollapsed={isCollapsed} handleToggle={handleToggle} handleDownloadImage={handleDownloadImage} handleShareImage={handleShareImage} isMobile={isMobile} />}</div>
               <div className="respanel2">
-                <SearchResult
-                  query={query}
-                  results={results}
-                  classOver="results-list"
-                  handleDownloadImageSearch={handleDownloadImageSearch}
-                  handleShareImageSearch={handleShareImage}
-                  isMobile={isMobile}
-                  onReadFullText={handleReadFullText}
-                  pro={true}
-                  setModalVisible={setModalVisible}
-                />
+                <SearchResult query={query} results={results} classOver="results-list" handleDownloadImageSearch={handleDownloadImageSearch} handleShareImageSearch={handleShareImage} isMobile={isMobile} onReadFullText={handleReadFullText} pro={true} setModalVisible={setModalVisible} />
               </div>
             </div>
             <div style={{ width: "100%", alignContent: "center", alignItems: "center", textAlign: "center", marginTop: "15px" }}>
-              <Text style={{ marginBottom: "15px", color: "#999999", opacity: 0.7 }}>
-                Due to the network condition, the base model can be switch from Deepseek to GPT accordingly.
-              </Text>
+              <Text style={{ marginBottom: "15px", color: "#999999", opacity: 0.7 }}>Due to the network condition, the base model can be switch from Deepseek to GPT accordingly.</Text>
             </div>
           </div>
         )}
@@ -1279,44 +1196,15 @@ export default function SearchApp() {
       </div>
       <UpdateModal visible={upVisible} onClose={handleUpCancel} />
       <UserGuidelineModal visible={isModalVisible} onClose={handleCancel} />
-      <Modal
-        open={chatModalVisible}
-        onCancel={() => setChatModalVisible(false)}
-        footer={null}
-        maxwidth={1200}
-        width={"80%"}
-        destroyOnClose
-      >
+      <Modal open={chatModalVisible} onCancel={() => setChatModalVisible(false)} footer={null} maxwidth={1200} width={"80%"} destroyOnClose>
         <Title level={4} style={{ marginLeft: 20 }}>
           Fulltext Deep Research
         </Title>
-        <Text style={{ marginLeft: 20, marginBottom: 20, fontSize: "16px", fontWeight: "300" }}>
-          The initialization of the paper may take about 1 minute
-        </Text>
-        <ChatModal
-          visible={chatModalVisible}
-          paperId={selectedPaperId}
-          source={selectedSource}
-          onClose={() => setChatModalVisible(false)}
-        />
+        <Text style={{ marginLeft: 20, marginBottom: 20, fontSize: "16px", fontWeight: "300" }}>The initialization of the paper may take about 1 minute</Text>
+        <ChatModal visible={chatModalVisible} paperId={selectedPaperId} source={selectedSource} onClose={() => setChatModalVisible(false)} />
       </Modal>
-      <LoginModal
-        visible={loginModalVisible}
-        onClose={() => setLoginModalVisible(false)}
-        setUserId={setUserId}
-        setIsLoggedIn={setIsLoggedIn}
-        isMobile={isMobile}
-      />
-      <ProfileModal
-        visible={profileModalVisible}
-        onClose={() => setProfileModalVisible(false)}
-        userId={userId}
-        isMobile={isMobile}
-        setUserId={setUserId}
-        setIsLoggedIn={setIsLoggedIn}
-        setLoginModalVisible={setLoginModalVisible}
-        setHisVisible={sethisVisible}
-      />
-    </div >
+      <LoginModal visible={loginModalVisible} onClose={() => setLoginModalVisible(false)} setUserId={setUserId} setIsLoggedIn={setIsLoggedIn} isMobile={isMobile} />
+      <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} userId={userId} isMobile={isMobile} setUserId={setUserId} setIsLoggedIn={setIsLoggedIn} setLoginModalVisible={setLoginModalVisible} setHisVisible={sethisVisible} />
+    </div>
   );
 }

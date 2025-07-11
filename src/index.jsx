@@ -29,13 +29,13 @@ import { bscTestnet } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { createConfig, http } from "wagmi";
 
+// Clerk 相关导入
+import { ClerkProvider } from "@clerk/clerk-react";
+
 // Solana 钱包提供者
 const SolanaWalletProvider = ({ children }) => {
   const network = WalletAdapterNetwork.Mainnet;
-  const endpoint = useMemo(
-    () => "https://white-bitter-rain.solana-mainnet.quiknode.pro/4d5cb8fdd5d59fb6555e3d89ebf1ca05b3dbaea4",
-    [network]
-  );
+  const endpoint = useMemo(() => "https://white-bitter-rain.solana-mainnet.quiknode.pro/4d5cb8fdd5d59fb6555e3d89ebf1ca05b3dbaea4", [network]);
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], [network]);
 
   return (
@@ -46,6 +46,13 @@ const SolanaWalletProvider = ({ children }) => {
     </ConnectionProvider>
   );
 };
+
+// Import your Publishable Key
+const PUBLISHABLE_KEY = "pk_test_YXB0LXdhbGxleWUtOTAuY2xlcmsuYWNjb3VudHMuZGV2JA";
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Add your Clerk Publishable Key to the .env file");
+}
 
 // BNB Testnet 配置
 const bnbConfig = createConfig({
@@ -86,57 +93,26 @@ const UnifiedWalletProvider = () => {
       <WagmiProvider config={bnbConfig}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
-            <SolanaWalletProvider>
-              <BackgroundProvider>
+            {/* <SolanaWalletProvider> */}
+            <BackgroundProvider>
+              <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
                 <Routes>
                   {/* New unified app routes */}
-                  <Route
-                    path="/app/search"
-                    element={<SearchPage />}
-                  />
-                  <Route
-                    path="/app/box"
-                    element={<BoxPage />}
-                  />
-                  <Route
-                    path="/app/press"
-                    element={<PressPage />}
-                  />
+                  <Route path="/app/search" element={<SearchPage />} />
+                  <Route path="/app/box" element={<BoxPage />} />
+                  <Route path="/app/press" element={<PressPage />} />
 
                   {/* Legacy routes for backward compatibility */}
-                  <Route
-                    path="/search"
-                    element={
-                      <App
-                        isMobile={isMobile}
-                        backgroundImage={backgroundImage}
-                        handleBackgroundSwitch={handleBackgroundSwitch}
-                      />
-                    }
-                  />
-                  <Route
-                    path="/redeemspec"
-                    element={
-                      <RedeemSpecPage
-                        isMobile={isMobile}
-                        backgroundImage={backgroundImage}
-                        handleBackgroundSwitch={handleBackgroundSwitch}
-                      />
-                    }
-                  />
+                  <Route path="/search" element={<App isMobile={isMobile} backgroundImage={backgroundImage} handleBackgroundSwitch={handleBackgroundSwitch} />} />
+                  <Route path="/redeemspec" element={<RedeemSpecPage isMobile={isMobile} backgroundImage={backgroundImage} handleBackgroundSwitch={handleBackgroundSwitch} />} />
 
                   {/* Default route - redirect to search */}
-                  <Route
-                    path="/"
-                    element={<SearchPage />}
-                  />
-                  <Route
-                    path="*"
-                    element={<SearchPage />}
-                  />
+                  <Route path="/" element={<SearchPage />} />
+                  <Route path="*" element={<SearchPage />} />
                 </Routes>
-              </BackgroundProvider>
-            </SolanaWalletProvider>
+              </ClerkProvider>
+            </BackgroundProvider>
+            {/* </SolanaWalletProvider> */}
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>

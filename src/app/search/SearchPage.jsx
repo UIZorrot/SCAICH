@@ -15,6 +15,7 @@ import { InviteCodeGuideModal } from "../../components/InviteCodeGuideModal.jsx"
 import { useNavigate } from "react-router-dom";
 
 import Layout from "../../components/layout/Layout";
+
 import { useBackground } from "../../contexts/BackgroundContext";
 import "./SearchPage.css";
 
@@ -63,18 +64,15 @@ export default function SearchPage() {
     setSummary("");
 
     try {
-      const response = await fetch(
-        `https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`,
-        {
-          method: "GET",
-          mode: "cors",
-          headers: {
-            "Access-Control-Allow-Origin": true,
-            "ngrok-skip-browser-warning": true,
-            "Content-Type": "Authorization",
-          },
-        }
-      );
+      const response = await fetch(`https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`, {
+        method: "GET",
+        mode: "cors",
+        headers: {
+          "Access-Control-Allow-Origin": true,
+          "ngrok-skip-browser-warning": true,
+          "Content-Type": "Authorization",
+        },
+      });
       const data = await response.json();
       setIsFromLocal(false);
       setResults(data.results);
@@ -105,23 +103,24 @@ export default function SearchPage() {
   const searchFromHistory = (historyItem) => {
     setQuery(historyItem.query);
     // 确保结果中的每个项目都有必要的字段
-    const safeResults = historyItem.results?.map(result => ({
-      ...result,
-      title: result.title || 'Untitled',
-      authors: result.authors || [],
-      abstract: result.abstract || '',
-      doi: result.doi || '',
-      source: result.source || 'unknown'
-    })) || [];
+    const safeResults =
+      historyItem.results?.map((result) => ({
+        ...result,
+        title: result.title || "Untitled",
+        authors: result.authors || [],
+        abstract: result.abstract || "",
+        doi: result.doi || "",
+        source: result.source || "unknown",
+      })) || [];
     setResults(safeResults);
-    setSummary(historyItem.summary || '');
+    setSummary(historyItem.summary || "");
     setIsFromLocal(true);
     sethisVisible(false);
   };
 
   // 排序功能
   const handleSortChange = (value) => {
-    const [field, direction] = value.split('_');
+    const [field, direction] = value.split("_");
     setSortField(field);
     setSortDirection(direction);
 
@@ -143,8 +142,8 @@ export default function SearchPage() {
           valueB = b.referencecount || 0;
           break;
         case "title":
-          valueA = (a.title || '').toLowerCase();
-          valueB = (b.title || '').toLowerCase();
+          valueA = (a.title || "").toLowerCase();
+          valueB = (b.title || "").toLowerCase();
           break;
         default:
           return 0;
@@ -163,35 +162,35 @@ export default function SearchPage() {
   // 分享功能
   const handleShareResults = async () => {
     try {
-      const element = document.getElementById('search-results');
+      const element = document.getElementById("search-results");
       if (element) {
         const canvas = await html2canvas(element, { useCORS: true });
         canvas.toBlob(async (blob) => {
-          if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'search-results.png', { type: 'image/png' })] })) {
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], "search-results.png", { type: "image/png" })] })) {
             await navigator.share({
-              title: 'SCAI Search Results',
+              title: "SCAI Search Results",
               text: `Search results for "${query}"`,
-              files: [new File([blob], 'search-results.png', { type: 'image/png' })]
+              files: [new File([blob], "search-results.png", { type: "image/png" })],
             });
           } else {
             // Fallback: copy to clipboard
             await navigator.clipboard.write([
               new ClipboardItem({
-                'image/png': blob
-              })
+                "image/png": blob,
+              }),
             ]);
             notification.success({
-              message: 'Copied to Clipboard',
-              description: 'Search results image has been copied to clipboard.'
+              message: "Copied to Clipboard",
+              description: "Search results image has been copied to clipboard.",
             });
           }
         });
       }
     } catch (error) {
-      console.error('Share failed:', error);
+      console.error("Share failed:", error);
       notification.error({
-        message: 'Share Failed',
-        description: 'Failed to share search results.'
+        message: "Share Failed",
+        description: "Failed to share search results.",
       });
     }
   };
@@ -207,8 +206,8 @@ export default function SearchPage() {
           link.download = "search_results.png";
           link.click();
           notification.success({
-            message: 'Export Successful',
-            description: 'Search results have been exported as image.'
+            message: "Export Successful",
+            description: "Search results have been exported as image.",
           });
         });
       }
@@ -217,7 +216,7 @@ export default function SearchPage() {
 
   // 深度研究功能
   const handleReadFullText = async (paperId, source) => {
-    console.log('Opening chat for paper:', paperId, 'source:', source);
+    console.log("Opening chat for paper:", paperId, "source:", source);
     setSelectedPaperId(paperId);
     setSelectedSource(source);
     setChatModalVisible(true);
@@ -247,57 +246,27 @@ export default function SearchPage() {
         <div className="main-container">
           {/* 标题和搜索区域 */}
           <div className="search-header">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="title-section"
-            >
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="title-section">
               <Title level={1} className="main-title">
                 SCAI Search
               </Title>
-              <Text className="subtitle">
-                Your AI Gateway to Open-Access Scientific Research
-              </Text>
+              <Text className="subtitle">Your AI Gateway to Open-Access Scientific Research</Text>
             </motion.div>
 
             {/* 搜索输入框 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="search-input-section"
-            >
-              <Input.Search
-                placeholder="Search for papers, authors, or topics..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onSearch={handleSearch}
-                size="large"
-                loading={loading}
-                className="main-search-input"
-                style={{ maxWidth: 1200, width: "80%" }}
-              />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="search-input-section">
+              <Input.Search placeholder="Search for papers, authors, or topics..." value={query} onChange={(e) => setQuery(e.target.value)} onSearch={handleSearch} size="large" loading={loading} className="main-search-input" style={{ maxWidth: 1200, width: "80%" }} />
 
               {/* 开放获取选项和历史记录 */}
               <div className="search-options">
                 <label className="oa-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={openAccessOnly}
-                    onChange={(e) => setOpenAccessOnly(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={openAccessOnly} onChange={(e) => setOpenAccessOnly(e.target.checked)} />
                   <span>Open Access Only</span>
                 </label>
 
                 {/* 历史记录展开按钮 */}
                 {searchHistory.length > 0 && (
-                  <Button
-                    type="text"
-                    icon={historyExpanded ? <UpOutlined /> : <DownOutlined />}
-                    onClick={() => setHistoryExpanded(!historyExpanded)}
-                    className="history-toggle-btn"
-                  >
+                  <Button type="text" icon={historyExpanded ? <UpOutlined /> : <DownOutlined />} onClick={() => setHistoryExpanded(!historyExpanded)} className="history-toggle-btn">
                     Search History ({searchHistory.length})
                   </Button>
                 )}
@@ -305,13 +274,7 @@ export default function SearchPage() {
 
               {/* 历史记录列表 */}
               {historyExpanded && searchHistory.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="history-dropdown"
-                >
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }} className="history-dropdown">
                   <List
                     size="small"
                     dataSource={searchHistory.slice(0, 5)} // 只显示最近5条
@@ -329,12 +292,7 @@ export default function SearchPage() {
                           >
                             Search
                           </Button>,
-                          <Button
-                            type="link"
-                            size="small"
-                            danger
-                            onClick={() => deleteHistory(index)}
-                          >
+                          <Button type="link" size="small" danger onClick={() => deleteHistory(index)}>
                             Delete
                           </Button>,
                         ]}
@@ -358,11 +316,7 @@ export default function SearchPage() {
                   />
                   {searchHistory.length > 5 && (
                     <div className="history-footer">
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => sethisVisible(true)}
-                      >
+                      <Button type="link" size="small" onClick={() => sethisVisible(true)}>
                         View All History
                       </Button>
                     </div>
@@ -413,17 +367,12 @@ export default function SearchPage() {
               {/* 摘要部分 - 可折叠 */}
               <div className="summary-section">
                 <div className="summary-header">
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <RobotOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
                     SCAI Assistant
                   </h3>
-                  <Button
-                    type="text"
-                    icon={summaryCollapsed ? <DownOutlined /> : <UpOutlined />}
-                    onClick={() => setSummaryCollapsed(!summaryCollapsed)}
-                    className="collapse-btn"
-                  >
-                    {summaryCollapsed ? 'Expand' : 'Collapse'}
+                  <Button type="text" icon={summaryCollapsed ? <DownOutlined /> : <UpOutlined />} onClick={() => setSummaryCollapsed(!summaryCollapsed)} className="collapse-btn">
+                    {summaryCollapsed ? "Expand" : "Collapse"}
                   </Button>
                 </div>
                 {!summaryCollapsed && (
@@ -436,7 +385,7 @@ export default function SearchPage() {
               {/* 搜索结果列表 */}
               <div className="results-container">
                 <div className="results-header">
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <SearchOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
                     Search Results
                   </h3>
@@ -457,28 +406,11 @@ export default function SearchPage() {
                         { value: "title_desc", label: "Title (Z to A)" },
                       ]}
                     />
-                    <Button
-                      type="text"
-                      icon={<ShareAltOutlined />}
-                      onClick={handleShareResults}
-                      title="Share Results"
-                      style={{ marginRight: 4 }}
-                    />
-                    <Button
-                      type="text"
-                      icon={<DownloadOutlined />}
-                      onClick={exportAsImage}
-                      title="Download Results"
-                    />
+                    <Button type="text" icon={<ShareAltOutlined />} onClick={handleShareResults} title="Share Results" style={{ marginRight: 4 }} />
+                    <Button type="text" icon={<DownloadOutlined />} onClick={exportAsImage} title="Download Results" />
                   </div>
                 </div>
-                <SearchResult
-                  results={results}
-                  onReadFullText={handleReadFullText}
-                  isMobile={isMobile}
-                  pro={true}
-                  setModalVisible={setModalVisible}
-                />
+                <SearchResult results={results} onReadFullText={handleReadFullText} isMobile={isMobile} pro={true} setModalVisible={setModalVisible} />
               </div>
               {/* 导出按钮 */}
               {/* {results.length > 0 && !loading && (
@@ -498,14 +430,7 @@ export default function SearchPage() {
         </div>
 
         {/* 历史记录模态框 - 仅在点击"View All History"时显示 */}
-        <Modal
-          title="All Search History"
-          open={hisVisible}
-          onCancel={() => sethisVisible(false)}
-          footer={null}
-          width={isMobile ? "95%" : 800}
-          className="history-modal"
-        >
+        <Modal title="All Search History" open={hisVisible} onCancel={() => sethisVisible(false)} footer={null} width={isMobile ? "95%" : 800} className="history-modal">
           <List
             dataSource={searchHistory}
             renderItem={(item, index) => (
@@ -520,19 +445,12 @@ export default function SearchPage() {
                   >
                     Search Again
                   </Button>,
-                  <Button
-                    type="link"
-                    danger
-                    onClick={() => deleteHistory(index)}
-                  >
+                  <Button type="link" danger onClick={() => deleteHistory(index)}>
                     Delete
                   </Button>,
                 ]}
               >
-                <List.Item.Meta
-                  title={item.query}
-                  description={`${item.results?.length || 0} results found`}
-                />
+                <List.Item.Meta title={item.query} description={`${item.results?.length || 0} results found`} />
               </List.Item>
             )}
             locale={{ emptyText: "No search history" }}
