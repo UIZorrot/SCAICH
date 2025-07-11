@@ -8,12 +8,13 @@
   transition: all 0.3s ease;
 }
 
-.unified-header-next{
-  background-color: #000000;
-  border: 1px solid #fff;
+.unified-header-next {
+  background-color: rgba(36, 38, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
   margin: 10px auto;
   width: 95%;
+  background: blur(32px);
 }
 
 .light-theme .unified-header {
@@ -66,8 +67,8 @@
 }
 
 .logo-text {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 32px;
+  font-weight: 800;
   transition: color 0.2s ease;
 }
 
@@ -105,23 +106,23 @@
 .nav-link {
   padding: 8px 12px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 800;
   background: none;
   border: none;
-  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
   color: #fff;
+  border-radius: 20px;
 }
-
 
 .nav-link:hover {
   color: #ff4d4f;
 }
 
 .light-theme .nav-link:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  color: #000;
 }
 
 .dark-theme .nav-link:hover {
@@ -129,7 +130,6 @@
 }
 
 .nav-link.active {
-  font-weight: 600;
   background-color: #fff;
   color: #000;
 }
@@ -154,7 +154,6 @@
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
 
 /* .light-theme .login-btn {
   color: #333 !important;

@@ -13,7 +13,6 @@
 .search-header {
   text-align: center;
   margin-bottom: 3rem;
-
 }
 
 .title-section {
@@ -22,7 +21,7 @@
 
 .main-title {
   font-size: 4rem !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   margin-bottom: 1rem !important;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -36,8 +35,8 @@
 }
 
 .subtitle {
-  font-size: 1.2rem !important;
-  font-weight: 300;
+  font-size: 1.5rem !important;
+  font-weight: 400;
   display: block;
 }
 
@@ -54,8 +53,8 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-
-
+  width: 55%;
+  margin: auto;
   background-color: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
@@ -91,11 +90,9 @@
   color: rgba(155, 155, 155, 0.6) !important;
 }
 
-.anticon-search{
+.anticon-search {
   color: #ff4d4f !important;
 }
-
-
 
 .search-options {
   display: flex;
@@ -111,8 +108,14 @@
   gap: 0.5rem;
   cursor: pointer;
   font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 1);
+  border-radius: 30px;
+  padding: 10px;
 }
 
+.oa-checkbox:hover {
+  color: #ff4d4f;
+}
 
 .light-theme .oa-checkbox {
   color: #fff;
@@ -124,9 +127,10 @@
 
 .history-toggle-btn {
   font-size: 0.9rem !important;
-  padding: 4px 8px !important;
   height: auto !important;
-  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 1);
+  border-radius: 30px;
+  padding: 10px;
 }
 
 .light-theme .history-toggle-btn {
@@ -138,7 +142,7 @@
 }
 
 .history-toggle-btn:hover {
-  color: #1890ff !important;
+  color: #ff4d4f !important;
 }
 
 /* 历史记录下拉列表 */
@@ -225,7 +229,7 @@
   margin-left: 0 !important;
 }
 
-.history-dropdown .ant-list-item-action>li {
+.history-dropdown .ant-list-item-action > li {
   padding: 0 0.25rem !important;
 }
 
@@ -624,7 +628,7 @@
 
 .suggestion-link {
   cursor: pointer;
-  color: #383FFF;
+  color: #383fff;
   text-decoration: none;
   margin: 0 0.5rem;
 }

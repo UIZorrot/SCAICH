@@ -15,7 +15,7 @@ const Footer = () => {
         </svg>
       ),
     },
-    {
+   {
       name: 'Telegram',
       href: 'https://t.me/SCAI_Official',
       icon: (
