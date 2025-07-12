@@ -15,7 +15,7 @@ const Footer = () => {
         </svg>
       ),
     },
-   {
+    {
       name: 'Telegram',
       href: 'https://t.me/SCAI_Official',
       icon: (
@@ -41,16 +41,12 @@ const Footer = () => {
         <div className="footer-content">
           {/* Left side: Logo and tagline */}
           <div className="footer-brand">
-            <img
-              src="/rocket-icon.png"
-              alt="SCAI Logo"
-              className="footer-logo"
-            />
-            <div className="brand-info">
-              <span className="brand-name">SCAI</span>
-              <span className="brand-tagline">
-                Scientific AI Research Platform
-              </span>
+
+            <div className="brand-info" style={{ textalign: "center", verticalAlign: "center", justifyContent: "center", alignItems: "center" }}>
+              <span className="brand-name">SCAI <span style={{ fontWeight: 200, fontSize: "22px" }}>
+                | Web3 brain of Academic
+              </span></span>
+
             </div>
           </div>
 

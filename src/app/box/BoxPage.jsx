@@ -350,7 +350,7 @@ const BoxPage = () => {
             transition={{ duration: 0.8 }}
             className="hero-content"
           >
-            <Title level={1} className="hero-title">SCAI Box</Title>
+            <Title level={1} className="hero-title" style={{ color: '#fff' }}>SCAI Box</Title>
             <Paragraph className="hero-subtitle">
               Decentralized and permanent storage for open science.
             </Paragraph>
@@ -358,9 +358,13 @@ const BoxPage = () => {
               Publish your paper permanently, right from your computer.
             </Paragraph>
 
-            <div className="hero-actions">
 
-              {/* <Select
+
+
+          </motion.div>
+          <div className="search-input-section">
+
+            {/* <Select
                 value={searchType}
                 onChange={setSearchType}
                 className="search-type-select"
@@ -370,26 +374,23 @@ const BoxPage = () => {
                 <Select.Option value="title">Title</Select.Option>
                 <Select.Option value="aid">arXiv ID</Select.Option>
               </Select> */}
-              <Button
-                type="primary"
-                size="large"
-                icon={<UploadOutlined />}
-                onClick={handleUpload}
-                className="upload-btn"
-              >
-                Upload Paper
-              </Button>
-              <Input.Search
-                size="large"
-                onSearch={handleSearch}
-                loading={loading}
-                className="main-search-input"
-              />
 
-            </div>
-
-
-          </motion.div>
+            <Input.Search
+              placeholder="Search for DOIs"
+              size="large"
+              onSearch={handleSearch}
+              loading={loading}
+              className="main-search-input"
+            />
+            <Button
+              type="primary"
+              icon={<UploadOutlined />}
+              onClick={handleUpload}
+              className="upload-btn"
+            >
+              Upload Paper
+            </Button>
+          </div>
         </div>
 
         {/* Features Section */}

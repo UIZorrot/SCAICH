@@ -9,8 +9,8 @@
 }
 
 .unified-header-next {
-  background-color: rgba(36, 38, 42, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(36, 38, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   margin: 10px auto;
   width: 95%;

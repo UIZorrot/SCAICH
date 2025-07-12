@@ -240,22 +240,23 @@ export default function SearchPage() {
   }, [windowWidth]);
 
   return (
+    // ${currentTheme.name}
     <Layout showFooter={true}>
-      <div className={`search-page ${currentTheme.name}-theme`}>
+      <div className={`search-page light-theme`}>
         {/* 主要内容区域 */}
         <div className="main-container">
           {/* 标题和搜索区域 */}
           <div className="search-header">
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="title-section">
-              <Title level={1} className="main-title">
+              <Title level={1} className="hero-title">
                 SCAI Search
               </Title>
-              <Text className="subtitle">Your AI Gateway to Open-Access Scientific Research</Text>
+              <Text className="hero-subtitle">Your AI Gateway to Open-Access Scientific Research</Text>
             </motion.div>
 
             {/* 搜索输入框 */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="search-input-section">
-              <Input.Search placeholder="Search for papers, authors, or topics..." value={query} onChange={(e) => setQuery(e.target.value)} onSearch={handleSearch} size="large" loading={loading} className="main-search-input" style={{ maxWidth: 1200, width: "80%" }} />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="search-input-section1">
+              <Input.Search placeholder="Search for papers, authors, or topics..." value={query} onChange={(e) => setQuery(e.target.value)} onSearch={handleSearch} size="large" loading={loading} className="main-search-input"/>
 
               {/* 开放获取选项和历史记录 */}
               <div className="search-options">
@@ -266,7 +267,7 @@ export default function SearchPage() {
 
                 {/* 历史记录展开按钮 */}
                 {searchHistory.length > 0 && (
-                  <Button type="text" icon={historyExpanded ? <UpOutlined /> : <DownOutlined />} onClick={() => setHistoryExpanded(!historyExpanded)} className="history-toggle-btn">
+                  <Button type="primary" icon={historyExpanded ? <UpOutlined /> : <DownOutlined />} onClick={() => setHistoryExpanded(!historyExpanded)} className="history-toggle-btn">
                     Search History ({searchHistory.length})
                   </Button>
                 )}
@@ -323,6 +324,82 @@ export default function SearchPage() {
                   )}
                 </motion.div>
               )}
+
+              {/* 搜索结果区域 */}
+              {loading && (
+                <div className="results-section" id="search-results">
+                  {/* 加载状态 */}
+                  <div className="loading-section">
+                    <LoadingComponent loading={loading} />
+                  </div>
+                </div>
+              )}
+
+              {!loading && results.length > 0 && (
+                <div className="results-section" id="search-results" style={{ textAlign: "left" }}>
+                  {/* 摘要部分 - 可折叠 */}
+                  <div className="summary-section">
+                    <div className="summary-header">
+                      <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <RobotOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
+                        SCAI Assistant
+                      </h3>
+                      <Button type="text" icon={summaryCollapsed ? <DownOutlined /> : <UpOutlined />} onClick={() => setSummaryCollapsed(!summaryCollapsed)} className="collapse-btn">
+                        {summaryCollapsed ? "Expand" : "Collapse"}
+                      </Button>
+                    </div>
+                    {!summaryCollapsed && (
+                      <div className="summary-container">
+                        <Summary summary={summary} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 搜索结果列表 */}
+                  <div className="results-container">
+                    <div className="results-header">
+                      <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <SearchOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
+                        Search Results
+                      </h3>
+                      <div className="results-controls">
+                        <Select
+                          defaultValue="similarity_desc"
+                          style={{ width: 200, marginRight: 8 }}
+                          onChange={handleSortChange}
+                          options={[
+                            { value: "default", label: "Default Sort" },
+                            { value: "similarity_desc", label: "Relevance (High to Low)" },
+                            { value: "similarity_asc", label: "Relevance (Low to High)" },
+                            { value: "year_desc", label: "Year (Newest First)" },
+                            { value: "year_asc", label: "Year (Oldest First)" },
+                            { value: "referencecount_desc", label: "References (High to Low)" },
+                            { value: "referencecount_asc", label: "References (Low to High)" },
+                            { value: "title_asc", label: "Title (A to Z)" },
+                            { value: "title_desc", label: "Title (Z to A)" },
+                          ]}
+                        />
+                        <Button type="text" icon={<ShareAltOutlined />} onClick={handleShareResults} title="Share Results" style={{ marginRight: 4 }} />
+                        <Button type="text" icon={<DownloadOutlined />} onClick={exportAsImage} title="Download Results" />
+                      </div>
+                    </div>
+                    <SearchResult results={results} onReadFullText={handleReadFullText} isMobile={isMobile} pro={true} setModalVisible={setModalVisible} />
+                  </div>
+                  {/* 导出按钮 */}
+                  {/* {results.length > 0 && !loading && (
+                <div className="export-section">
+                  <Button
+                    type="primary"
+                    icon={<ExportOutlined />}
+                    onClick={exportAsImage}
+                    className="export-btn"
+                  >
+                    Export as Image
+                  </Button>
+                </div>
+              )} */}
+                </div>
+              )}
             </motion.div>
           </div>
 
@@ -352,81 +429,6 @@ export default function SearchPage() {
             </motion.div>
           )} */}
 
-          {/* 搜索结果区域 */}
-          {loading && (
-            <div className="results-section" id="search-results">
-              {/* 加载状态 */}
-              <div className="loading-section">
-                <LoadingComponent loading={loading} />
-              </div>
-            </div>
-          )}
-
-          {!loading && results.length > 0 && (
-            <div className="results-section" id="search-results">
-              {/* 摘要部分 - 可折叠 */}
-              <div className="summary-section">
-                <div className="summary-header">
-                  <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <RobotOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
-                    SCAI Assistant
-                  </h3>
-                  <Button type="text" icon={summaryCollapsed ? <DownOutlined /> : <UpOutlined />} onClick={() => setSummaryCollapsed(!summaryCollapsed)} className="collapse-btn">
-                    {summaryCollapsed ? "Expand" : "Collapse"}
-                  </Button>
-                </div>
-                {!summaryCollapsed && (
-                  <div className="summary-container">
-                    <Summary summary={summary} />
-                  </div>
-                )}
-              </div>
-
-              {/* 搜索结果列表 */}
-              <div className="results-container">
-                <div className="results-header">
-                  <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <SearchOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
-                    Search Results
-                  </h3>
-                  <div className="results-controls">
-                    <Select
-                      defaultValue="similarity_desc"
-                      style={{ width: 200, marginRight: 8 }}
-                      onChange={handleSortChange}
-                      options={[
-                        { value: "default", label: "Default Sort" },
-                        { value: "similarity_desc", label: "Relevance (High to Low)" },
-                        { value: "similarity_asc", label: "Relevance (Low to High)" },
-                        { value: "year_desc", label: "Year (Newest First)" },
-                        { value: "year_asc", label: "Year (Oldest First)" },
-                        { value: "referencecount_desc", label: "References (High to Low)" },
-                        { value: "referencecount_asc", label: "References (Low to High)" },
-                        { value: "title_asc", label: "Title (A to Z)" },
-                        { value: "title_desc", label: "Title (Z to A)" },
-                      ]}
-                    />
-                    <Button type="text" icon={<ShareAltOutlined />} onClick={handleShareResults} title="Share Results" style={{ marginRight: 4 }} />
-                    <Button type="text" icon={<DownloadOutlined />} onClick={exportAsImage} title="Download Results" />
-                  </div>
-                </div>
-                <SearchResult results={results} onReadFullText={handleReadFullText} isMobile={isMobile} pro={true} setModalVisible={setModalVisible} />
-              </div>
-              {/* 导出按钮 */}
-              {/* {results.length > 0 && !loading && (
-                <div className="export-section">
-                  <Button
-                    type="primary"
-                    icon={<ExportOutlined />}
-                    onClick={exportAsImage}
-                    className="export-btn"
-                  >
-                    Export as Image
-                  </Button>
-                </div>
-              )} */}
-            </div>
-          )}
         </div>
 
         {/* 历史记录模态框 - 仅在点击"View All History"时显示 */}

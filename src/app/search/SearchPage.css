@@ -9,6 +9,42 @@
   margin: auto;
 }
 
+.hero-title {
+  font-size: 4rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 1rem !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  color: white !important;
+}
+
+.hero-subtitle {
+  font-size: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 300;
+}
+
+.light-theme .hero-subtitle {
+  color: #ccc !important;
+}
+
+.dark-theme .hero-subtitle {
+  color: white !important;
+}
+
+.hero-tagline {
+  font-size: 1.2rem !important;
+  margin-bottom: 2rem !important;
+  font-weight: 300;
+}
+
+.light-theme .hero-tagline {
+  color: #aaa !important;
+}
+
+.dark-theme .hero-tagline {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
 /* 搜索头部区域 */
 .search-header {
   text-align: center;
@@ -48,17 +84,20 @@
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.search-input-section {
+.search-input-section1 {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  width: 55%;
+  width: 80%;
+  max-width: 1400px;
+  margin: auto;
+  transition: all 0.3s ease;
   margin: auto;
   background-color: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 25px 2rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -128,9 +167,9 @@
 .history-toggle-btn {
   font-size: 0.9rem !important;
   height: auto !important;
-  border: 1px solid rgba(255, 255, 255, 1);
+  background: linear-gradient(45deg, #ec7272, #f71818) !important;
   border-radius: 30px;
-  padding: 10px;
+  padding: 10px 15px;
 }
 
 .light-theme .history-toggle-btn {
@@ -148,7 +187,7 @@
 /* 历史记录下拉列表 */
 .history-dropdown {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1400px;
   margin: 1rem auto 0;
   border-radius: 1rem;
   overflow: hidden;
@@ -229,7 +268,7 @@
   margin-left: 0 !important;
 }
 
-.history-dropdown .ant-list-item-action > li {
+.history-dropdown .ant-list-item-action>li {
   padding: 0 0.25rem !important;
 }
 
@@ -492,6 +531,7 @@
 .results-container {
   border-radius: 1rem;
   padding: 1.5rem;
+  text-align: left;
 }
 
 .light-theme .results-container {

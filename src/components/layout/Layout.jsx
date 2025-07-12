@@ -8,7 +8,7 @@ const Layout = ({ children, showFooter = true }) => {
   const { currentTheme } = useBackground();
 
   return (
-    <div className={`layout-container ${currentTheme.name}-theme`}>
+    <div className={`layout-container light-theme`}>
       {/* Background */}
       <div className="layout-background" style={{ backgroundColor: currentTheme.background }} />
       <img src="/bg1.png" alt="" className="layout-background-img" />

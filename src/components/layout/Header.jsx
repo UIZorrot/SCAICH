@@ -105,7 +105,7 @@ const Header = () => {
           {/* Right side - Theme Toggle and Login Button */}
           {!isMobile && (
             <div className="header-right">
-              <Button type="text" icon={currentTheme.isDark ? <BulbOutlined /> : <BulbFilled />} className="theme-toggle-btn" onClick={switchTheme} title={`Switch to ${currentTheme.isDark ? "Light" : "Dark"} Theme`} />
+              {/* <Button type="text" icon={currentTheme.isDark ? <BulbOutlined /> : <BulbFilled />} className="theme-toggle-btn" onClick={switchTheme} title={`Switch to ${currentTheme.isDark ? "Light" : "Dark"} Theme`} /> */}
               <span> </span>
               <SignedOut>
                 <SignInButton>
@@ -140,9 +140,9 @@ const Header = () => {
             ))}
 
             {/* Mobile Theme Toggle */}
-            <Button type="text" block icon={currentTheme.isDark ? <BulbOutlined /> : <BulbFilled />} onClick={switchTheme} className="mobile-nav-link" style={{ marginTop: "16px" }}>
+            {/* <Button type="text" block icon={currentTheme.isDark ? <BulbOutlined /> : <BulbFilled />} onClick={switchTheme} className="mobile-nav-link" style={{ marginTop: "16px" }}>
               {currentTheme.isDark ? "Light Theme" : "Dark Theme"}
-            </Button>
+            </Button> */}
 
             {/* Mobile Login/User Button */}
             <div style={{ marginTop: "16px" }}>

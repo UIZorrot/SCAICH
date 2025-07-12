@@ -6,46 +6,24 @@
 /* Hero Section */
 .hero-section1 {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2rem 2rem;
   width: 90%;
-  margin: 0rem auto;
+  max-width: 1400px;
+  margin: auto;
   border-radius: 2rem;
   transition: all 0.3s ease;
 }
 
-.light-theme .hero-section {
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.dark-theme .hero-section {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.hero-content {
-  max-width: 1800px;
-}
+.hero-content {}
 
 .hero-title {
-
   font-size: 4rem !important;
   font-weight: 800 !important;
   margin-bottom: 1rem !important;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.light-theme .hero-title {
-  color: #333 !important;
-}
-
-.dark-theme .hero-title {
   color: white !important;
 }
 
@@ -56,7 +34,7 @@
 }
 
 .light-theme .hero-subtitle {
-  color: #666 !important;
+  color: #ccc !important;
 }
 
 .dark-theme .hero-subtitle {
@@ -70,7 +48,7 @@
 }
 
 .light-theme .hero-tagline {
-  color: #888 !important;
+  color: #aaa !important;
 }
 
 .dark-theme .hero-tagline {
@@ -85,9 +63,9 @@
 }
 
 .upload-btn {
-  background: linear-gradient(45deg, #4a90e2, #357abd) !important;
+  background: linear-gradient(45deg, #e45959, #ff0000) !important;
   border: none !important;
-  height: 48px !important;
+  height: 36px !important;
   padding: 0 2rem !important;
   font-size: 1.1rem !important;
   border-radius: 24px !important;
@@ -97,7 +75,7 @@
 
 .upload-btn:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4) !important;
+  box-shadow: 0 6px 16px rgba(226, 74, 74, 0.4) !important;
 }
 
 .explore-btn {
@@ -134,8 +112,9 @@
   margin-bottom: 3rem !important;
   font-weight: 700 !important;
 }
+
 .light-theme .section-title {
-  color: #333 !important;
+  color: #ffffff !important;
 }
 
 .dark-theme .section-title {
@@ -255,7 +234,6 @@
 
 .main-search-input {
   flex: 1;
-  width: 1200px;
   border-radius: 2rem !important;
 }
 
@@ -401,7 +379,7 @@
 }
 
 .floating-upload-btn {
-  background: linear-gradient(45deg, #4a90e2, #357abd) !important;
+  background: linear-gradient(45deg, #e24a4a, #ff0c0c) !important;
   border: none !important;
   height: 56px !important;
   padding: 0 1.5rem !important;
@@ -462,4 +440,21 @@
   .floating-upload-btn span:not(.anticon) {
     display: none;
   }
+}
+
+.search-input-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 80%;
+  max-width: 1400px;
+  margin: auto;
+  transition: all 0.3s ease;
+  margin: auto;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 25px 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
