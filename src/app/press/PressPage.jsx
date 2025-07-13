@@ -531,7 +531,7 @@ const PressPage = () => {
                   onClick={() => setSubmitModalVisible(true)}
                   className="submit-btn"
                 >
-                  Submit Paper
+                  I Want to Submit
                 </Button>
 
               </div>
@@ -541,7 +541,7 @@ const PressPage = () => {
                 className="browse-btn"
                 onClick={() => setPolishModalVisible(true)}
               >
-                Polish Papers
+                I Want to Audit
               </Button>
             </div>
           </motion.div>

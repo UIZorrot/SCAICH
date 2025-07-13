@@ -51,8 +51,22 @@ function ChatModal({ visible, paperId, source, onClose }) {
         }
 
         setLoading(true);
+
+        // 验证和清理参数
+        const validSources = ['arxiv', 'scihub'];
+        const cleanSource = validSources.includes(source) ? source : 'scihub';
+        const cleanPaperId = paperId ? paperId.toString().trim() : '';
+
+        if (!cleanPaperId) {
+            setError("Invalid paper ID");
+            setLoading(false);
+            return;
+        }
+
+        console.log('Connecting to WebSocket with:', { id: cleanPaperId, source: cleanSource });
+
         const newSocket = io(url, {
-            query: { id: paperId, source },
+            query: { id: cleanPaperId, source: cleanSource },
             transports: ["websocket"], // 强制使用 WebSocket，避免 polling 重连
             reconnectionAttempts: 3, // 限制重连次数
             reconnectionDelay: 1000,

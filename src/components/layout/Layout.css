@@ -5,25 +5,45 @@
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
+  /* 确保容器能够扩展以适应内容 */
+  background: rgba(22, 46, 79, 1);
 }
 
 .layout-background {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
+  min-height: 100vh;
+  z-index: 1;
   transition: background-color 0.3s ease;
+  /* 深蓝色渐变背景，底部透明与图片重叠 */
+  background: linear-gradient(to bottom,
+      #06274f 0%,
+      /* 深蓝色 */
+      #06274f 20%,
+      /* 稍浅的深蓝色 */
+      #06274f 60%,
+      /* 相近的深蓝色 */
+      rgba(9, 62, 103, 0.5) 100%
+      /* 底部透明的深蓝色 */
+    ) !important;
 }
 
 .layout-background-img {
   position: absolute;
-  inset: 0;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
+  min-height: 70vh;
+  /* 增加图片高度，确保与渐变有更好的重叠 */
   object-fit: cover;
-  z-index: -1;
+  object-position: bottom center;
+
+  /* 确保图片从底部中心开始显示 */
+  /* 确保图片在渐变背景之下 */
 }
 
 .layout-main {
@@ -38,10 +58,9 @@
 }
 
 .main-content {
-  flex: 1;
   width: 100%;
   max-width: 100%;
-  margin: 0 auto;
+  margin: 2rem auto;
   position: relative;
   z-index: 1;
 }
@@ -66,7 +85,7 @@
 
 
 /* Content area styling */
-.main-content {
+/* .main-content {
   padding: 0 16px 32px;
 }
 
@@ -80,7 +99,7 @@
   .main-content {
     padding: 0 48px 64px;
   }
-}
+} */
 
 /* Theme-specific styles */
 .light-theme {
@@ -91,11 +110,26 @@
   color: #fff;
 }
 
-/* 确保白色主题下的元素有足够的对比度 */
-.light-theme .main-content {}
+/* 主题特定的背景调整 */
+.light-theme .layout-background {
+  /* 浅色主题使用深蓝色渐变，底部透明 */
+  background: linear-gradient(to bottom,
+      #06274f 0%,
+      /* 深蓝色 */
+      #083060 20%,
+      /* 稍浅的深蓝色 */
+      rgba(22, 46, 79, 1) 60%,
+      /* 相近的深蓝色 */
+      rgbargba(22, 46, 79, 0.5) 100%
+      /* 底部透明的深蓝色 */
+    ) !important;
+}
+
+
 
 .dark-theme .main-content {
-  background: rgba(0, 0, 0, 0.00);
+  /* 深色主题下内容区域保持透明 */
+  background: transparent;
 }
 
 @media (max-width: 768px) {

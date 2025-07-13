@@ -1,6 +1,8 @@
 .press-page {
-  min-height: 100vh;
+  min-height: 70vh;
   padding: 0;
+    padding: 5rem;
+    transition: all 0.3s ease;
 }
 
 /* Hero Section */
@@ -147,14 +149,7 @@
 }
 
 /* Main Content */
-.main-content {
-  padding: 2rem;
-  backdrop-filter: blur(5px);
-  width: 90%;
-  margin: 2rem auto;
-  border-radius: 2rem;
-  min-height: 60vh;
-}
+
 
 .press-tabs {
   background: transparent;

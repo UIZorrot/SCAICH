@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/irys/upload",
+      "dest": "/api/irys-upload.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/build/$1"
+    }
+  ],
+  "functions": {
+    "api/irys-upload.js": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "PRIVATE_KEY": "@private_key",
+    "REACT_APP_PUBLISHABLE_KEY": "@react_app_publishable_key"
+  }
+}

@@ -17,17 +17,6 @@
   background: blur(32px);
 }
 
-.light-theme .unified-header {
-  /* background-color: rgba(255, 255, 255, 0.95); */
-  /* border: 2px solid rgba(0, 0, 0, 0.15); */
-  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); */
-}
-
-.dark-theme .unified-header {
-  /* background-color: rgba(0, 0, 0, 0.9); */
-  /* border: 1px solid rgba(255, 255, 255, 0.1); */
-  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); */
-}
 
 .header-nav {
   padding: 0 16px;

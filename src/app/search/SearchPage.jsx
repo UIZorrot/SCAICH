@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Input, Typography, Button, notification, Modal, Card, List, Row, Col, Select } from "antd";
-import { SearchOutlined, RobotOutlined, DownOutlined, UpOutlined, ShareAltOutlined, DownloadOutlined } from "@ant-design/icons";
+import React, { useState, useEffect, useCallback } from "react";
+import { Input, Typography, Button, notification, Modal, Card, List, Row, Col, Select, message } from "antd";
+import { SearchOutlined, RobotOutlined, DownOutlined, UpOutlined, ShareAltOutlined, DownloadOutlined, FileTextOutlined, DatabaseOutlined } from "@ant-design/icons";
 import html2canvas from "html2canvas";
 import { LoadingComponent } from "../../components/Loading.jsx";
 import Summary from "../../components/summary.jsx";
@@ -45,12 +45,219 @@ export default function SearchPage() {
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
   const [sortField, setSortField] = useState("similarity");
   const [sortDirection, setSortDirection] = useState("desc");
+  const [latestPapers, setLatestPapers] = useState([]);
+  const [showLatestPapers, setShowLatestPapers] = useState(false);
+  const [totalPapersCount, setTotalPapersCount] = useState("--");
   const navigate = useNavigate();
   const { currentTheme } = useBackground();
 
   // 检查是否为重复历史记录
   const isDuplicateHistory = (newQuery) => {
     return searchHistory.some((item) => item.query === newQuery);
+  };
+
+  // GraphQL查询函数
+  const executeGraphQLQuery = async (query) => {
+    const response = await fetch('https://uploader.irys.xyz/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    return response.json();
+  };
+
+  // 查询PDF版本
+  const queryPdfVersions = async (doi) => {
+    if (!doi) return [];
+
+    const query1_0_3 = `
+      query {
+        transactions(
+          tags: [
+            { name: "App-Name", values: ["scivault"] },
+            { name: "Content-Type", values: ["application/pdf"] },
+            { name: "Version", values: ["1.0.3"] },
+            { name: "doi", values: ["${doi}"] }
+          ]
+        ) {
+          edges {
+            node {
+              id
+              tags { name value }
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const result = await executeGraphQLQuery(query1_0_3);
+      const versions = [];
+
+      if (result.data?.transactions?.edges?.length > 0) {
+        versions.push({
+          version: '1.0.3',
+          ids: result.data.transactions.edges.map(edge => edge.node.id)
+        });
+      }
+
+      return versions;
+    } catch (error) {
+      console.error('Error querying PDF versions:', error);
+      return [];
+    }
+  };
+
+  // 处理论文元数据
+  const processPaperMetadata = async (edge) => {
+    try {
+      const id = edge.node.id;
+      const metadataResponse = await fetch(`https://gateway.irys.xyz/${id}`);
+      if (!metadataResponse.ok) return null;
+
+      const paper = await metadataResponse.json();
+      const doi = edge.node.tags.find(tag => tag.name === 'doi')?.value;
+
+      if (doi) {
+        paper.pdfVersions = await queryPdfVersions(doi);
+      } else {
+        paper.pdfVersions = [];
+      }
+
+      return paper;
+    } catch (error) {
+      console.error('Error processing paper metadata:', error);
+      return null;
+    }
+  };
+
+  // 加载最新论文
+  const loadLatestPapers = useCallback(async () => {
+    setLoading(true); // 使用共用的loading状态
+    try {
+      // 只获取最新论文的查询
+      const latestPapersQuery = `
+        query {
+          transactions(
+            tags: [
+              { name: "App-Name", values: ["scivault"] },
+              { name: "Content-Type", values: ["application/json"] }
+            ],
+            first: 20,
+            order: DESC
+          ) {
+            edges {
+              node {
+                id
+                tags { name value }
+                timestamp
+              }
+            }
+          }
+        }
+      `;
+
+      const result = await executeGraphQLQuery(latestPapersQuery);
+      const metadataNodes = result.data?.transactions?.edges || [];
+      const papers = await Promise.all(metadataNodes.map(edge => processPaperMetadata(edge)));
+      const validPapers = papers.filter(paper => paper !== null);
+
+      // 转换为搜索结果格式
+      const formattedPapers = validPapers.map(paper => ({
+        title: paper.title || 'Untitled',
+        author: paper.authors || 'Unknown authors',
+        year: new Date().getFullYear().toString(),
+        abstract: paper.abstract || 'No abstract available',
+        doi: paper.doi || '',
+        url: `https://uploader.irys.xyz/7NTozL367vtp2i1REuTKncHvnPjeZTdGMbUxYB4wJGnv?doi=${encodeURIComponent(paper.doi || '')}`,
+        similarity: '1.0',
+        location: 'SCAI Box',
+        source: 'scai-box',
+        is_oa: true,
+        referencecount: 0
+      }));
+
+      setLatestPapers(formattedPapers);
+    } catch (error) {
+      console.error('Error loading latest papers:', error);
+      message.error('Failed to load latest papers');
+    } finally {
+      setLoading(false); // 使用共用的loading状态
+    }
+  }, []);
+
+  // 异步加载总论文数量 - 简化版本，只获取数量不处理元数据
+  const loadTotalPapersCount = useCallback(async () => {
+    try {
+      // 获取总论文数量的查询 - 分批获取以获得准确数量
+      let totalCount = 0;
+      let hasMore = true;
+      let cursor = null;
+
+      while (hasMore && totalCount < 10000) { // 设置上限防止无限循环
+        const totalCountQuery = `
+          query {
+            transactions(
+              tags: [
+                { name: "App-Name", values: ["scivault"] },
+                { name: "Content-Type", values: ["application/json"] }
+              ],
+              first: 1000,
+              ${cursor ? `after: "${cursor}",` : ''}
+              order: DESC
+            ) {
+              edges {
+                node {
+                  id
+                }
+                cursor
+              }
+              pageInfo {
+                hasNextPage
+              }
+            }
+          }
+        `;
+
+        const countResult = await executeGraphQLQuery(totalCountQuery);
+        const edges = countResult.data?.transactions?.edges || [];
+        const pageInfo = countResult.data?.transactions?.pageInfo || {};
+
+        totalCount += edges.length;
+        hasMore = pageInfo.hasNextPage && edges.length > 0;
+
+        if (hasMore && edges.length > 0) {
+          cursor = edges[edges.length - 1].cursor;
+        }
+
+        // 如果这批数据少于1000，说明已经到底了
+        if (edges.length < 1000) {
+          hasMore = false;
+        }
+      }
+
+      setTotalPapersCount(totalCount.toString());
+    } catch (error) {
+      console.error('Error loading total papers count:', error);
+      setTotalPapersCount("--");
+    }
+  }, []);
+
+  // 处理Latest Papers按钮点击
+  const handleLatestPapersClick = () => {
+    if (!showLatestPapers) {
+      // 清空搜索结果，确保互斥显示
+      setResults([]);
+      setSummary("");
+      setQuery("");
+      setTotalPapersCount("--"); // 重置计数显示
+      loadLatestPapers();
+      // 异步加载论文数量，不阻塞主要内容的显示
+      setTimeout(() => {
+        loadTotalPapersCount();
+      }, 100);
+    }
+    setShowLatestPapers(!showLatestPapers);
   };
 
   // 搜索功能
@@ -62,6 +269,9 @@ export default function SearchPage() {
     // 清空之前的结果，确保显示加载状态
     setResults([]);
     setSummary("");
+    // 隐藏Latest Papers，确保互斥显示
+    setShowLatestPapers(false);
+    setLatestPapers([]);
 
     try {
       const response = await fetch(`https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`, {
@@ -102,6 +312,9 @@ export default function SearchPage() {
   // 从历史记录搜索
   const searchFromHistory = (historyItem) => {
     setQuery(historyItem.query);
+    // 隐藏Latest Papers，确保互斥显示
+    setShowLatestPapers(false);
+    setLatestPapers([]);
     // 确保结果中的每个项目都有必要的字段
     const safeResults =
       historyItem.results?.map((result) => ({
@@ -239,6 +452,23 @@ export default function SearchPage() {
     setIsMobile(isMobile);
   }, [windowWidth]);
 
+  // 检查URL参数，自动触发Deep Research
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const deepResearchDoi = urlParams.get('deepResearch');
+    const source = urlParams.get('source');
+    const title = urlParams.get('title');
+
+    if (deepResearchDoi) {
+      // 自动触发Deep Research
+      handleReadFullText(deepResearchDoi, source || 'scihub');
+
+      // 清理URL参数
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
   return (
     // ${currentTheme.name}
     <Layout showFooter={true}>
@@ -256,7 +486,7 @@ export default function SearchPage() {
 
             {/* 搜索输入框 */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="search-input-section1">
-              <Input.Search placeholder="Search for papers, authors, or topics..." value={query} onChange={(e) => setQuery(e.target.value)} onSearch={handleSearch} size="large" loading={loading} className="main-search-input"/>
+              <Input.Search placeholder="Search for papers, authors, or topics..." value={query} onChange={(e) => setQuery(e.target.value)} onSearch={handleSearch} size="large" loading={loading} className="main-search-input" />
 
               {/* 开放获取选项和历史记录 */}
               <div className="search-options">
@@ -264,6 +494,17 @@ export default function SearchPage() {
                   <input type="checkbox" checked={openAccessOnly} onChange={(e) => setOpenAccessOnly(e.target.checked)} />
                   <span>Open Access Only</span>
                 </label>
+
+                {/* Latest Papers按钮 */}
+                <Button
+                  type={showLatestPapers ? "primary" : "default"}
+                  icon={<DatabaseOutlined />}
+                  onClick={handleLatestPapersClick}
+                  loading={loading && showLatestPapers}
+                  className="latest-papers-btn"
+                >
+                  {showLatestPapers ? 'Hide Latest Papers' : 'Show Latest Papers'}
+                </Button>
 
                 {/* 历史记录展开按钮 */}
                 {searchHistory.length > 0 && (
@@ -330,12 +571,15 @@ export default function SearchPage() {
                 <div className="results-section" id="search-results">
                   {/* 加载状态 */}
                   <div className="loading-section">
-                    <LoadingComponent loading={loading} />
+                    <LoadingComponent loading={loading} style={{
+                      color: "#fff"
+                    }} />
                   </div>
                 </div>
               )}
 
-              {!loading && results.length > 0 && (
+              {/* 搜索结果区域 - 只在有搜索结果且不显示Latest Papers时显示 */}
+              {!loading && results.length > 0 && !showLatestPapers && (
                 <div className="results-section" id="search-results" style={{ textAlign: "left" }}>
                   {/* 摘要部分 - 可折叠 */}
                   <div className="summary-section">
@@ -398,6 +642,32 @@ export default function SearchPage() {
                   </Button>
                 </div>
               )} */}
+                </div>
+              )}
+
+              {/* Latest Papers区域 - 只在显示Latest Papers且没有搜索结果时显示 */}
+              {!loading && showLatestPapers && results.length === 0 && latestPapers.length > 0 && (
+                <div className="results-section" id="latest-papers" style={{ textAlign: "left", marginTop: "2rem" }}>
+                  <div className="results-container">
+                    <div className="results-header">
+                      <h3 style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between", width: "100%" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <DatabaseOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
+                          Latest Papers from SCAI Box
+                        </span>
+                        <span className="papers-count-badge">
+                          {totalPapersCount} papers
+                        </span>
+                      </h3>
+                    </div>
+                    <SearchResult
+                      results={latestPapers}
+                      onReadFullText={handleReadFullText}
+                      isMobile={isMobile}
+                      pro={true}
+                      setModalVisible={setModalVisible}
+                    />
+                  </div>
                 </div>
               )}
             </motion.div>

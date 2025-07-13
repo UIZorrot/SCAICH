@@ -1,5 +1,6 @@
 .search-page {
-  padding: 2rem;
+  min-height: 70vh;
+  padding: 5rem;
   transition: all 0.3s ease;
 }
 
@@ -7,6 +8,7 @@
   width: 90%;
   max-width: 1400px;
   margin: auto;
+  padding: 0
 }
 
 .hero-title {
@@ -130,7 +132,7 @@
 }
 
 .anticon-search {
-  color: #ff4d4f !important;
+  color: #1890ff !important;
 }
 
 .search-options {
@@ -182,6 +184,54 @@
 
 .history-toggle-btn:hover {
   color: #ff4d4f !important;
+}
+
+.latest-papers-btn {
+  font-size: 0.9rem !important;
+  height: auto !important;
+  border-radius: 30px;
+  padding: 10px 15px;
+  border: 1px solid rgba(255, 255, 255, 1) !important;
+}
+
+.latest-papers-btn.ant-btn-default {
+  background: transparent !important;
+  color: #fff !important;
+}
+
+.latest-papers-btn.ant-btn-primary {
+  background: linear-gradient(45deg, #ffffff, #ffffff) !important;
+  color: #000000 !important;
+}
+
+.latest-papers-btn:hover {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+/* Latest Papers 数量显示样式 */
+.papers-count-badge {
+  font-size: 0.9rem;
+  font-weight: normal;
+  padding: 4px 12px;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.light-theme .papers-count-badge {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.dark-theme .papers-count-badge {
+  color: #40a9ff;
+  background: rgba(64, 169, 255, 0.1);
+  border: 1px solid rgba(64, 169, 255, 0.3);
+}
+
+.papers-count-badge:hover {
+  transform: scale(1.05);
 }
 
 /* 历史记录下拉列表 */

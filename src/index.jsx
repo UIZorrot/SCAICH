@@ -11,6 +11,7 @@ import { example } from "./example";
 import SearchPage from "./app/search/SearchPage";
 import BoxPage from "./app/box/BoxPage";
 import PressPage from "./app/press/PressPage";
+import IrysViewer from "./app/irys/IrysViewer";
 import { BackgroundProvider } from "./contexts/BackgroundContext";
 
 // Solana 相关导入
@@ -101,6 +102,9 @@ const UnifiedWalletProvider = () => {
                   <Route path="/app/search" element={<SearchPage />} />
                   <Route path="/app/box" element={<BoxPage />} />
                   <Route path="/app/press" element={<PressPage />} />
+
+                  {/* Irys document viewer */}
+                  <Route path="/irys/:txId" element={<IrysViewer />} />
 
                   {/* Legacy routes for backward compatibility */}
                   <Route path="/search" element={<App isMobile={isMobile} backgroundImage={backgroundImage} handleBackgroundSwitch={handleBackgroundSwitch} />} />

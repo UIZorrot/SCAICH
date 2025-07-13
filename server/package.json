@@ -1,0 +1,23 @@
+{
+  "name": "scai-irys-server",
+  "version": "1.0.0",
+  "description": "SCAI Box Irys upload server",
+  "main": "irys-server.js",
+  "scripts": {
+    "start": "node irys-server.js",
+    "dev": "nodemon irys-server.js"
+  },
+  "dependencies": {
+    "@irys/upload": "^0.0.16",
+    "@irys/upload-solana": "^0.0.16",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["irys", "arweave", "upload", "scai"],
+  "author": "SCAI Team",
+  "license": "MIT"
+}

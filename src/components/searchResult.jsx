@@ -1,10 +1,57 @@
 import { useState, useEffect } from "react";
-import { Switch, List, Space, Typography, Button } from "antd";
-import { FileTextOutlined, SearchOutlined, LinkOutlined, DownOutlined } from "@ant-design/icons";
+import { Switch, List, Space, Typography, Button, message, Modal } from "antd";
+import { FileTextOutlined, PlayCircleOutlined, LinkOutlined, DownOutlined, HeartOutlined, HeartFilled, BookOutlined } from "@ant-design/icons";
 import articlesMerged from "../articles_merged.json";
 import { useBackground } from "../contexts/BackgroundContext";
 
 const { Title, Text } = Typography;
+
+// 收藏管理工具函数
+const getFavorites = () => {
+  try {
+    const favorites = localStorage.getItem('scai_favorites');
+    return favorites ? JSON.parse(favorites) : [];
+  } catch (error) {
+    console.error('Error getting favorites:', error);
+    return [];
+  }
+};
+
+const saveFavorites = (favorites) => {
+  try {
+    localStorage.setItem('scai_favorites', JSON.stringify(favorites));
+  } catch (error) {
+    console.error('Error saving favorites:', error);
+  }
+};
+
+const addToFavorites = (paper) => {
+  const favorites = getFavorites();
+  const isAlreadyFavorited = favorites.some(fav => fav.doi === paper.doi);
+
+  if (!isAlreadyFavorited) {
+    const favoriteItem = {
+      ...paper,
+      favoriteDate: new Date().toISOString(),
+      id: paper.doi || Date.now().toString()
+    };
+    favorites.push(favoriteItem);
+    saveFavorites(favorites);
+    return true;
+  }
+  return false;
+};
+
+const removeFromFavorites = (doi) => {
+  const favorites = getFavorites();
+  const updatedFavorites = favorites.filter(fav => fav.doi !== doi);
+  saveFavorites(updatedFavorites);
+};
+
+const isFavorited = (doi) => {
+  const favorites = getFavorites();
+  return favorites.some(fav => fav.doi === doi);
+};
 
 function ExpandAbstract({ abstract }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -46,6 +93,10 @@ function SearchResult({
   const [sortField, setSortField] = useState("similarity");
   const [sortDirection, setSortDirection] = useState("desc");
   const [defaultSort, setDefaultSort] = useState({ field: "similarity", direction: "desc" });
+  const [favoritedPapers, setFavoritedPapers] = useState(new Set());
+  const [bibtexModalVisible, setBibtexModalVisible] = useState(false);
+  const [currentBibtex, setCurrentBibtex] = useState('');
+  const [currentPaperTitle, setCurrentPaperTitle] = useState('');
   const { currentTheme } = useBackground();
 
   useEffect(() => {
@@ -63,7 +114,19 @@ function SearchResult({
     setDefaultSort({ field: "similarity", direction: "desc" });
     setSortField("similarity");
     setSortDirection("desc");
+
+    // 初始化收藏状态
+    const favorites = getFavorites();
+    const favoritedDois = new Set(favorites.map(fav => fav.doi));
+    setFavoritedPapers(favoritedDois);
   }, []);
+
+  // 监听results变化，更新收藏状态
+  useEffect(() => {
+    const favorites = getFavorites();
+    const favoritedDois = new Set(favorites.map(fav => fav.doi));
+    setFavoritedPapers(favoritedDois);
+  }, [results]);
 
 
 
@@ -137,6 +200,78 @@ function SearchResult({
     }
   };
 
+  // 处理收藏/取消收藏
+  const handleFavoriteClick = (result) => {
+    const isCurrentlyFavorited = favoritedPapers.has(result.doi);
+
+    if (isCurrentlyFavorited) {
+      removeFromFavorites(result.doi);
+      setFavoritedPapers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(result.doi);
+        return newSet;
+      });
+      message.success('Removed from favorites');
+    } else {
+      const success = addToFavorites(result);
+      if (success) {
+        setFavoritedPapers(prev => new Set(prev).add(result.doi));
+        message.success('Added to favorites');
+      } else {
+        message.info('Already in favorites');
+      }
+    }
+  };
+
+  // 获取BibTeX引用
+  const handleBibTexClick = async (result) => {
+    try {
+      const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
+
+      // 使用CrossRef API获取BibTeX
+      const response = await fetch(`https://api.crossref.org/works/${cleanDoi}/transform/application/x-bibtex`, {
+        headers: {
+          'Accept': 'application/x-bibtex'
+        }
+      });
+
+      if (response.ok) {
+        const bibtex = await response.text();
+
+        // 设置弹窗内容并显示
+        setCurrentBibtex(bibtex);
+        setCurrentPaperTitle(result.title);
+        setBibtexModalVisible(true);
+      } else {
+        throw new Error('Failed to fetch BibTeX');
+      }
+    } catch (error) {
+      console.error('Error fetching BibTeX:', error);
+      message.error('Failed to get BibTeX citation');
+    }
+  };
+
+  // 复制BibTeX到剪贴板
+  const copyBibtexToClipboard = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(currentBibtex);
+      } else {
+        // 降级方案
+        const textarea = document.createElement('textarea');
+        textarea.value = currentBibtex;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      message.success('BibTeX copied to clipboard!');
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      message.error('Failed to copy BibTeX');
+    }
+  };
+
   const handleSortChange = (value) => {
     if (value === "default") {
       setSortField(defaultSort.field);
@@ -173,7 +308,7 @@ function SearchResult({
             const buttonColor = result.scinet ? "#52c41a" : (result.is_oa || result.source === "scihub" || result.source === "arixv") ? "#52c41a" : "#1890ff";
             const buttonUrl = result.scinet
               ? `https://sci-net.xyz/${cleanDoi}`
-              : result.url;
+              : result.url || `https://doi.org/${cleanDoi}`;
 
             return (
               <List.Item
@@ -241,7 +376,7 @@ function SearchResult({
                     <i>DOI: {result.doi}</i>
                   </Text>
                 </p>
-                <div style={{ display: "flex", gap: "8px", marginTop: 8 }}>
+                <div style={{ display: "flex", gap: "8px", marginTop: 8, flexWrap: "wrap" }}>
                   <Button
                     type="primary"
                     icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
@@ -255,13 +390,45 @@ function SearchResult({
                   >
                     {buttonText}
                   </Button>
+
+                  {/* 收藏按钮 */}
+                  <Button
+                    type={favoritedPapers.has(result.doi) ? "primary" : "default"}
+                    icon={favoritedPapers.has(result.doi) ?
+                      <HeartFilled style={{ color: "#fff" }} /> :
+                      <HeartOutlined style={{ color: currentTheme.isDark ? "#fff" : "#666" }} />
+                    }
+                    style={{
+                      borderColor: favoritedPapers.has(result.doi) ? "#ff4d4f" : (currentTheme.isDark ? "#444" : "#d9d9d9"),
+                      color: favoritedPapers.has(result.doi) ? "#fff" : (currentTheme.isDark ? "#fff" : "#666"),
+                      background: favoritedPapers.has(result.doi) ? "#ff4d4f" : "transparent"
+                    }}
+                    onClick={() => handleFavoriteClick(result)}
+                  >
+                    {favoritedPapers.has(result.doi) ? "已收藏" : "收藏"}
+                  </Button>
+
+                  {/* BibTeX按钮 */}
+                  <Button
+                    icon={<BookOutlined />}
+                    style={{
+                      borderColor: currentTheme.isDark ? "#444" : "#d9d9d9",
+                      color: currentTheme.isDark ? "#fff" : "#666",
+                      background: "transparent"
+                    }}
+                    onClick={() => handleBibTexClick(result)}
+                  >
+                    BibTeX
+                  </Button>
+
                   {(result.source === "scihub" || result.source === "arxiv") && (
                     <Button
                       type="primary"
-                      icon={<SearchOutlined style={{ color: "#ffffff" }} />}
+                      icon={<PlayCircleOutlined color="#fff" style={{ color: "#fff" }} />}
                       style={{
                         color: "#ffffff",
                         background: "#ff4d4f",
+                        border: 0
                       }}
                       onClick={() => handleFullPaperClick(result.doi, result.source)}
                     >
@@ -320,7 +487,58 @@ function SearchResult({
             </Button>
           </div>
         )}
-      </div></>
+      </div>
+
+      {/* BibTeX弹窗 */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BookOutlined style={{ color: '#1890ff' }} />
+            <span>BibTeX Citation</span>
+          </div>
+        }
+        open={bibtexModalVisible}
+        onCancel={() => setBibtexModalVisible(false)}
+        footer={[
+          <Button key="copy" type="primary" onClick={copyBibtexToClipboard}>
+            Copy to Clipboard
+          </Button>,
+          <Button key="close" onClick={() => setBibtexModalVisible(false)}>
+            Close
+          </Button>
+        ]}
+        width={700}
+        centered
+      >
+        <div style={{ marginBottom: '1rem' }}>
+          <Typography.Title level={5} style={{ margin: 0, color: '#666' }}>
+            Paper: {currentPaperTitle}
+          </Typography.Title>
+        </div>
+
+        <div style={{
+          background: currentTheme.isDark ? '#1f1f1f' : '#f5f5f5',
+          border: `1px solid ${currentTheme.isDark ? '#444' : '#d9d9d9'}`,
+          borderRadius: '6px',
+          padding: '1rem',
+          fontFamily: 'Monaco, Consolas, "Courier New", monospace',
+          fontSize: '13px',
+          lineHeight: '1.5',
+          maxHeight: '400px',
+          overflow: 'auto',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all'
+        }}>
+          {currentBibtex || 'Loading BibTeX...'}
+        </div>
+
+        <div style={{ marginTop: '1rem', fontSize: '12px', color: '#999' }}>
+          <Typography.Text type="secondary">
+            Citation format provided by CrossRef API
+          </Typography.Text>
+        </div>
+      </Modal>
+    </>
   );
 }
 

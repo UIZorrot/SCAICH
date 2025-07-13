@@ -36,7 +36,7 @@ export const LoadingComponent = ({ loading }) => {
         loading && (
             <div style={{ textAlign: "center", marginTop: 25, marginBottom: 20 }}>
                 <Spin size="large" style={{ marginBottom: 10 }} />
-                <Text style={{ display: "block", marginTop: "1vw", opacity: 0.6 }}>
+                <Text style={{ display: "block", marginTop: "1vw", opacity: 0.6, color: "#fff" }}>
                     {message || "Preview version takes about 30 seconds to get results"}
                 </Text>
             </div>

@@ -18,7 +18,7 @@ const Layout = ({ children, showFooter = true }) => {
 
       {/* Main Content */}
       <main className="layout-main">
-        <div className="main-content">{children}</div>
+        <div className="main-content" >{children}</div>
       </main>
 
       {/* Footer */}
