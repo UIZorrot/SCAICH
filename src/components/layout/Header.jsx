@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Button, Drawer, Typography } from "antd";
-import { MenuOutlined, CloseOutlined, UserOutlined, BulbOutlined, BulbFilled } from "@ant-design/icons";
+import { Button, Drawer } from "antd";
+import { MenuOutlined, CloseOutlined, UserOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useBackground } from "../../contexts/BackgroundContext";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import "./Header.css";
-
-const { Title, Text } = Typography;
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,7 +11,6 @@ const Header = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentTheme, switchTheme } = useBackground();
 
   // Navigation items
   const navigation = [
@@ -102,11 +98,9 @@ const Header = () => {
             </div>
           )}
 
-          {/* Right side - Theme Toggle and Login Button */}
+          {/* Right side - Login Button */}
           {!isMobile && (
             <div className="header-right">
-              {/* <Button type="text" icon={currentTheme.isDark ? <BulbOutlined /> : <BulbFilled />} className="theme-toggle-btn" onClick={switchTheme} title={`Switch to ${currentTheme.isDark ? "Light" : "Dark"} Theme`} /> */}
-              <span> </span>
               <SignedOut>
                 <SignInButton>
                   <Button type="text" className="login-btn">
@@ -138,11 +132,6 @@ const Header = () => {
                 {item.name}
               </Button>
             ))}
-
-            {/* Mobile Theme Toggle */}
-            {/* <Button type="text" block icon={currentTheme.isDark ? <BulbOutlined /> : <BulbFilled />} onClick={switchTheme} className="mobile-nav-link" style={{ marginTop: "16px" }}>
-              {currentTheme.isDark ? "Light Theme" : "Dark Theme"}
-            </Button> */}
 
             {/* Mobile Login/User Button */}
             <div style={{ marginTop: "16px" }}>

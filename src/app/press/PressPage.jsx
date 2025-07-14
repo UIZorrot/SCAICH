@@ -39,7 +39,7 @@ import {
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import Layout from '../../components/layout/Layout';
-import { useBackground } from '../../contexts/BackgroundContext';
+
 import irysService from '../../services/irysService';
 import './PressPage.css';
 
@@ -67,7 +67,7 @@ const PressPage = () => {
   const [polishText, setPolishText] = useState('');
   const [polishedResult, setPolishedResult] = useState('');
   const [polishLoading, setPolishLoading] = useState(false);
-  const { currentTheme } = useBackground();
+
 
   // 模拟钱包连接状态（实际应该从登录系统获取）
   useEffect(() => {
@@ -504,7 +504,7 @@ const PressPage = () => {
 
   return (
     <Layout>
-      <div className={`press-page ${currentTheme.name}-theme`}>
+      <div className={`press-page light-theme`}>
         {/* Hero Section */}
         <div className="hero-section1">
           <motion.div

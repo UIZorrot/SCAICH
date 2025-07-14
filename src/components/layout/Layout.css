@@ -6,7 +6,7 @@
   position: relative;
   overflow-x: hidden;
   /* 确保容器能够扩展以适应内容 */
-  background: rgba(22, 46, 79, 1);
+  background: #40B5F7;
 }
 
 .layout-background {
@@ -32,18 +32,20 @@
 }
 
 .layout-background-img {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   height: auto;
-  min-height: 70vh;
+  min-height: 100vh;
   /* 增加图片高度，确保与渐变有更好的重叠 */
   object-fit: cover;
   object-position: bottom center;
-
+  z-index: 1;
+  /* 确保图片在最上层 */
+  pointer-events: none;
+  /* 确保图片不会阻挡用户交互 */
   /* 确保图片从底部中心开始显示 */
-  /* 确保图片在渐变背景之下 */
 }
 
 .layout-main {
@@ -101,16 +103,12 @@
   }
 } */
 
-/* Theme-specific styles */
+/* Light theme styles */
 .light-theme {
   color: #333;
 }
 
-.dark-theme {
-  color: #fff;
-}
-
-/* 主题特定的背景调整 */
+/* 背景调整 */
 .light-theme .layout-background {
   /* 浅色主题使用深蓝色渐变，底部透明 */
   background: linear-gradient(to bottom,
@@ -120,16 +118,9 @@
       /* 稍浅的深蓝色 */
       rgba(22, 46, 79, 1) 60%,
       /* 相近的深蓝色 */
-      rgbargba(22, 46, 79, 0.5) 100%
+      rgba(22, 46, 79, 0.5) 100%
       /* 底部透明的深蓝色 */
     ) !important;
-}
-
-
-
-.dark-theme .main-content {
-  /* 深色主题下内容区域保持透明 */
-  background: transparent;
 }
 
 @media (max-width: 768px) {

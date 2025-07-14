@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 
 import Layout from "../../components/layout/Layout";
 
-import { useBackground } from "../../contexts/BackgroundContext";
+
 import "./SearchPage.css";
 
 const { Title, Text } = Typography;
@@ -49,7 +49,7 @@ export default function SearchPage() {
   const [showLatestPapers, setShowLatestPapers] = useState(false);
   const [totalPapersCount, setTotalPapersCount] = useState("--");
   const navigate = useNavigate();
-  const { currentTheme } = useBackground();
+
 
   // 检查是否为重复历史记录
   const isDuplicateHistory = (newQuery) => {
@@ -585,7 +585,7 @@ export default function SearchPage() {
                   <div className="summary-section">
                     <div className="summary-header">
                       <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <RobotOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
+                        <RobotOutlined style={{ color: "#1890ff" }} />
                         SCAI Assistant
                       </h3>
                       <Button type="text" icon={summaryCollapsed ? <DownOutlined /> : <UpOutlined />} onClick={() => setSummaryCollapsed(!summaryCollapsed)} className="collapse-btn">
@@ -603,7 +603,7 @@ export default function SearchPage() {
                   <div className="results-container">
                     <div className="results-header">
                       <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <SearchOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
+                        <SearchOutlined style={{ color: "#1890ff" }} />
                         Search Results
                       </h3>
                       <div className="results-controls">
@@ -652,7 +652,7 @@ export default function SearchPage() {
                     <div className="results-header">
                       <h3 style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between", width: "100%" }}>
                         <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <DatabaseOutlined style={{ color: currentTheme.isDark ? "#40a9ff" : "#1890ff" }} />
+                          <DatabaseOutlined style={{ color: "#1890ff" }} />
                           Latest Papers from SCAI Box
                         </span>
                         <span className="papers-count-badge">

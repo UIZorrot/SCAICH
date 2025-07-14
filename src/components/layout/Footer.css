@@ -96,16 +96,18 @@
 }
 
 .light-theme .social-link {
-  background-color: #f0f0f0;
+  background-color: rgba(255, 255, 255, 0.9);
   color: #333;
   border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .light-theme .social-link:hover {
-  background-color: #e0e0e0;
+  background-color: rgba(255, 255, 255, 1);
   transform: translateY(-2px);
-  color: #333;
-  border-color: rgba(0, 0, 0, 0.2);
+  color: #ff4d4f;
+  border-color: rgba(255, 77, 79, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
 }
 
 .dark-theme .social-link {
@@ -128,22 +130,51 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .unified-footer {
+    padding: 16px 0;
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 2px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  .footer-container {
+    width: 95%;
+    padding: 0 20px;
+  }
+
   .footer-content {
     flex-direction: column;
     text-align: center;
-    gap: 20px;
+    gap: 24px;
   }
 
   .footer-brand {
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
+  }
+
+  .brand-name {
+    color: #333;
+    font-size: 20px;
   }
 
   .brand-tagline {
     text-align: center;
+    color: #666;
   }
 
   .footer-social {
     justify-content: center;
+    gap: 20px;
+  }
+
+  .social-link {
+    width: 40px;
+    height: 40px;
+  }
+
+  .social-icon {
+    width: 24px;
+    height: 24px;
   }
 }

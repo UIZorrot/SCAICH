@@ -25,7 +25,7 @@ import {
 import { useUser } from '@clerk/clerk-react';
 import { motion } from 'framer-motion';
 import Layout from '../../components/layout/Layout';
-import { useBackground } from '../../contexts/BackgroundContext';
+
 import { uploadToIrys, validateFileType, validateFileSize } from '../../utils/irysUploader';
 import ChatModal from '../../components/chatpage';
 import './BoxPage.css';
@@ -282,6 +282,12 @@ const removeFromFavorites = (doi) => {
 
 const BoxPage = () => {
   const { isSignedIn, user } = useUser();
+
+  // 只使用光明模式
+  const currentTheme = {
+    name: 'light',
+    isDark: false
+  };
   const [activeTab, setActiveTab] = useState('favorites');
   const [favorites, setFavorites] = useState([]);
   const [myUploads, setMyUploads] = useState([]);
@@ -291,7 +297,6 @@ const BoxPage = () => {
   const [selectedPaperId, setSelectedPaperId] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
   const [profileRefreshTrigger, setProfileRefreshTrigger] = useState(0);
-  const { currentTheme } = useBackground();
 
   // 初始化数据
   useEffect(() => {
@@ -299,7 +304,7 @@ const BoxPage = () => {
       loadFavorites();
       loadMyUploads();
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, user?.id]);
 
   // 监听收藏更新事件
   useEffect(() => {
@@ -370,7 +375,7 @@ const BoxPage = () => {
 
   return (
     <Layout>
-      <div className={`box-page ${currentTheme.name}-theme`}>
+      <div className="box-page light-theme">
         {/* Hero Section */}
         <div className="hero-section1">
           <motion.div
@@ -411,13 +416,13 @@ const BoxPage = () => {
                   marginBottom: 7
                 }} />
                 <Title level={2} style={{
-                  color: currentTheme.isDark ? '#fff' : '#fff',
+                  color: '#fff',
                   marginBottom: 16
                 }}>
                   Login Required
                 </Title>
                 <Paragraph style={{
-                  color: currentTheme.isDark ? '#ccc' : '#ccc',
+                  color: '#ccc',
                   fontSize: 16,
                   marginBottom: 24,
                   maxWidth: 500,
