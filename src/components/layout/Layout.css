@@ -18,23 +18,14 @@
   min-height: 100vh;
   z-index: 1;
   transition: background-color 0.3s ease;
-  /* 深蓝色渐变背景，底部透明与图片重叠 */
-  background: linear-gradient(to bottom,
-      #06274f 0%,
-      /* 深蓝色 */
-      #06274f 20%,
-      /* 稍浅的深蓝色 */
-      #06274f 60%,
-      /* 相近的深蓝色 */
-      rgba(9, 62, 103, 0.5) 100%
-      /* 底部透明的深蓝色 */
-    ) !important;
+  background: #40B5F7
 }
 
 .layout-background-img {
   position: fixed;
   bottom: 0;
   left: 0;
+  top: 0;
   width: 100%;
   height: auto;
   /* 增加图片高度，确保与渐变有更好的重叠 */
@@ -111,20 +102,6 @@
   color: #333;
 }
 
-/* 背景调整 */
-.light-theme .layout-background {
-  /* 浅色主题使用深蓝色渐变，底部透明 */
-  background: linear-gradient(to bottom,
-      #06274f 0%,
-      /* 深蓝色 */
-      #083060 20%,
-      /* 稍浅的深蓝色 */
-      rgba(22, 46, 79, 1) 60%,
-      /* 相近的深蓝色 */
-      rgba(22, 46, 79, 0.5) 100%
-      /* 底部透明的深蓝色 */
-    ) !important;
-}
 
 @media (max-width: 768px) {
   .layout-main {

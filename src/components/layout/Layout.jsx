@@ -8,7 +8,7 @@ const Layout = ({ children, showFooter = true }) => {
     <div className="layout-container light-theme">
       {/* Background */}
       <div className="layout-background" />
-      <img src="/bg1.png" alt="" className="layout-background-img" />
+      <img src="/bg8.jpg" alt="" className="layout-background-img" />
 
       {/* Header */}
       <Header />

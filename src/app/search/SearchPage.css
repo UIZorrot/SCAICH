@@ -8,7 +8,7 @@
   width: 90%;
   max-width: 1400px;
   margin: auto;
-  padding: 0
+  padding: 0;
 }
 
 .hero-title {
@@ -97,10 +97,36 @@
   transition: all 0.3s ease;
   margin: auto;
   background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 1rem;
+  backdrop-filter: blur(32px);
+  border-radius: 32px;
   padding: 25px 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  /* 移除原来的边框，用伪元素实现渐变边框 */
+  border: none;
+}
+
+/* 添加渐变边框效果 */
+.search-input-section1::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 32px;
+  padding: 2px; /* 边框宽度 */
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.4), rgba(135, 206, 235, 0.8), rgba(255, 255, 255, 0.6));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  z-index: -1;
+}
+
+/* 悬停效果 */
+.search-input-section1:hover::before {
+  background: linear-gradient(45deg, rgba(255, 255, 255, 1), rgba(135, 206, 235, 0.9), rgba(64, 169, 255, 0.8), rgba(255, 255, 255, 0.8));
+  transition: all 0.3s ease;
 }
 
 .main-search-input {
@@ -156,11 +182,11 @@
 }
 
 .oa-checkbox input[type="checkbox"]:checked {
-  accent-color: #FF3314;
+  accent-color: #ff3314;
 }
 
 .oa-checkbox:hover {
-  color: #FF3314;
+  color: #ff3314;
   transform: translateY(-2px) !important;
 }
 
@@ -190,9 +216,9 @@
 
 .history-toggle-btn:hover {
   color: #fff !important;
-  background-color: #FF3314 ;
-  transform: translateY(-2px) ;
-  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3) ;
+  background-color: #ff3314;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
 }
 
 .latest-papers-btn {
@@ -215,8 +241,8 @@
 }
 
 .latest-papers-btn:hover {
-  border-color: #ffffff ;
-  transform: translateY(-2px) ;
+  border-color: #ffffff;
+  transform: translateY(-2px);
 }
 
 /* Latest Papers 数量显示样式 */
@@ -328,7 +354,7 @@
   margin-left: 0 !important;
 }
 
-.history-dropdown .ant-list-item-action>li {
+.history-dropdown .ant-list-item-action > li {
   padding: 0 0.25rem !important;
 }
 
@@ -385,8 +411,8 @@
 
 /* Delete按钮 - 红边，红底，黑字 */
 .history-dropdown .ant-btn-dangerous {
-  background: #FF3314 !important;
-  border: 2px solid #FF3314 !important;
+  background: #ff3314 !important;
+  border: 2px solid #ff3314 !important;
   color: black !important;
 }
 
@@ -410,8 +436,8 @@
 }
 
 .dark-theme .history-dropdown .ant-btn-dangerous {
-  background: #FF3314 !important;
-  border: 2px solid #FF3314 !important;
+  background: #ff3314 !important;
+  border: 2px solid #ff3314 !important;
   color: black !important;
 }
 
