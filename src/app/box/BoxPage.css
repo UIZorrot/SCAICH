@@ -65,7 +65,7 @@
 }
 
 .upload-btn {
-  background: linear-gradient(45deg, #e45959, #ff0000) !important;
+  background: linear-gradient(45deg, #ee1d1d, #ee1d1d) !important;
   border: none !important;
   height: 36px !important;
   padding: 0 2rem !important;
@@ -381,7 +381,7 @@
 }
 
 .floating-upload-btn {
-  background: linear-gradient(45deg, #e24a4a, #ff0c0c) !important;
+  background: linear-gradient(45deg, #ee1d1d, #ee1d1d) !important;
   border: none !important;
   height: 56px !important;
   padding: 0 1.5rem !important;
@@ -745,7 +745,7 @@
 }
 
 .modern-btn-primary {
-  background: linear-gradient(45deg, #ec7272, #f71818) !important;
+  background: linear-gradient(45deg, #ee1d1d, #f71818) !important;
 
   color: white !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
