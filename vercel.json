@@ -22,6 +22,7 @@
   ],
   "env": {
     "PRIVATE_KEY": "@private_key",
-    "REACT_APP_PUBLISHABLE_KEY": "@react_app_publishable_key"
+    "REACT_APP_PUBLISHABLE_KEY": "@react_app_publishable_key",
+    "NODE_ENV": "production"
   }
 }
