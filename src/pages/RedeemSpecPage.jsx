@@ -28,7 +28,7 @@ const Alert = ({ message, type, onClose }) => {
         padding: "12px 24px",
         borderRadius: "8px",
         color: "#fff",
-        background: type === "success" ? "#52c41a" : "#ff4d4f",
+        background: type === "success" ? "#52c41a" : "#FF3314",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         zIndex: 1000,
         maxWidth: "90%",
@@ -103,13 +103,7 @@ const RedeemSpecPage = ({ isMobile, backgroundImage, handleBackgroundSwitch }) =
       }}
     >
       {/* Render Alert if it exists */}
-      {alert && (
-        <Alert
-          message={alert.message}
-          type={alert.type}
-          onClose={() => setAlert(null)}
-        />
-      )}
+      {alert && <Alert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
 
       <div className="body">
         <img
@@ -139,11 +133,7 @@ const RedeemSpecPage = ({ isMobile, backgroundImage, handleBackgroundSwitch }) =
         }}
       >
         <div style={{ display: "flex", alignItems: "center", marginLeft: 30 }}>
-          <img
-            src="/rocket-icon.png"
-            alt="SCAICH"
-            style={{ height: "32px", marginRight: "8px", borderRadius: "32px" }}
-          />
+          <img src="/rocket-icon.png" alt="SCAICH" style={{ height: "32px", marginRight: "8px", borderRadius: "32px" }} />
           <Title level={4} style={{ margin: 0 }}>
             SCAICH
           </Title>
@@ -160,22 +150,11 @@ const RedeemSpecPage = ({ isMobile, backgroundImage, handleBackgroundSwitch }) =
           }}
         >
           {!isMobile && (
-            <Button
-              type="default"
-              ghost
-              icon={<PictureOutlined />}
-              onClick={handleBackgroundSwitch}
-              style={{ borderRadius: "4px" }}
-            >
+            <Button type="default" ghost icon={<PictureOutlined />} onClick={handleBackgroundSwitch} style={{ borderRadius: "4px" }}>
               Switch Background
             </Button>
           )}
-          <Button
-            type="default"
-            ghost
-            onClick={() => navigate("/search")}
-            style={{ borderRadius: "4px" }}
-          >
+          <Button type="default" ghost onClick={() => navigate("/search")} style={{ borderRadius: "4px" }}>
             Back to Search
           </Button>
         </div>
@@ -193,27 +172,12 @@ const RedeemSpecPage = ({ isMobile, backgroundImage, handleBackgroundSwitch }) =
           borderRadius: "32px",
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Space
-            direction="vertical"
-            size="large"
-            style={{ width: "100%", textAlign: "center" }}
-          >
-            <Title
-              level={isMobile ? 3 : 2}
-              style={{ color: "#333", margin: 0 }}
-            >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Space direction="vertical" size="large" style={{ width: "100%", textAlign: "center" }}>
+            <Title level={isMobile ? 3 : 2} style={{ color: "#333", margin: 0 }}>
               Redeem KOL Code
             </Title>
-            <Text
-              style={{ color: "#666", fontSize: isMobile ? "14px" : "16px" }}
-            >
-              Enter your exclusive KOL code to receive a SCAICH User ID.
-            </Text>
+            <Text style={{ color: "#666", fontSize: isMobile ? "14px" : "16px" }}>Enter your exclusive KOL code to receive a SCAICH User ID.</Text>
             <Input
               placeholder="Enter KOL code"
               value={code}
@@ -234,8 +198,7 @@ const RedeemSpecPage = ({ isMobile, backgroundImage, handleBackgroundSwitch }) =
               loading={loading}
               onClick={handleRedeem}
               style={{
-                background:
-                  "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
+                background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
                 border: "none",
                 borderRadius: "8px",
                 padding: "10px",

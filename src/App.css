@@ -1,3 +1,16 @@
+html, body {
+  /* 适用于 Firefox */
+  scrollbar-width: none;
+
+  /* 适用于旧版的 Edge 和 IE */
+  -ms-overflow-style: none;
+}
+
+/* 适用于 Chrome, Safari, 和新版 Edge */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
+}
+
 p {
   margin: 0;
   padding: 0;
@@ -402,3 +415,6 @@ p {
 .action-button:hover {
   background: rgba(255, 255, 255, 0.3) !important;
 }
+
+
+

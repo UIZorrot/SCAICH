@@ -104,8 +104,8 @@
   font-size: 1.1rem !important;
   border-radius: 24px !important;
   border: 1px solid #f41a1a !important;
-  color: #f41a1a !important;
-  background: transparent !important;
+  background: rgba(36, 38, 42, 0.35) !important;
+  color: #fff !important;
   transition: all 0.3s ease !important;
 }
 
@@ -113,6 +113,7 @@
   background: #ff0000 !important;
   color: white !important;
   transform: translateY(-2px) !important;
+  transition: all 0.3s ease !important;
 }
 
 /* Guidelines Button */

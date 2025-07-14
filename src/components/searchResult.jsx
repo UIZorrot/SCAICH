@@ -9,31 +9,31 @@ const { Title, Text } = Typography;
 // 收藏管理工具函数
 const getFavorites = () => {
   try {
-    const favorites = localStorage.getItem('scai_favorites');
+    const favorites = localStorage.getItem("scai_favorites");
     return favorites ? JSON.parse(favorites) : [];
   } catch (error) {
-    console.error('Error getting favorites:', error);
+    console.error("Error getting favorites:", error);
     return [];
   }
 };
 
 const saveFavorites = (favorites) => {
   try {
-    localStorage.setItem('scai_favorites', JSON.stringify(favorites));
+    localStorage.setItem("scai_favorites", JSON.stringify(favorites));
   } catch (error) {
-    console.error('Error saving favorites:', error);
+    console.error("Error saving favorites:", error);
   }
 };
 
 const addToFavorites = (paper) => {
   const favorites = getFavorites();
-  const isAlreadyFavorited = favorites.some(fav => fav.doi === paper.doi);
+  const isAlreadyFavorited = favorites.some((fav) => fav.doi === paper.doi);
 
   if (!isAlreadyFavorited) {
     const favoriteItem = {
       ...paper,
       favoriteDate: new Date().toISOString(),
-      id: paper.doi || Date.now().toString()
+      id: paper.doi || Date.now().toString(),
     };
     favorites.push(favoriteItem);
     saveFavorites(favorites);
@@ -44,13 +44,13 @@ const addToFavorites = (paper) => {
 
 const removeFromFavorites = (doi) => {
   const favorites = getFavorites();
-  const updatedFavorites = favorites.filter(fav => fav.doi !== doi);
+  const updatedFavorites = favorites.filter((fav) => fav.doi !== doi);
   saveFavorites(updatedFavorites);
 };
 
 const isFavorited = (doi) => {
   const favorites = getFavorites();
-  return favorites.some(fav => fav.doi === doi);
+  return favorites.some((fav) => fav.doi === doi);
 };
 
 function ExpandAbstract({ abstract }) {
@@ -62,14 +62,14 @@ function ExpandAbstract({ abstract }) {
       <div
         className={isExpanded ? "abstract-content-expanded" : "abstract-content"}
         style={{
-          color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.9)' : '#333'
+          color: currentTheme.isDark ? "rgba(255, 255, 255, 0.9)" : "#333",
         }}
         dangerouslySetInnerHTML={{ __html: isExpanded ? abstract : abstract }}
       ></div>
       <p
         className="abstract-expand"
         style={{
-          color: currentTheme.isDark ? '#40a9ff' : '#1890ff'
+          color: currentTheme.isDark ? "#40a9ff" : "#1890ff",
         }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -79,14 +79,7 @@ function ExpandAbstract({ abstract }) {
   );
 }
 
-function SearchResult({
-  query,
-  results,
-  classOver,
-  onReadFullText,
-  pro,
-  setModalVisible,
-}) {
+function SearchResult({ query, results, classOver, onReadFullText, pro, setModalVisible }) {
   const [showScihub, setShowScihub] = useState(false);
   const [displayCount, setDisplayCount] = useState(5);
   const [matchedArticles, setMatchedArticles] = useState({});
@@ -95,8 +88,8 @@ function SearchResult({
   const [defaultSort, setDefaultSort] = useState({ field: "similarity", direction: "desc" });
   const [favoritedPapers, setFavoritedPapers] = useState(new Set());
   const [bibtexModalVisible, setBibtexModalVisible] = useState(false);
-  const [currentBibtex, setCurrentBibtex] = useState('');
-  const [currentPaperTitle, setCurrentPaperTitle] = useState('');
+  const [currentBibtex, setCurrentBibtex] = useState("");
+  const [currentPaperTitle, setCurrentPaperTitle] = useState("");
   const { currentTheme } = useBackground();
 
   useEffect(() => {
@@ -117,21 +110,19 @@ function SearchResult({
 
     // 初始化收藏状态
     const favorites = getFavorites();
-    const favoritedDois = new Set(favorites.map(fav => fav.doi));
+    const favoritedDois = new Set(favorites.map((fav) => fav.doi));
     setFavoritedPapers(favoritedDois);
   }, []);
 
   // 监听results变化，更新收藏状态
   useEffect(() => {
     const favorites = getFavorites();
-    const favoritedDois = new Set(favorites.map(fav => fav.doi));
+    const favoritedDois = new Set(favorites.map((fav) => fav.doi));
     setFavoritedPapers(favoritedDois);
   }, [results]);
 
-
-
   function highlight(res) {
-    if (!res || !query) return res || '';
+    if (!res || !query) return res || "";
     let res_r = res.split(" ").map((word) => {
       if (query.toLowerCase().includes(word.toLowerCase())) {
         return `<span style="font-weight: 800;">${word}</span>`;
@@ -165,26 +156,22 @@ function SearchResult({
           valueB = b.referencecount || 0;
           break;
         case "title":
-          valueA = (a.title || '').toLowerCase();
-          valueB = (b.title || '').toLowerCase();
+          valueA = (a.title || "").toLowerCase();
+          valueB = (b.title || "").toLowerCase();
           break;
         default:
           return 0;
       }
 
       if (sortField === "title") {
-        return sortDirection === "asc"
-          ? valueA.localeCompare(valueB)
-          : valueB.localeCompare(valueA);
+        return sortDirection === "asc" ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
       }
 
       return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
     });
   };
 
-  const filteredResults = results.filter(
-    (result) => !showScihub || result.source === "scihub"
-  );
+  const filteredResults = results.filter((result) => !showScihub || result.source === "scihub");
   const sortedResults = sortResults(filteredResults);
   const displayedResults = sortedResults.slice(0, displayCount);
 
@@ -206,19 +193,19 @@ function SearchResult({
 
     if (isCurrentlyFavorited) {
       removeFromFavorites(result.doi);
-      setFavoritedPapers(prev => {
+      setFavoritedPapers((prev) => {
         const newSet = new Set(prev);
         newSet.delete(result.doi);
         return newSet;
       });
-      message.success('Removed from favorites');
+      message.success("Removed from favorites");
     } else {
       const success = addToFavorites(result);
       if (success) {
-        setFavoritedPapers(prev => new Set(prev).add(result.doi));
-        message.success('Added to favorites');
+        setFavoritedPapers((prev) => new Set(prev).add(result.doi));
+        message.success("Added to favorites");
       } else {
-        message.info('Already in favorites');
+        message.info("Already in favorites");
       }
     }
   };
@@ -231,8 +218,8 @@ function SearchResult({
       // 使用CrossRef API获取BibTeX
       const response = await fetch(`https://api.crossref.org/works/${cleanDoi}/transform/application/x-bibtex`, {
         headers: {
-          'Accept': 'application/x-bibtex'
-        }
+          Accept: "application/x-bibtex",
+        },
       });
 
       if (response.ok) {
@@ -243,11 +230,11 @@ function SearchResult({
         setCurrentPaperTitle(result.title);
         setBibtexModalVisible(true);
       } else {
-        throw new Error('Failed to fetch BibTeX');
+        throw new Error("Failed to fetch BibTeX");
       }
     } catch (error) {
-      console.error('Error fetching BibTeX:', error);
-      message.error('Failed to get BibTeX citation');
+      console.error("Error fetching BibTeX:", error);
+      message.error("Failed to get BibTeX citation");
     }
   };
 
@@ -258,17 +245,17 @@ function SearchResult({
         await navigator.clipboard.writeText(currentBibtex);
       } else {
         // 降级方案
-        const textarea = document.createElement('textarea');
+        const textarea = document.createElement("textarea");
         textarea.value = currentBibtex;
         document.body.appendChild(textarea);
         textarea.select();
-        document.execCommand('copy');
+        document.execCommand("copy");
         document.body.removeChild(textarea);
       }
-      message.success('BibTeX copied to clipboard!');
+      message.success("BibTeX copied to clipboard!");
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      message.error('Failed to copy BibTeX');
+      console.error("Error copying to clipboard:", error);
+      message.error("Failed to copy BibTeX");
     }
   };
 
@@ -292,7 +279,6 @@ function SearchResult({
           padding: "24px",
         }}
       >
-
         <List
           style={{ paddingRight: "10px" }}
           className={classOver}
@@ -300,24 +286,18 @@ function SearchResult({
           dataSource={displayedResults}
           renderItem={(result, index) => {
             const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
-            const buttonText = result.scinet
-              ? "Fulltext Sci-Net"
-              : (result.is_oa || result.source === "scihub" || result.source === "arixv")
-                ? "View Fulltext"
-                : "View Source";
-            const buttonColor = result.scinet ? "#52c41a" : (result.is_oa || result.source === "scihub" || result.source === "arixv") ? "#52c41a" : "#1890ff";
-            const buttonUrl = result.scinet
-              ? `https://sci-net.xyz/${cleanDoi}`
-              : result.url || `https://doi.org/${cleanDoi}`;
+            const buttonText = result.scinet ? "Fulltext Sci-Net" : result.is_oa || result.source === "scihub" || result.source === "arixv" ? "View Fulltext" : "View Source";
+            const buttonColor = result.scinet ? "#52c41a" : result.is_oa || result.source === "scihub" || result.source === "arixv" ? "#52c41a" : "#1890ff";
+            const buttonUrl = result.scinet ? `https://sci-net.xyz/${cleanDoi}` : result.url || `https://doi.org/${cleanDoi}`;
 
             return (
               <List.Item
                 style={{
-                  background: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
-                  border: currentTheme.isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-                  borderRadius: '0.5rem',
-                  marginBottom: '1rem',
-                  padding: '1rem'
+                  background: currentTheme.isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.8)",
+                  border: currentTheme.isDark ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.1)",
+                  borderRadius: "0.5rem",
+                  marginBottom: "1rem",
+                  padding: "1rem",
                 }}
               >
                 <Title
@@ -338,18 +318,12 @@ function SearchResult({
                   type="secondary"
                   style={{
                     fontSize: "14px",
-                    color: currentTheme.isDark ? "#52c41a" : "#389e0d"
+                    color: currentTheme.isDark ? "#52c41a" : "#389e0d",
                   }}
                 >
-                  {result.author.length > 50
-                    ? result.author.slice(0, 50) + "..."
-                    : result.author.slice(0, 50)}{" "}
-                  - {result.year} -{" "}
-                  {result.location.length > 30
-                    ? result.location.slice(0, 30) + "..."
-                    : result.location.slice(0, 30)}
+                  {result.author.length > 50 ? result.author.slice(0, 50) + "..." : result.author.slice(0, 50)} - {result.year} - {result.location.length > 30 ? result.location.slice(0, 30) + "..." : result.location.slice(0, 30)}
                 </Text>
-                <Text style={{ color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.8)' : '#666' }}>
+                <Text style={{ color: currentTheme.isDark ? "rgba(255, 255, 255, 0.8)" : "#666" }}>
                   {" "}
                   | <i>Similarity: {result.similarity}</i>{" "}
                 </Text>
@@ -358,7 +332,7 @@ function SearchResult({
                 ) : (
                   <div
                     style={{
-                      color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.9)' : '#333'
+                      color: currentTheme.isDark ? "rgba(255, 255, 255, 0.9)" : "#333",
                     }}
                     dangerouslySetInnerHTML={{
                       __html: result.abstract.replace("Abstract", ""),
@@ -370,7 +344,7 @@ function SearchResult({
                     type="secondary"
                     style={{
                       fontSize: "12px",
-                      color: currentTheme.isDark ? 'rgba(255, 255, 255, 0.6)' : '#999'
+                      color: currentTheme.isDark ? "rgba(255, 255, 255, 0.6)" : "#999",
                     }}
                   >
                     <i>DOI: {result.doi}</i>
@@ -394,14 +368,11 @@ function SearchResult({
                   {/* 收藏按钮 */}
                   <Button
                     type={favoritedPapers.has(result.doi) ? "primary" : "default"}
-                    icon={favoritedPapers.has(result.doi) ?
-                      <HeartFilled style={{ color: "#fff" }} /> :
-                      <HeartOutlined style={{ color: currentTheme.isDark ? "#fff" : "#666" }} />
-                    }
+                    icon={favoritedPapers.has(result.doi) ? <HeartFilled style={{ color: "#fff" }} /> : <HeartOutlined style={{ color: currentTheme.isDark ? "#fff" : "#666" }} />}
                     style={{
-                      borderColor: favoritedPapers.has(result.doi) ? "#ff4d4f" : (currentTheme.isDark ? "#444" : "#d9d9d9"),
-                      color: favoritedPapers.has(result.doi) ? "#fff" : (currentTheme.isDark ? "#fff" : "#666"),
-                      background: favoritedPapers.has(result.doi) ? "#ff4d4f" : "transparent"
+                      borderColor: favoritedPapers.has(result.doi) ? "#FF3314" : currentTheme.isDark ? "#444" : "#d9d9d9",
+                      color: favoritedPapers.has(result.doi) ? "#fff" : currentTheme.isDark ? "#fff" : "#666",
+                      background: favoritedPapers.has(result.doi) ? "#FF3314" : "transparent",
                     }}
                     onClick={() => handleFavoriteClick(result)}
                   >
@@ -414,7 +385,7 @@ function SearchResult({
                     style={{
                       borderColor: currentTheme.isDark ? "#444" : "#d9d9d9",
                       color: currentTheme.isDark ? "#fff" : "#666",
-                      background: "transparent"
+                      background: "transparent",
                     }}
                     onClick={() => handleBibTexClick(result)}
                   >
@@ -427,8 +398,8 @@ function SearchResult({
                       icon={<PlayCircleOutlined color="#fff" style={{ color: "#fff" }} />}
                       style={{
                         color: "#ffffff",
-                        background: "#ff4d4f",
-                        border: 0
+                        background: "#FF3314",
+                        border: 0,
                       }}
                       onClick={() => handleFullPaperClick(result.doi, result.source)}
                     >
@@ -445,10 +416,7 @@ function SearchResult({
                       }}
                       onClick={() => {
                         const { id, paperid } = matchedArticles[result.title.toLowerCase()];
-                        window.open(
-                          `https://yesnoerror.com/d/${paperid}/${id}`,
-                          "_blank"
-                        );
+                        window.open(`https://yesnoerror.com/d/${paperid}/${id}`, "_blank");
                       }}
                     >
                       View YNE Result
@@ -492,8 +460,8 @@ function SearchResult({
       {/* BibTeX弹窗 */}
       <Modal
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BookOutlined style={{ color: '#1890ff' }} />
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <BookOutlined style={{ color: "#1890ff" }} />
             <span>BibTeX Citation</span>
           </div>
         }
@@ -505,37 +473,37 @@ function SearchResult({
           </Button>,
           <Button key="close" onClick={() => setBibtexModalVisible(false)}>
             Close
-          </Button>
+          </Button>,
         ]}
         width={700}
         centered
       >
-        <div style={{ marginBottom: '1rem' }}>
-          <Typography.Title level={5} style={{ margin: 0, color: '#666' }}>
+        <div style={{ marginBottom: "1rem" }}>
+          <Typography.Title level={5} style={{ margin: 0, color: "#666" }}>
             Paper: {currentPaperTitle}
           </Typography.Title>
         </div>
 
-        <div style={{
-          background: currentTheme.isDark ? '#1f1f1f' : '#f5f5f5',
-          border: `1px solid ${currentTheme.isDark ? '#444' : '#d9d9d9'}`,
-          borderRadius: '6px',
-          padding: '1rem',
-          fontFamily: 'Monaco, Consolas, "Courier New", monospace',
-          fontSize: '13px',
-          lineHeight: '1.5',
-          maxHeight: '400px',
-          overflow: 'auto',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-all'
-        }}>
-          {currentBibtex || 'Loading BibTeX...'}
+        <div
+          style={{
+            background: currentTheme.isDark ? "#1f1f1f" : "#f5f5f5",
+            border: `1px solid ${currentTheme.isDark ? "#444" : "#d9d9d9"}`,
+            borderRadius: "6px",
+            padding: "1rem",
+            fontFamily: 'Monaco, Consolas, "Courier New", monospace',
+            fontSize: "13px",
+            lineHeight: "1.5",
+            maxHeight: "400px",
+            overflow: "auto",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-all",
+          }}
+        >
+          {currentBibtex || "Loading BibTeX..."}
         </div>
 
-        <div style={{ marginTop: '1rem', fontSize: '12px', color: '#999' }}>
-          <Typography.Text type="secondary">
-            Citation format provided by CrossRef API
-          </Typography.Text>
+        <div style={{ marginTop: "1rem", fontSize: "12px", color: "#999" }}>
+          <Typography.Text type="secondary">Citation format provided by CrossRef API</Typography.Text>
         </div>
       </Modal>
     </>

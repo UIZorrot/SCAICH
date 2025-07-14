@@ -148,7 +148,7 @@ const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) =>
               style={{
                 marginTop: 0,
                 border: "1px solid rgba(255, 24, 24, 0.8)",
-                color: "#ff4d4f",
+                color: "#FF3314",
                 borderRadius: "8px",
                 padding: "10px",
                 height: "40px",
@@ -182,7 +182,7 @@ const LoginModal = ({ visible, onClose, setUserId, setIsLoggedIn, isMobile }) =>
             <Title level={4} style={{ color: "#333", margin: 0 }}>
               Your User ID
             </Title>
-            <Text style={{ color: "#ff4d4f" }}>Please save this User ID securely. You'll need it to log in again.</Text>
+            <Text style={{ color: "#FF3314" }}>Please save this User ID securely. You'll need it to log in again.</Text>
             <Input
               value={tempUserId}
               disabled
@@ -341,7 +341,7 @@ export default function SearchApp() {
     setOpenAccessOnly(!openAccessOnly);
   };
 
-  const iconColor = openAccessOnly ? "#FF4D4F" : "#BFBFBF";
+  const iconColor = openAccessOnly ? "#FF3314" : "#BFBFBF";
 
   const isDuplicateHistory = (query) => {
     return searchHistory.some((historyItem) => historyItem.query === query);
@@ -510,7 +510,7 @@ export default function SearchApp() {
     {
       title: "Paper Sharing Community",
       description: "Join Sci-Net, maintained by SCI-Hub's founder, to access new papers and engage with the community!",
-      icon: <CommentOutlined style={{ fontSize: "24px", color: "#ff4d4f" }} />,
+      icon: <CommentOutlined style={{ fontSize: "24px", color: "#FF3314" }} />,
       link: "https://sci-net.xyz/",
     },
     {

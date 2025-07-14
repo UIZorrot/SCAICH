@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 
 import Layout from "../../components/layout/Layout";
 
-
 import "./SearchPage.css";
 
 const { Title, Text } = Typography;
@@ -50,7 +49,6 @@ export default function SearchPage() {
   const [totalPapersCount, setTotalPapersCount] = useState("--");
   const navigate = useNavigate();
 
-
   // 检查是否为重复历史记录
   const isDuplicateHistory = (newQuery) => {
     return searchHistory.some((item) => item.query === newQuery);
@@ -58,10 +56,10 @@ export default function SearchPage() {
 
   // GraphQL查询函数
   const executeGraphQLQuery = async (query) => {
-    const response = await fetch('https://uploader.irys.xyz/graphql', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+    const response = await fetch("https://uploader.irys.xyz/graphql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
     });
     return response.json();
   };
@@ -96,14 +94,14 @@ export default function SearchPage() {
 
       if (result.data?.transactions?.edges?.length > 0) {
         versions.push({
-          version: '1.0.3',
-          ids: result.data.transactions.edges.map(edge => edge.node.id)
+          version: "1.0.3",
+          ids: result.data.transactions.edges.map((edge) => edge.node.id),
         });
       }
 
       return versions;
     } catch (error) {
-      console.error('Error querying PDF versions:', error);
+      console.error("Error querying PDF versions:", error);
       return [];
     }
   };
@@ -116,7 +114,7 @@ export default function SearchPage() {
       if (!metadataResponse.ok) return null;
 
       const paper = await metadataResponse.json();
-      const doi = edge.node.tags.find(tag => tag.name === 'doi')?.value;
+      const doi = edge.node.tags.find((tag) => tag.name === "doi")?.value;
 
       if (doi) {
         paper.pdfVersions = await queryPdfVersions(doi);
@@ -126,7 +124,7 @@ export default function SearchPage() {
 
       return paper;
     } catch (error) {
-      console.error('Error processing paper metadata:', error);
+      console.error("Error processing paper metadata:", error);
       return null;
     }
   };
@@ -159,28 +157,28 @@ export default function SearchPage() {
 
       const result = await executeGraphQLQuery(latestPapersQuery);
       const metadataNodes = result.data?.transactions?.edges || [];
-      const papers = await Promise.all(metadataNodes.map(edge => processPaperMetadata(edge)));
-      const validPapers = papers.filter(paper => paper !== null);
+      const papers = await Promise.all(metadataNodes.map((edge) => processPaperMetadata(edge)));
+      const validPapers = papers.filter((paper) => paper !== null);
 
       // 转换为搜索结果格式
-      const formattedPapers = validPapers.map(paper => ({
-        title: paper.title || 'Untitled',
-        author: paper.authors || 'Unknown authors',
+      const formattedPapers = validPapers.map((paper) => ({
+        title: paper.title || "Untitled",
+        author: paper.authors || "Unknown authors",
         year: new Date().getFullYear().toString(),
-        abstract: paper.abstract || 'No abstract available',
-        doi: paper.doi || '',
-        url: `https://uploader.irys.xyz/7NTozL367vtp2i1REuTKncHvnPjeZTdGMbUxYB4wJGnv?doi=${encodeURIComponent(paper.doi || '')}`,
-        similarity: '1.0',
-        location: 'SCAI Box',
-        source: 'scai-box',
+        abstract: paper.abstract || "No abstract available",
+        doi: paper.doi || "",
+        url: `https://uploader.irys.xyz/7NTozL367vtp2i1REuTKncHvnPjeZTdGMbUxYB4wJGnv?doi=${encodeURIComponent(paper.doi || "")}`,
+        similarity: "1.0",
+        location: "SCAI Box",
+        source: "scai-box",
         is_oa: true,
-        referencecount: 0
+        referencecount: 0,
       }));
 
       setLatestPapers(formattedPapers);
     } catch (error) {
-      console.error('Error loading latest papers:', error);
-      message.error('Failed to load latest papers');
+      console.error("Error loading latest papers:", error);
+      message.error("Failed to load latest papers");
     } finally {
       setLoading(false); // 使用共用的loading状态
     }
@@ -194,7 +192,8 @@ export default function SearchPage() {
       let hasMore = true;
       let cursor = null;
 
-      while (hasMore && totalCount < 10000) { // 设置上限防止无限循环
+      while (hasMore && totalCount < 10000) {
+        // 设置上限防止无限循环
         const totalCountQuery = `
           query {
             transactions(
@@ -203,7 +202,7 @@ export default function SearchPage() {
                 { name: "Content-Type", values: ["application/json"] }
               ],
               first: 1000,
-              ${cursor ? `after: "${cursor}",` : ''}
+              ${cursor ? `after: "${cursor}",` : ""}
               order: DESC
             ) {
               edges {
@@ -238,7 +237,7 @@ export default function SearchPage() {
 
       setTotalPapersCount(totalCount.toString());
     } catch (error) {
-      console.error('Error loading total papers count:', error);
+      console.error("Error loading total papers count:", error);
       setTotalPapersCount("--");
     }
   }, []);
@@ -455,17 +454,17 @@ export default function SearchPage() {
   // 检查URL参数，自动触发Deep Research
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const deepResearchDoi = urlParams.get('deepResearch');
-    const source = urlParams.get('source');
-    const title = urlParams.get('title');
+    const deepResearchDoi = urlParams.get("deepResearch");
+    const source = urlParams.get("source");
+    const title = urlParams.get("title");
 
     if (deepResearchDoi) {
       // 自动触发Deep Research
-      handleReadFullText(deepResearchDoi, source || 'scihub');
+      handleReadFullText(deepResearchDoi, source || "scihub");
 
       // 清理URL参数
       const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      window.history.replaceState({}, "", newUrl);
     }
   }, []);
 
@@ -496,14 +495,8 @@ export default function SearchPage() {
                 </label>
 
                 {/* Latest Papers按钮 */}
-                <Button
-                  type={showLatestPapers ? "primary" : "default"}
-                  icon={<DatabaseOutlined />}
-                  onClick={handleLatestPapersClick}
-                  loading={loading && showLatestPapers}
-                  className="latest-papers-btn"
-                >
-                  {showLatestPapers ? 'Hide Latest Papers' : 'Show Latest Papers'}
+                <Button type={showLatestPapers ? "primary" : "default"} icon={<DatabaseOutlined />} onClick={handleLatestPapersClick} loading={loading && showLatestPapers} className="latest-papers-btn">
+                  {showLatestPapers ? "Hide Latest Papers" : "Show Latest Papers"}
                 </Button>
 
                 {/* 历史记录展开按钮 */}
@@ -571,9 +564,12 @@ export default function SearchPage() {
                 <div className="results-section" id="search-results">
                   {/* 加载状态 */}
                   <div className="loading-section">
-                    <LoadingComponent loading={loading} style={{
-                      color: "#fff"
-                    }} />
+                    <LoadingComponent
+                      loading={loading}
+                      style={{
+                        color: "#fff",
+                      }}
+                    />
                   </div>
                 </div>
               )}
@@ -655,18 +651,10 @@ export default function SearchPage() {
                           <DatabaseOutlined style={{ color: "#1890ff" }} />
                           Latest Papers from SCAI Box
                         </span>
-                        <span className="papers-count-badge">
-                          {totalPapersCount} papers
-                        </span>
+                        <span className="papers-count-badge">{totalPapersCount} papers</span>
                       </h3>
                     </div>
-                    <SearchResult
-                      results={latestPapers}
-                      onReadFullText={handleReadFullText}
-                      isMobile={isMobile}
-                      pro={true}
-                      setModalVisible={setModalVisible}
-                    />
+                    <SearchResult results={latestPapers} onReadFullText={handleReadFullText} isMobile={isMobile} pro={true} setModalVisible={setModalVisible} />
                   </div>
                 </div>
               )}
@@ -698,7 +686,6 @@ export default function SearchPage() {
               </Row>
             </motion.div>
           )} */}
-
         </div>
 
         {/* 历史记录模态框 - 仅在点击"View All History"时显示 */}

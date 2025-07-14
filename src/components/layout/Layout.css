@@ -37,7 +37,6 @@
   left: 0;
   width: 100%;
   height: auto;
-  min-height: 100vh;
   /* 增加图片高度，确保与渐变有更好的重叠 */
   object-fit: cover;
   object-position: bottom center;
@@ -62,9 +61,13 @@
 .main-content {
   width: 100%;
   max-width: 100%;
-  margin: 2rem auto;
+  /* margin: 2rem auto; */
   position: relative;
   z-index: 1;
+}
+
+.layout-container::webkit-scrollbar {
+  display: none;
 }
 
 /* Responsive adjustments */

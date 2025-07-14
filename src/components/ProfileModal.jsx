@@ -5,16 +5,7 @@ import { motion } from "framer-motion";
 
 const { Title, Text } = Typography;
 
-const ProfileModal = ({
-  visible,
-  onClose,
-  userId,
-  isMobile,
-  setUserId,
-  setIsLoggedIn,
-  setLoginModalVisible,
-  setHisVisible,
-}) => {
+const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLoggedIn, setLoginModalVisible, setHisVisible }) => {
   const [username, setUsername] = useState(localStorage.getItem("username") || `User_${userId.slice(0, 4)}`);
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "logo512.png");
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -61,7 +52,7 @@ const ProfileModal = ({
     navigator.clipboard.writeText(userId);
     notification.success({
       message: "User ID copied!",
-      icon: <CopyOutlined style={{ color: "#ff4d4f", animation: "shake 0.3s" }} />,
+      icon: <CopyOutlined style={{ color: "#FF3314", animation: "shake 0.3s" }} />,
     });
   };
 
@@ -135,11 +126,7 @@ const ProfileModal = ({
         border: "1px solid rgba(255, 255, 255, 0.2)",
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", minHeight: "400px" }}>
           {/* 左侧：头像、用户名、主题切换 */}
           <div
@@ -190,19 +177,10 @@ const ProfileModal = ({
                   }}
                 />
                 <Space>
-                  <Button
-                    type="primary"
-                    size="small"
-                    onClick={handleSaveUsername}
-                    style={{ background: "#fff", color: "#ff4d4f", border: "none" }}
-                  >
+                  <Button type="primary" size="small" onClick={handleSaveUsername} style={{ background: "#fff", color: "#FF3314", border: "none" }}>
                     Save
                   </Button>
-                  <Button
-                    size="small"
-                    onClick={() => setIsEditingUsername(false)}
-                    style={{ background: "#fff", color: "#ff4d4f", border: "none" }}
-                  >
+                  <Button size="small" onClick={() => setIsEditingUsername(false)} style={{ background: "#fff", color: "#FF3314", border: "none" }}>
                     Cancel
                   </Button>
                 </Space>
@@ -235,19 +213,10 @@ const ProfileModal = ({
                 <Col span={12}>
                   <Text style={{ color: "#666" }}>User ID</Text>
                   <div>
-                    <Text
-                      strong
-                      style={{ color: "#333", cursor: "pointer" }}
-                      onClick={() => setShowFullId(!showFullId)}
-                    >
+                    <Text strong style={{ color: "#333", cursor: "pointer" }} onClick={() => setShowFullId(!showFullId)}>
                       {showFullId ? userId : `${userId.slice(0, 4)}...${userId.slice(-4)}`}
                     </Text>
-                    <Button
-                      type="link"
-                      icon={<CopyOutlined />}
-                      onClick={handleCopyId}
-                      style={{ padding: "0 8px", margin: 0 }}
-                    />
+                    <Button type="link" icon={<CopyOutlined />} onClick={handleCopyId} style={{ padding: "0 8px", margin: 0 }} />
                   </div>
                 </Col>
                 <Col span={12}>

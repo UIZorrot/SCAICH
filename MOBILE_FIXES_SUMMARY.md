@@ -72,7 +72,7 @@
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-  
+
   .logo-text {
     color: #333;
   }
@@ -94,11 +94,11 @@
     border-top: 2px solid rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
   }
-  
+
   .brand-name {
     color: #333;
   }
-  
+
   .social-link {
     width: 40px;
     height: 40px;
@@ -117,7 +117,7 @@
 ```css
 .mobile-nav-link:hover {
   transform: translateX(4px);
-  color: #ff4d4f !important;
+  color: #FF3314 !important;
   border-color: rgba(255, 77, 79, 0.2);
 }
 
@@ -131,7 +131,7 @@
 ### 颜色方案统一
 - **主背景**：白色半透明 `rgba(255, 255, 255, 0.9)`
 - **文字颜色**：深灰色 `#333`
-- **强调色**：红色 `#ff4d4f`
+- **强调色**：红色 `#FF3314`
 - **边框颜色**：淡黑色 `rgba(0, 0, 0, 0.1)`
 
 ### 响应式断点

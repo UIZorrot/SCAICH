@@ -50,7 +50,7 @@
 /* 搜索头部区域 */
 .search-header {
   text-align: center;
-  margin-bottom: 3rem;
+  /* margin-bottom: 3rem; */
 }
 
 .title-section {
@@ -152,10 +152,16 @@
   border: 1px solid rgba(255, 255, 255, 1);
   border-radius: 30px;
   padding: 10px;
+  transition: all 0.3s ease !important;
+}
+
+.oa-checkbox input[type="checkbox"]:checked {
+  accent-color: #FF3314;
 }
 
 .oa-checkbox:hover {
-  color: #ff4d4f;
+  color: #FF3314;
+  transform: translateY(-2px) !important;
 }
 
 .light-theme .oa-checkbox {
@@ -172,18 +178,21 @@
   background: linear-gradient(45deg, #ee1d1d, #f71818) !important;
   border-radius: 30px;
   padding: 10px 15px;
-}
-
-.light-theme .history-toggle-btn {
   color: #fff !important;
 }
 
+/* .light-theme .history-toggle-btn {
+} */
+/*
 .dark-theme .history-toggle-btn {
   color: rgba(255, 255, 255, 0.8) !important;
-}
+} */
 
 .history-toggle-btn:hover {
-  color: #ff4d4f !important;
+  color: #fff !important;
+  background-color: #FF3314 ;
+  transform: translateY(-2px) ;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3) ;
 }
 
 .latest-papers-btn {
@@ -192,6 +201,7 @@
   border-radius: 30px;
   padding: 10px 15px;
   border: 1px solid rgba(255, 255, 255, 1) !important;
+  transition: all 0.3s ease !important;
 }
 
 .latest-papers-btn.ant-btn-default {
@@ -205,8 +215,8 @@
 }
 
 .latest-papers-btn:hover {
-  color: #ffffff !important;
-  border-color: #ffffff !important;
+  border-color: #ffffff ;
+  transform: translateY(-2px) ;
 }
 
 /* Latest Papers 数量显示样式 */
@@ -375,8 +385,8 @@
 
 /* Delete按钮 - 红边，红底，黑字 */
 .history-dropdown .ant-btn-dangerous {
-  background: #ff4d4f !important;
-  border: 2px solid #ff4d4f !important;
+  background: #FF3314 !important;
+  border: 2px solid #FF3314 !important;
   color: black !important;
 }
 
@@ -400,8 +410,8 @@
 }
 
 .dark-theme .history-dropdown .ant-btn-dangerous {
-  background: #ff4d4f !important;
-  border: 2px solid #ff4d4f !important;
+  background: #FF3314 !important;
+  border: 2px solid #FF3314 !important;
   color: black !important;
 }
 
