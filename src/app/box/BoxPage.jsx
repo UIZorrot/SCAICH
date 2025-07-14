@@ -1891,8 +1891,14 @@ const UploadModal = ({ visible, onClose, onSuccess, user }) => {
 
     setDoiLoading(true);
     try {
-      // 调用后端API查询DOI信息
-      const response = await fetch(`http://localhost:3001/api/paper-info?doi=${encodeURIComponent(doi.trim())}`);
+      // 根据环境选择API端点
+      const apiUrl = process.env.NODE_ENV === 'development'
+        ? `http://localhost:3001/api/paper-info`
+        : '/api/paper-info';
+
+      // 调用API查询DOI信息
+      const response = await fetch(`${apiUrl}?doi=${encodeURIComponent(doi.trim())}`);
+
       if (response.ok) {
         const data = await response.json();
         if (data && !data.error) {
@@ -1900,23 +1906,26 @@ const UploadModal = ({ visible, onClose, onSuccess, user }) => {
           // 自动填充表单字段
           form.setFieldsValue({
             title: data.title,
-            description: data.abstract || '论文摘要',
+            description: data.abstract && data.abstract !== "Abstract Not Available"
+              ? data.abstract.substring(0, 200) + '...'
+              : '论文摘要',
             authors: data.author,
             year: data.year
           });
           message.success('DOI信息获取成功');
         } else {
           setPaperMetadata(null);
-          message.warning('未找到该DOI的信息');
+          message.warning(data.error || '未找到该DOI的信息');
         }
       } else {
+        const errorData = await response.json().catch(() => ({}));
         setPaperMetadata(null);
-        message.error('DOI查询失败');
+        message.error(errorData.error || 'DOI查询失败');
       }
     } catch (error) {
       console.error('DOI search error:', error);
       setPaperMetadata(null);
-      message.error('DOI查询出错');
+      message.error('DOI查询出错: ' + error.message);
     } finally {
       setDoiLoading(false);
     }

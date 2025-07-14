@@ -1,29 +1,25 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/irys/upload",
-      "dest": "/api/irys-upload.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/build/$1"
-    }
-  ],
+  "buildCommand": "yarn vercel-build",
+  "outputDirectory": "build",
   "functions": {
     "api/irys-upload.js": {
       "maxDuration": 30
+    },
+    "api/paper-info.js": {
+      "maxDuration": 10
     }
   },
+  "rewrites": [
+    {
+      "source": "/api/irys/upload",
+      "destination": "/api/irys-upload.js"
+    },
+    {
+      "source": "/api/paper-info",
+      "destination": "/api/paper-info.js"
+    }
+  ],
   "env": {
     "PRIVATE_KEY": "@private_key",
     "REACT_APP_PUBLISHABLE_KEY": "@react_app_publishable_key"
