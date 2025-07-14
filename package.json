@@ -66,12 +66,10 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "build": "react-app-rewired build concurrently \"npm run server\" \"npm start\"",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject",
-    "server": "node server.js",
-    "dev": "concurrently \"npm run server\" \"npm start\"",
-    "vercel-build": "react-app-rewired build"
+    "server": "node server.js"
   },
   "eslintConfig": {
     "extends": [
