@@ -1479,7 +1479,7 @@ const UploadsTab = ({ uploads, onUpload, currentTheme, onRemoveUpload }) => {
             将您的研究论文和学术文档上传到去中心化存储网络，<br />
             享受永久保存和全球访问的便利。
           </Paragraph>
-          <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
+          {/* <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
             <Button
               type="primary"
               size="large"
@@ -1495,7 +1495,7 @@ const UploadsTab = ({ uploads, onUpload, currentTheme, onRemoveUpload }) => {
             >
               上传新文档
             </Button>
-          </div>
+          </div> */}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -2552,7 +2552,7 @@ const ProfileModal = ({ visible, onClose, onSuccess, user }) => {
 
         <Form.Item
           name="website"
-          label="个人网站"
+          label="其他个人网站"
         >
           <Input placeholder="https://yourwebsite.com" />
         </Form.Item>
