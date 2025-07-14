@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   /* 适用于 Firefox */
   scrollbar-width: none;
 
@@ -7,7 +8,8 @@ html, body {
 }
 
 /* 适用于 Chrome, Safari, 和新版 Edge */
-html::-webkit-scrollbar, body::-webkit-scrollbar {
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
   display: none;
 }
 
@@ -15,7 +17,6 @@ p {
   margin: 0;
   padding: 0;
 }
-
 
 .respanel {
   width: 100%;
@@ -37,7 +38,7 @@ p {
 
 .respanel1 {
   width: 29.5%;
-  border-radius: 32px
+  border-radius: 32px;
 }
 
 @media (max-width: 768px) {
@@ -49,7 +50,7 @@ p {
 
 .respanel2 {
   width: 69.5%;
-  border-radius: 32px
+  border-radius: 32px;
 }
 
 @media (max-width: 768px) {
@@ -70,7 +71,6 @@ p {
   /* 使用图片的原始大小 */
   background-position: top left;
   /* 从左上角开始 */
-
 }
 
 .App-logo {
@@ -109,7 +109,6 @@ p {
   }
 }
 
-
 @media (max-width: 1280px) {
   .nav-links {
     display: none !important;
@@ -134,7 +133,6 @@ p {
   padding: 20px;
 }
 
-
 @media (max-width: 768px) {
   .footer {
     display: flex;
@@ -148,7 +146,6 @@ p {
 .logo {
   border-radius: 12px;
 }
-
 
 /* 添加一些新的样式来优化界面 */
 .navbar {
@@ -286,7 +283,7 @@ p {
 }
 
 .abstract-expand {
-  color: #7376C5;
+  color: #7376c5;
   cursor: pointer;
   margin: 0;
   padding: 0;
@@ -295,13 +292,13 @@ p {
 
 .footer-logo {
   height: 24px;
-  gap: "60px",
+  gap: "60px";
 }
 
 @media (max-width: 768px) {
   .footer-logo {
     height: 1.5vh;
-    gap: "30px",
+    gap: "30px";
   }
 }
 
@@ -310,12 +307,12 @@ p {
   margin: 0 8px;
   height: 24px;
   width: 2px;
-  background-color: #CECECE;
+  background-color: #cecece;
 }
 
 .switch-container-mobile {
-  border-top: 2px solid #CECECE;
-  border-bottom: 2px solid #CECECE;
+  border-top: 2px solid #cecece;
+  border-bottom: 2px solid #cecece;
   padding: 12px 0;
 }
 
@@ -415,6 +412,3 @@ p {
 .action-button:hover {
   background: rgba(255, 255, 255, 0.3) !important;
 }
-
-
-
