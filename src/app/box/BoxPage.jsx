@@ -482,7 +482,7 @@ const BoxPage = () => {
                 <TabPane
                   tab={
                     <span>
-                      <HeartOutlined />
+                      <HeartOutlined style={{ marginRight: "8px" }} />
                       我的收藏 ({favorites.length})
                     </span>
                   }
@@ -494,7 +494,7 @@ const BoxPage = () => {
                 <TabPane
                   tab={
                     <span>
-                      <CloudUploadOutlined />
+                      <CloudUploadOutlined style={{ marginRight: "8px" }} />
                       我的上传 ({myUploads.length})
                     </span>
                   }
@@ -506,7 +506,7 @@ const BoxPage = () => {
                 <TabPane
                   tab={
                     <span>
-                      <UserOutlined />
+                      <UserOutlined style={{ marginRight: "8px" }} />
                       学者主页
                     </span>
                   }
