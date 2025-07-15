@@ -88,39 +88,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  /* 默认状态：深色背景，白色图标 */
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.light-theme .social-link {
-  background-color: rgba(255, 255, 255, 0.9);
+.social-link:hover {
+  /* 悬停状态：白色背景，深色图标 */
+  background-color: rgba(255, 255, 255, 0.95);
   color: #333;
   border: 2px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.light-theme .social-link:hover {
-  background-color: rgba(255, 255, 255, 1);
-  transform: translateY(-2px);
-  color: #FF3314;
-  border-color: rgba(255, 77, 79, 0.3);
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
-}
-
-.dark-theme .social-link {
-  background-color: #374151;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .social-link:hover {
-  background-color: #4b5563;
-  transform: translateY(-2px);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px) scale(1.05);
 }
 
 .social-icon {
@@ -169,8 +155,21 @@
   }
 
   .social-link {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
+    /* 移动端保持相同的悬停效果 */
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .social-link:hover {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #333;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px) scale(1.05);
   }
 
   .social-icon {
