@@ -71,13 +71,11 @@
   padding: 0 2rem !important;
   font-size: 1.1rem !important;
   border-radius: 24px !important;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3) !important;
   transition: all 0.3s ease !important;
 }
 
 .upload-btn:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(226, 74, 74, 0.4) !important;
 }
 
 .explore-btn {
@@ -144,7 +142,6 @@
 .feature-card:hover {
   transform: translateY(-8px) !important;
   background: rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
 }
 
 .feature-card .ant-card-body {
@@ -386,13 +383,11 @@
   height: 56px !important;
   padding: 0 1.5rem !important;
   border-radius: 28px !important;
-  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4) !important;
   transition: all 0.3s ease !important;
 }
 
 .floating-upload-btn:hover {
   transform: translateY(-4px) !important;
-  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.5) !important;
 }
 
 /* Mobile Responsive */
@@ -472,7 +467,6 @@
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 8px;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
 }
 
 .scholar-tabs .ant-tabs-tab {
@@ -514,7 +508,6 @@
   background: transparent !important;
   font-weight: 600 !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .scholar-tabs .ant-tabs-tab-active::before {
@@ -772,13 +765,11 @@
 .modern-btn-danger {
   background: #dc3545 !important;
   color: white !important;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
   border: none !important;
 }
 
 .modern-btn-danger:hover {
   transform: translateY(-1px) !important;
-  box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4) !important;
   background: #c82333 !important;
 }
 
