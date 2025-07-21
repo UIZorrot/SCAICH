@@ -1,0 +1,314 @@
+/* Tools Page Styles */
+.tools-page {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Hero Section */
+.hero-section {
+  padding: 4rem 2rem;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Main Content */
+.tools-main-content {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.tools-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  color: white !important;
+  margin-bottom: 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+/* Tool Cards */
+.tool-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.tool-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+.tool-card .ant-card-head-title {
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+.tool-description {
+  color: #666 !important;
+  margin-bottom: 1rem !important;
+}
+
+.tool-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #ee1d1d;
+}
+
+.result-text {
+  color: #333 !important;
+  margin-top: 0.5rem !important;
+}
+
+.review-score {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-text {
+  color: #ee1d1d !important;
+  font-weight: 600 !important;
+}
+
+.review-section {
+  color: #333 !important;
+  display: block;
+  margin: 1rem 0 0.5rem 0 !important;
+}
+
+.review-details ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.review-details li {
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.chart-preview {
+  text-align: center;
+}
+
+.chart-preview ul {
+  text-align: left;
+  margin-top: 1rem;
+}
+
+/* Sidebar */
+.sidebar-section {
+  padding-left: 1rem;
+}
+
+.sidebar-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-card .ant-card-head-title {
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+/* Recommendations */
+.recommendation-item {
+  border-bottom: 1px solid #f0f0f0 !important;
+  padding: 1rem 0 !important;
+}
+
+.recommendation-item:last-child {
+  border-bottom: none !important;
+}
+
+.recommendation-content {
+  width: 100%;
+}
+
+.recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.recommendation-title {
+  color: #333 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+.recommendation-desc {
+  color: #666 !important;
+  font-size: 12px !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.recommendation-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.view-count {
+  font-size: 12px !important;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* News Items */
+.news-item {
+  border-bottom: 1px solid #f0f0f0 !important;
+  padding: 1rem 0 !important;
+}
+
+.news-item:last-child {
+  border-bottom: none !important;
+}
+
+.news-title {
+  color: #333 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+.news-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.news-time {
+  font-size: 12px !important;
+}
+
+/* Stats */
+.stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-item .ant-typography {
+  color: #333 !important;
+  font-size: 14px !important;
+}
+
+.stat-item .ant-typography[type="secondary"] {
+  color: #666 !important;
+  font-size: 12px !important;
+  text-align: right;
+}
+
+.hero-title {
+  font-size: 4rem !important;
+  font-weight: 800 !important;
+  color: white !important;
+  margin-bottom: 1rem !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+  font-size: 1.5rem !important;
+  color: white !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 300;
+}
+
+.hero-description {
+  font-size: 1.1rem !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 2rem !important;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* Red button styling for Tools page */
+.tools-page .ant-btn-primary {
+  background: linear-gradient(45deg, #ee1d1d, #ee1d1d) !important;
+  border-color: #ee1d1d !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(238, 29, 29, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.tools-page .ant-btn-primary:hover {
+  background: linear-gradient(45deg, #d11a1a, #d11a1a) !important;
+  border-color: #d11a1a !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(238, 29, 29, 0.4) !important;
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 2rem 1rem;
+    margin: 1rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem !important;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem !important;
+  }
+
+  .tools-main-content {
+    padding: 1rem;
+  }
+
+  .tools-section {
+    padding: 1rem;
+  }
+
+  .sidebar-section {
+    padding-left: 0;
+    margin-top: 2rem;
+  }
+
+  .recommendation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .recommendation-meta {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar-section {
+    padding-left: 0;
+    margin-top: 2rem;
+  }
+}

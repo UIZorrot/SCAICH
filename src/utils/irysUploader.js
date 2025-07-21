@@ -83,7 +83,7 @@ const uploadToIrysNetwork = async (file, metadata = {}) => {
 
     // 调用后端API进行真正的Irys上传
     const apiUrl = process.env.NODE_ENV === 'development'
-      ? 'http://localhost:3001/api/irys/upload'
+      ? 'http://localhost:3001/api/irys/upload'  // 后端默认3001
       : '/api/irys/upload';
 
     console.log('🔄 调用Irys API:', apiUrl);

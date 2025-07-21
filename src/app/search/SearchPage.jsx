@@ -184,58 +184,60 @@ export default function SearchPage() {
     }
   }, []);
 
-  // 异步加载总论文数量 - 简化版本，只获取数量不处理元数据
+  // 异步加载总论文数量 - 从Irys统计数据获取
   const loadTotalPapersCount = useCallback(async () => {
     try {
-      // 获取总论文数量的查询 - 分批获取以获得准确数量
-      let totalCount = 0;
-      let hasMore = true;
-      let cursor = null;
-
-      while (hasMore && totalCount < 10000) {
-        // 设置上限防止无限循环
-        const totalCountQuery = `
-          query {
-            transactions(
-              tags: [
-                { name: "App-Name", values: ["scivault"] },
-                { name: "Content-Type", values: ["application/json"] }
-              ],
-              first: 1000,
-              ${cursor ? `after: "${cursor}",` : ""}
-              order: DESC
-            ) {
-              edges {
-                node {
-                  id
-                }
-                cursor
-              }
-              pageInfo {
-                hasNextPage
+      // 查询最新的统计数据
+      const statisticsQuery = `
+        query {
+          transactions(
+            tags: [
+              { name: "App-Name", values: ["scivault"] },
+              { name: "Content-Type", values: ["application/json"] },
+              { name: "Version", values: ["2.0.0"] },
+              { name: "type", values: ["statistics"] }
+            ],
+            first: 1,
+            order: DESC
+          ) {
+            edges {
+              node {
+                id
+                tags { name value }
               }
             }
           }
-        `;
-
-        const countResult = await executeGraphQLQuery(totalCountQuery);
-        const edges = countResult.data?.transactions?.edges || [];
-        const pageInfo = countResult.data?.transactions?.pageInfo || {};
-
-        totalCount += edges.length;
-        hasMore = pageInfo.hasNextPage && edges.length > 0;
-
-        if (hasMore && edges.length > 0) {
-          cursor = edges[edges.length - 1].cursor;
         }
+      `;
 
-        // 如果这批数据少于1000，说明已经到底了
-        if (edges.length < 1000) {
-          hasMore = false;
-        }
+      const result = await executeGraphQLQuery(statisticsQuery);
+      const edges = result.data?.transactions?.edges || [];
+
+      if (edges.length === 0) {
+        console.warn("No statistics data found");
+        setTotalPapersCount("--");
+        return;
       }
 
-      setTotalPapersCount(totalCount.toString());
+      // 从tags中直接获取count值
+      const node = edges[0].node;
+      const countTag = node.tags.find(tag => tag.name === "count");
+
+      if (countTag && countTag.value) {
+        setTotalPapersCount(countTag.value);
+      } else {
+        // 如果tags中没有count，则下载统计文件获取详细数据
+        const statsId = node.id;
+        const statsResponse = await fetch(`https://gateway.irys.xyz/${statsId}`);
+
+        if (!statsResponse.ok) {
+          throw new Error("Failed to fetch statistics file");
+        }
+
+        const statsData = await statsResponse.json();
+        const totalCount = statsData.root?.totalCount || statsData.totalCount || 0;
+        setTotalPapersCount(totalCount.toString());
+      }
     } catch (error) {
       console.error("Error loading total papers count:", error);
       setTotalPapersCount("--");

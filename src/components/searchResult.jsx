@@ -376,7 +376,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                     }}
                     onClick={() => handleFavoriteClick(result)}
                   >
-                    {favoritedPapers.has(result.doi) ? "已收藏" : "收藏"}
+                    {favoritedPapers.has(result.doi) ? "Saved" : "Save"}
                   </Button>
 
                   {/* BibTeX按钮 */}

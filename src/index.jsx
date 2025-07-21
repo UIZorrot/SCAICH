@@ -11,6 +11,7 @@ import { example } from "./example";
 import SearchPage from "./app/search/SearchPage";
 import BoxPage from "./app/box/BoxPage";
 import PressPage from "./app/press/PressPage";
+import ToolsPage from "./app/tools/ToolsPage";
 import IrysViewer from "./app/irys/IrysViewer";
 import { BackgroundProvider } from "./contexts/BackgroundContext";
 
@@ -102,6 +103,7 @@ const UnifiedWalletProvider = () => {
                   <Route path="/app/search" element={<SearchPage />} />
                   <Route path="/app/box" element={<BoxPage />} />
                   <Route path="/app/press" element={<PressPage />} />
+                  <Route path="/app/tools" element={<ToolsPage />} />
 
                   {/* Irys document viewer */}
                   <Route path="/irys/:txId" element={<IrysViewer />} />

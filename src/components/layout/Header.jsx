@@ -16,8 +16,9 @@ const Header = () => {
   const navigation = [
     { name: "Search", href: "/app/search", key: "search" },
     { name: "Box", href: "/app/box", key: "box" },
-    { name: "Press (On Going)", href: "/app/press", key: "press" },
-    { name: "Community", href: "https://discord.gg/JrkYAQTpz7", external: true },
+    { name: "Press", href: "/app/press", key: "press" },
+    { name: "Tools", href: "/app/tools", key: "tools" },
+    { name: "Community", href: "https://t.me/+AMy9MvWuVqhlNDY1", external: true },
   ];
 
   // 判断滚动
@@ -57,6 +58,8 @@ const Header = () => {
       setActiveSection("box");
     } else if (path.includes("/app/press")) {
       setActiveSection("press");
+    } else if (path.includes("/app/tools")) {
+      setActiveSection("tools");
     } else {
       setActiveSection("");
     }

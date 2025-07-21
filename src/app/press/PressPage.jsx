@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Button,
   Card,
@@ -6,1153 +6,1385 @@ import {
   Form,
   Input,
   Select,
-  Upload,
-  Steps,
-  List,
   Tag,
-  Space,
   Modal,
-  Tabs,
-  Divider,
-  Progress,
   message,
-  Spin,
-  Alert,
-  notification
+  Spin
 } from 'antd';
 import {
   PlusOutlined,
   FileTextOutlined,
-  UploadOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
   EyeOutlined,
-  DownloadOutlined,
   EditOutlined,
-  SendOutlined,
   BookOutlined,
   UserOutlined,
-  CalendarOutlined,
-  TagOutlined,
-  WalletOutlined,
-  InfoCircleOutlined
+  DeleteOutlined
 } from '@ant-design/icons';
-import { motion } from 'framer-motion';
-import Layout from '../../components/layout/Layout';
-
+import { useUser } from '@clerk/clerk-react';
 import irysService from '../../services/irysService';
 import './PressPage.css';
+import { motion } from "framer-motion";
+import Layout from "../../components/layout/Layout";
 
+const { Option } = Select;
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
-const { Option } = Select;
-const { Step } = Steps;
-const { TabPane } = Tabs;
 
 const PressPage = () => {
-  const [submitModalVisible, setSubmitModalVisible] = useState(false);
-  const [polishModalVisible, setPolishModalVisible] = useState(false);
-  const [showGuidelines, setShowGuidelines] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [form] = Form.useForm();
-  const [submissionData, setSubmissionData] = useState({});
-  const [uploading, setUploading] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFiles, setSelectedFiles] = useState({
-    manuscript: null,
-    supplementary: []
-  });
-  const [polishText, setPolishText] = useState('');
-  const [polishedResult, setPolishedResult] = useState('');
-  const [polishLoading, setPolishLoading] = useState(false);
+  const { isSignedIn, user } = useUser();
+
+  // Main page state
+  const [currentView, setCurrentView] = useState('my-groups'); // 'my-groups', 'explore-groups', 'group-detail'
+  const [selectedGroup, setSelectedGroup] = useState(null);
+
+  // User groups and documents
+  const [userGroups, setUserGroups] = useState([]);
+  const [allGroups, setAllGroups] = useState([]);
+  const [groupDocuments, setGroupDocuments] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Modals and forms
+  const [createGroupModalVisible, setCreateGroupModalVisible] = useState(false);
+  const [joinPrivateGroupModalVisible, setJoinPrivateGroupModalVisible] = useState(false);
+  const [groupDetailsModalVisible, setGroupDetailsModalVisible] = useState(false);
+  const [createDocModalVisible, setCreateDocModalVisible] = useState(false);
+  const [editDocModalVisible, setEditDocModalVisible] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+
+  // Form states
+  const [groupForm] = Form.useForm();
+  const [joinGroupForm] = Form.useForm();
+  const [documentForm] = Form.useForm();
 
 
-  // 模拟钱包连接状态（实际应该从登录系统获取）
-  useEffect(() => {
-    // 这里应该从全局状态或登录系统获取钱包连接状态
-    setWalletConnected(true);
-    setWalletAddress('Demo...Address');
-  }, []);
 
-  // Mock data for published papers
-  const publishedPapers = [
-    {
-      id: 'press.2024.001',
-      title: 'Advances in Quantum Machine Learning Algorithms',
-      authors: ['Dr. Sarah Chen', 'Prof. Michael Zhang', 'Dr. Emily Rodriguez'],
-      abstract: 'This paper presents novel quantum machine learning algorithms that demonstrate significant improvements in computational efficiency for large-scale data processing tasks...',
-      category: 'Computer Science',
-      subcategory: 'Machine Learning',
-      submissionDate: '2024-01-15',
-      publicationDate: '2024-01-20',
-      status: 'published',
-      downloads: 1247,
-      citations: 23,
-      doi: '10.48550/press.2024.001',
-      keywords: ['quantum computing', 'machine learning', 'algorithms', 'optimization']
-    },
-    {
-      id: 'press.2024.002',
-      title: 'Sustainable Energy Storage Solutions Using Novel Nanomaterials',
-      authors: ['Prof. David Kim', 'Dr. Lisa Wang'],
-      abstract: 'We investigate the application of novel nanomaterials in energy storage systems, demonstrating improved efficiency and sustainability compared to traditional methods...',
-      category: 'Physics',
-      subcategory: 'Materials Science',
-      submissionDate: '2024-01-12',
-      publicationDate: '2024-01-18',
-      status: 'published',
-      downloads: 892,
-      citations: 15,
-      doi: '10.48550/press.2024.002',
-      keywords: ['energy storage', 'nanomaterials', 'sustainability', 'batteries']
-    },
-    {
-      id: 'press.2024.003',
-      title: 'CRISPR-Cas9 Applications in Treating Genetic Disorders',
-      authors: ['Dr. Jennifer Liu', 'Prof. Robert Johnson', 'Dr. Maria Garcia'],
-      abstract: 'This comprehensive review examines recent advances in CRISPR-Cas9 gene editing technology and its therapeutic applications in treating various genetic disorders...',
-      category: 'Biology',
-      subcategory: 'Genetics',
-      submissionDate: '2024-01-10',
-      publicationDate: '2024-01-16',
-      status: 'published',
-      downloads: 2156,
-      citations: 41,
-      doi: '10.48550/press.2024.003',
-      keywords: ['CRISPR', 'gene editing', 'genetic disorders', 'therapy']
-    }
-  ];
+  // Scholar profile verification
+  const [scholarProfile, setScholarProfile] = useState(null);
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
 
-  const categories = [
-    'Computer Science',
-    'Physics',
-    'Mathematics',
-    'Biology',
-    'Chemistry',
-    'Medicine',
-    'Engineering',
-    'Environmental Science',
-    'Social Sciences',
-    'Economics'
-  ];
-
-  const subcategories = {
-    'Computer Science': ['Machine Learning', 'Artificial Intelligence', 'Algorithms', 'Software Engineering', 'Computer Vision'],
-    'Physics': ['Quantum Physics', 'Materials Science', 'Astrophysics', 'Condensed Matter', 'Particle Physics'],
-    'Biology': ['Genetics', 'Molecular Biology', 'Ecology', 'Neuroscience', 'Bioinformatics'],
-    'Mathematics': ['Pure Mathematics', 'Applied Mathematics', 'Statistics', 'Computational Mathematics'],
-    'Chemistry': ['Organic Chemistry', 'Inorganic Chemistry', 'Physical Chemistry', 'Analytical Chemistry'],
-    'Medicine': ['Clinical Medicine', 'Public Health', 'Pharmacology', 'Medical Research'],
-    'Engineering': ['Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Chemical Engineering'],
-    'Environmental Science': ['Climate Science', 'Ecology', 'Environmental Policy', 'Sustainability'],
-    'Social Sciences': ['Psychology', 'Sociology', 'Anthropology', 'Political Science'],
-    'Economics': ['Microeconomics', 'Macroeconomics', 'Econometrics', 'Development Economics']
-  };
-
-  const submissionSteps = [
-    {
-      title: 'Paper Details',
-      description: 'Basic information about your paper'
-    },
-    {
-      title: 'Upload Files',
-      description: 'Upload your manuscript and supplementary materials'
-    },
-    {
-      title: 'Review & Submit',
-      description: 'Review your submission and submit for publication'
-    }
-  ];
-
-  const handleSubmit = async () => {
-    try {
-      if (!walletConnected) {
-        message.error('Please connect your wallet first');
-        return;
-      }
-
-      if (!selectedFiles.manuscript) {
-        message.error('Please upload your manuscript');
-        return;
-      }
-
-      setUploading(true);
-      setUploadProgress(0);
-
-      // Generate DOI
-      const doi = irysService.generateDOI();
-
-      // Prepare metadata
-      const metadata = {
-        ...submissionData,
-        doi: doi,
-        submissionDate: new Date().toISOString(),
-        status: 'submitted',
-        version: '1.0',
-        submitter: walletAddress
-      };
-
-      // Step 1: Calculate and fund upload
-      message.loading('Calculating upload cost...', 0);
-      const totalSize = selectedFiles.manuscript.size +
-        selectedFiles.supplementary.reduce((sum, file) => sum + file.size, 0) +
-        JSON.stringify(metadata).length;
-
-      const cost = await irysService.calculateUploadCost(totalSize);
-      await irysService.fundUpload(cost);
-      setUploadProgress(25);
-
-      // Step 2: Upload metadata
-      message.loading('Uploading metadata...', 0);
-      const metadataReceipt = await irysService.uploadMetadata(metadata, doi);
-      setUploadProgress(50);
-
-      // Step 3: Upload PDF
-      message.loading('Uploading manuscript...', 0);
-      const pdfReceipt = await irysService.uploadPDF(selectedFiles.manuscript, metadata, doi);
-      setUploadProgress(75);
-
-      // Step 4: Upload supplementary files (if any)
-      let supplementaryReceipts = [];
-      if (selectedFiles.supplementary.length > 0) {
-        message.loading('Uploading supplementary files...', 0);
-        supplementaryReceipts = await irysService.uploadSupplementaryFiles(
-          selectedFiles.supplementary,
-          metadata,
-          doi
-        );
-      }
-      setUploadProgress(100);
-
-      // Success
-      message.destroy();
-      message.success('Paper submitted successfully!');
-
-      // Show success modal with details
-      Modal.success({
-        title: 'Submission Successful!',
-        content: (
-          <div>
-            <p><strong>DOI:</strong> {doi}</p>
-            <p><strong>Manuscript ID:</strong> <a href={irysService.getIrysGatewayUrl(pdfReceipt.id)} target="_blank" rel="noopener noreferrer">{pdfReceipt.id}</a></p>
-            <p><strong>Metadata ID:</strong> <a href={irysService.getIrysGatewayUrl(metadataReceipt.id)} target="_blank" rel="noopener noreferrer">{metadataReceipt.id}</a></p>
-            <p>Your paper has been submitted for review. You will be notified of the review status.</p>
-          </div>
-        ),
-        width: 600
-      });
-
-      // Reset form
-      setSubmitModalVisible(false);
-      setCurrentStep(0);
-      setSelectedFiles({ manuscript: null, supplementary: [] });
-      form.resetFields();
-
-    } catch (error) {
-      console.error('Submission failed:', error);
-      message.error('Submission failed: ' + error.message);
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleStepNext = async () => {
-    try {
-      const values = await form.validateFields();
-      setSubmissionData({ ...submissionData, ...values });
-      setCurrentStep(currentStep + 1);
-    } catch (error) {
-      console.log('Validation failed:', error);
-    }
-  };
-
-  const handleStepPrev = () => {
-    setCurrentStep(currentStep - 1);
-  };
-
-  const handleFileUpload = (info, type) => {
-    if (type === 'manuscript') {
-      if (info.file.status === 'done' || info.file.status === 'uploading') {
-        setSelectedFiles(prev => ({
-          ...prev,
-          manuscript: info.file.originFileObj || info.file
-        }));
-      }
-    } else if (type === 'supplementary') {
-      const files = info.fileList.map(file => file.originFileObj || file).filter(Boolean);
-      setSelectedFiles(prev => ({
-        ...prev,
-        supplementary: files
-      }));
-    }
-  };
-
-  const beforeUpload = (file, type) => {
-    if (type === 'manuscript') {
-      const isPDF = file.type === 'application/pdf';
-      if (!isPDF) {
-        message.error('You can only upload PDF files!');
-        return false;
-      }
-      const isLt50M = file.size / 1024 / 1024 < 50;
-      if (!isLt50M) {
-        message.error('File must be smaller than 50MB!');
-        return false;
-      }
-    }
-    return false; // Prevent automatic upload
-  };
-
-  // 文章润色功能
-  const handlePolishText = async () => {
-    if (!polishText.trim()) {
-      message.error('Please enter text to polish');
+  const checkScholarProfile = useCallback(() => {
+    // Check for scholar profile from localStorage (same as Box module)
+    if (!user?.id) {
+      setNeedsProfileSetup(true);
       return;
     }
 
-    setPolishLoading(true);
+    const profileData = localStorage.getItem(`scai_profile_${user.id}`);
+
+    if (profileData) {
+      const profile = JSON.parse(profileData);
+      // Check if essential fields are filled (same as Box module requirements)
+      const hasEssentialInfo = profile.displayName &&
+        profile.institution &&
+        profile.researchFields;
+
+      if (hasEssentialInfo) {
+        setScholarProfile(profile);
+        setNeedsProfileSetup(false);
+      } else {
+        setNeedsProfileSetup(true);
+      }
+    } else {
+      setNeedsProfileSetup(true);
+    }
+  }, [user?.id]);
+
+  // Load user's groups from Irys
+  const loadUserGroups = useCallback(async () => {
+    if (!user?.id) return;
+
+    setLoading(true);
     try {
-      // 这里可以集成AI润色服务，暂时使用模拟
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Query Irys for groups where user is creator or member
+      const userGroupsQuery = await irysService.queryTransactions({
+        tags: [
+          { name: 'App-Name', value: 'scai-press' },
+          { name: 'Content-Type', value: 'application/json' },
+          { name: 'Data-Type', value: 'group' },
+          { name: 'Creator', value: user.id }
+        ]
+      });
 
-      // 模拟润色结果
-      const polished = `${polishText}\n\n[Polished Version]\nThis is an enhanced version of your text with improved grammar, clarity, and academic tone. The content has been refined while maintaining the original meaning and scientific accuracy.`;
+      const groups = [];
+      for (const tx of userGroupsQuery) {
+        try {
+          const groupData = await irysService.getTransactionData(tx.id);
+          groups.push({
+            ...groupData,
+            id: tx.id,
+            txId: tx.id
+          });
+        } catch (error) {
+          console.error('Error loading group data:', error);
+        }
+      }
 
-      setPolishedResult(polished);
-      message.success('Text polished successfully!');
+      setUserGroups(groups);
     } catch (error) {
-      message.error('Failed to polish text: ' + error.message);
+      console.error('Error loading user groups:', error);
+      message.error('Failed to load your groups');
     } finally {
-      setPolishLoading(false);
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  // Load all public groups from Irys
+  const loadAllGroups = useCallback(async () => {
+    setLoading(true);
+    try {
+      const publicGroupsQuery = await irysService.queryTransactions({
+        tags: [
+          { name: 'App-Name', value: 'scai-press' },
+          { name: 'Content-Type', value: 'application/json' },
+          { name: 'Data-Type', value: 'group' },
+          { name: 'Group-Type', value: 'public' }
+        ]
+      });
+
+      const groups = [];
+      for (const tx of publicGroupsQuery) {
+        try {
+          const groupData = await irysService.getTransactionData(tx.id);
+          groups.push({
+            ...groupData,
+            id: tx.id,
+            txId: tx.id
+          });
+        } catch (error) {
+          console.error('Error loading group data:', error);
+        }
+      }
+
+      setAllGroups(groups);
+    } catch (error) {
+      console.error('Error loading public groups:', error);
+      message.error('Failed to load public groups');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load documents for a specific group
+  const loadGroupDocuments = useCallback(async (groupId) => {
+    if (!groupId) return;
+
+    setLoading(true);
+    try {
+      const documentsQuery = await irysService.queryTransactions({
+        tags: [
+          { name: 'App-Name', value: 'scai-press' },
+          { name: 'Content-Type', value: 'text/markdown' },
+          { name: 'Data-Type', value: 'document' },
+          { name: 'Group-Id', value: groupId }
+        ]
+      });
+
+      const documents = [];
+      for (const tx of documentsQuery) {
+        try {
+          const docContent = await irysService.getTransactionData(tx.id);
+          const docMetadata = tx.tags.reduce((acc, tag) => {
+            acc[tag.name] = tag.value;
+            return acc;
+          }, {});
+
+          documents.push({
+            id: tx.id,
+            txId: tx.id,
+            title: docMetadata['Document-Title'] || 'Untitled',
+            content: docContent,
+            author: docMetadata['Author'] || 'Unknown',
+            createdAt: new Date(parseInt(docMetadata['Created-At']) || Date.now()),
+            updatedAt: new Date(parseInt(docMetadata['Updated-At']) || Date.now()),
+            tags: docMetadata['Document-Tags'] ? docMetadata['Document-Tags'].split(',') : []
+          });
+        } catch (error) {
+          console.error('Error loading document data:', error);
+        }
+      }
+
+      setGroupDocuments(documents.sort((a, b) => b.updatedAt - a.updatedAt));
+    } catch (error) {
+      console.error('Error loading group documents:', error);
+      message.error('Failed to load group documents');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Create a new group
+  const handleCreateGroup = async (values) => {
+    if (!user?.id) {
+      message.error('Please sign in to create a group');
+      return;
+    }
+
+    if (needsProfileSetup) {
+      message.warning('Please complete your scholar profile in SCAI Box before creating a group');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const groupId = `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const groupData = {
+        id: groupId,
+        name: values.name,
+        description: values.description,
+        type: values.type, // 'public' or 'private'
+        creator: user.id,
+        creatorProfile: scholarProfile,
+        members: [user.id], // Creator is automatically a member
+        createdAt: Date.now(),
+        avatar: values.avatar || '',
+        tags: values.tags || [],
+        documentsCount: 0,
+        memberCount: 1
+      };
+
+      // Generate hash for private groups
+      if (values.type === 'private') {
+        const hashInput = `${groupId}_${user.id}_${Date.now()}`;
+        const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashInput));
+        const hashArray = Array.from(new Uint8Array(hash));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        groupData.hash = hashHex;
+        groupData.hashPrefix = hashHex.substring(0, 15);
+      }
+
+      // Upload to Irys
+      const tags = [
+        { name: 'App-Name', value: 'scai-press' },
+        { name: 'Content-Type', value: 'application/json' },
+        { name: 'Data-Type', value: 'group' },
+        { name: 'Group-Type', value: values.type },
+        { name: 'Creator', value: user.id },
+        { name: 'Group-Name', value: values.name },
+        { name: 'Created-At', value: Date.now().toString() }
+      ];
+
+      if (values.tags && values.tags.length > 0) {
+        tags.push({ name: 'Group-Tags', value: values.tags.join(',') });
+      }
+
+      const txId = await irysService.uploadData(JSON.stringify(groupData), tags);
+
+      message.success(`Group created successfully! ${values.type === 'private' ? `Hash prefix: ${groupData.hashPrefix}` : ''}`);
+
+      // Refresh user groups
+      await loadUserGroups();
+      if (values.type === 'public') {
+        await loadAllGroups();
+      }
+
+      setCreateGroupModalVisible(false);
+      groupForm.resetFields();
+
+      // Show hash prefix for private groups
+      if (values.type === 'private') {
+        Modal.info({
+          title: 'Private Group Created',
+          content: (
+            <div>
+              <p>Your private group has been created successfully!</p>
+              <p><strong>Hash Prefix (share this with members):</strong></p>
+              <p style={{
+                background: '#f0f0f0',
+                padding: '10px',
+                borderRadius: '4px',
+                fontFamily: 'monospace',
+                fontSize: '16px',
+                textAlign: 'center'
+              }}>
+                {groupData.hashPrefix}
+              </p>
+              <p style={{ color: '#666', fontSize: '12px' }}>
+                Members will need this prefix to join your private group.
+              </p>
+            </div>
+          ),
+        });
+      }
+
+    } catch (error) {
+      console.error('Error creating group:', error);
+      message.error('Failed to create group. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <div className="step-content">
+  // Join a private group using hash prefix
+  const handleJoinPrivateGroup = async (values) => {
+    if (!user?.id) {
+      message.error('Please sign in to join a group');
+      return;
+    }
 
-            <Form.Item
-              name="title"
-              label="Paper Title"
-              rules={[{ required: true, message: 'Please enter the paper title' }]}
-            >
-              <Input placeholder="Enter the title of your paper" />
-            </Form.Item>
+    setLoading(true);
+    try {
+      // Query Irys for private groups with matching hash prefix
+      const privateGroupsQuery = await irysService.queryTransactions({
+        tags: [
+          { name: 'App-Name', value: 'scai-press' },
+          { name: 'Content-Type', value: 'application/json' },
+          { name: 'Data-Type', value: 'group' },
+          { name: 'Group-Type', value: 'private' }
+        ]
+      });
 
-            <Form.Item
-              name="authors"
-              label="Authors"
-              rules={[{ required: true, message: 'Please enter the authors' }]}
-            >
-              <Input placeholder="Enter authors (comma-separated)" />
-            </Form.Item>
+      let targetGroup = null;
+      for (const tx of privateGroupsQuery) {
+        try {
+          const groupData = await irysService.getTransactionData(tx.id);
+          if (groupData.hashPrefix === values.hashPrefix) {
+            targetGroup = { ...groupData, id: tx.id, txId: tx.id };
+            break;
+          }
+        } catch (error) {
+          console.error('Error checking group:', error);
+        }
+      }
 
-            <Form.Item
-              name="abstract"
-              label="Abstract"
-              rules={[{ required: true, message: 'Please enter the abstract' }]}
-            >
-              <TextArea
-                rows={6}
-                placeholder="Enter the abstract of your paper (max 2000 characters)"
-                maxLength={2000}
-                showCount
-              />
-            </Form.Item>
+      if (!targetGroup) {
+        message.error('No private group found with this hash prefix');
+        return;
+      }
 
-            <Form.Item
-              name="category"
-              label="Category"
-              rules={[{ required: true, message: 'Please select a category' }]}
-            >
-              <Select placeholder="Select a category">
-                {categories.map(cat => (
-                  <Option key={cat} value={cat}>{cat}</Option>
-                ))}
-              </Select>
-            </Form.Item>
+      if (targetGroup.members.includes(user.id)) {
+        message.warning('You are already a member of this group');
+        return;
+      }
 
-            <Form.Item
-              name="subcategory"
-              label="Subcategory"
-              rules={[{ required: true, message: 'Please select a subcategory' }]}
-            >
-              <Select placeholder="Select a subcategory">
-                {/* Dynamic subcategories based on selected category */}
-              </Select>
-            </Form.Item>
+      // Add user to group members
+      const updatedGroupData = {
+        ...targetGroup,
+        members: [...targetGroup.members, user.id],
+        memberCount: targetGroup.memberCount + 1
+      };
 
-            <Form.Item
-              name="keywords"
-              label="Keywords"
-              rules={[{ required: true, message: 'Please enter keywords' }]}
+      // Upload updated group data to Irys
+      const tags = [
+        { name: 'App-Name', value: 'scai-press' },
+        { name: 'Content-Type', value: 'application/json' },
+        { name: 'Data-Type', value: 'group' },
+        { name: 'Group-Type', value: 'private' },
+        { name: 'Creator', value: targetGroup.creator },
+        { name: 'Group-Name', value: targetGroup.name },
+        { name: 'Updated-At', value: Date.now().toString() }
+      ];
+
+      await irysService.uploadData(JSON.stringify(updatedGroupData), tags);
+
+      message.success(`Successfully joined group: ${targetGroup.name}`);
+
+      // Refresh user groups
+      await loadUserGroups();
+
+      setJoinPrivateGroupModalVisible(false);
+      joinGroupForm.resetFields();
+
+    } catch (error) {
+      console.error('Error joining private group:', error);
+      message.error('Failed to join group. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create a new document in a group
+  const handleCreateDocument = async (values) => {
+    if (!user?.id || !selectedGroup) {
+      message.error('Please sign in and select a group');
+      return;
+    }
+
+    // Check if user is a member of the group
+    if (!selectedGroup.members.includes(user.id)) {
+      message.error('You are not a member of this group');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const documentData = {
+        title: values.title,
+        content: values.content,
+        groupId: selectedGroup.id,
+        author: user.id,
+        authorProfile: scholarProfile,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        tags: values.tags || [],
+        version: 1
+      };
+
+      // Upload document to Irys
+      const tags = [
+        { name: 'App-Name', value: 'scai-press' },
+        { name: 'Content-Type', value: 'text/markdown' },
+        { name: 'Data-Type', value: 'document' },
+        { name: 'Group-Id', value: selectedGroup.id },
+        { name: 'Document-Title', value: values.title },
+        { name: 'Author', value: user.id },
+        { name: 'Created-At', value: Date.now().toString() },
+        { name: 'Updated-At', value: Date.now().toString() }
+      ];
+
+      if (values.tags && values.tags.length > 0) {
+        tags.push({ name: 'Document-Tags', value: values.tags.join(',') });
+      }
+
+      await irysService.uploadData(values.content, tags);
+
+      message.success('Document created successfully!');
+
+      // Refresh group documents
+      await loadGroupDocuments(selectedGroup.id);
+
+      setCreateDocModalVisible(false);
+      documentForm.resetFields();
+
+    } catch (error) {
+      console.error('Error creating document:', error);
+      message.error('Failed to create document. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Edit an existing document
+  const handleEditDocument = async (values) => {
+    if (!user?.id || !selectedGroup || !selectedDocument) {
+      message.error('Invalid operation');
+      return;
+    }
+
+    // Check if user is the author or a group member
+    if (selectedDocument.author !== user.id && !selectedGroup.members.includes(user.id)) {
+      message.error('You do not have permission to edit this document');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Upload updated document to Irys (creates new version)
+      const tags = [
+        { name: 'App-Name', value: 'scai-press' },
+        { name: 'Content-Type', value: 'text/markdown' },
+        { name: 'Data-Type', value: 'document' },
+        { name: 'Group-Id', value: selectedGroup.id },
+        { name: 'Document-Title', value: values.title },
+        { name: 'Author', value: selectedDocument.author },
+        { name: 'Editor', value: user.id },
+        { name: 'Created-At', value: selectedDocument.createdAt.toString() },
+        { name: 'Updated-At', value: Date.now().toString() },
+        { name: 'Previous-Version', value: selectedDocument.txId }
+      ];
+
+      if (values.tags && values.tags.length > 0) {
+        tags.push({ name: 'Document-Tags', value: values.tags.join(',') });
+      }
+
+      await irysService.uploadData(values.content, tags);
+
+      message.success('Document updated successfully!');
+
+      // Refresh group documents
+      await loadGroupDocuments(selectedGroup.id);
+
+      setEditDocModalVisible(false);
+      setSelectedDocument(null);
+      documentForm.resetFields();
+
+    } catch (error) {
+      console.error('Error updating document:', error);
+      message.error('Failed to update document. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateProjectHTML = (projectData) => {
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${projectData.title} - SCAI Research Project</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header { border-bottom: 3px solid #1890ff; padding-bottom: 20px; margin-bottom: 30px; }
+        .title { color: #1890ff; font-size: 2.5rem; margin: 0; font-weight: 600; }
+        .meta { color: #666; margin-top: 10px; font-size: 1.1rem; }
+        .section { margin: 30px 0; }
+        .section-title { color: #333; font-size: 1.5rem; margin-bottom: 15px; border-left: 4px solid #1890ff; padding-left: 15px; }
+        .description { line-height: 1.8; font-size: 1.1rem; color: #444; }
+        .tags { margin: 20px 0; }
+        .tag { background: #e6f7ff; color: #1890ff; padding: 5px 12px; border-radius: 20px; margin-right: 10px; font-size: 0.9rem; }
+        .papers-section { background: #fafafa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .paper-item { background: white; padding: 15px; margin: 10px 0; border-radius: 6px; border-left: 3px solid #52c41a; }
+        .interactions { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+        .like-button { background: #ff4d4f; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        .footer { margin-top: 40px; text-align: center; color: #999; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">${projectData.title}</h1>
+            <div class="meta">
+                <strong>Author:</strong> ${projectData.authorProfile?.displayName || 'Unknown'}
+                (${projectData.authorProfile?.institution || 'Institution'})
+                <br>
+                <strong>Stage:</strong> ${projectData.stage} |
+                <strong>Category:</strong> ${projectData.category} |
+                <strong>Created:</strong> ${new Date(projectData.createdAt).toLocaleDateString()}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Project Description</h2>
+            <div class="description">${projectData.description}</div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Keywords</h2>
+            <div class="tags">
+                ${projectData.keywords.split(',').map(keyword =>
+      `<span class="tag">${keyword.trim()}</span>`
+    ).join('')}
+            </div>
+        </div>
+
+        ${projectData.collaborators ? `
+        <div class="section">
+            <h2 class="section-title">Collaborators</h2>
+            <div class="description">${projectData.collaborators}</div>
+        </div>
+        ` : ''}
+
+        <div class="section">
+            <h2 class="section-title">Published Papers</h2>
+            <div class="papers-section">
+                ${projectData.papers && projectData.papers.length > 0 ?
+        projectData.papers.map(paper => `
+                    <div class="paper-item">
+                        <h3>${paper.title}</h3>
+                        <p>${paper.abstract}</p>
+                        <small>Published: ${new Date(paper.publishedAt).toLocaleDateString()}</small>
+                    </div>
+                  `).join('') :
+        '<p>No papers published yet for this project.</p>'
+      }
+            </div>
+        </div>
+
+        <div class="interactions">
+            <h2 class="section-title">Community Interactions</h2>
+            <button class="like-button" onclick="likeProject()">
+                👍 Like (${projectData.interactions?.likes || 0})
+            </button>
+            <div id="comments" style="margin-top: 20px;">
+                <!-- Comments will be loaded dynamically -->
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Published on SCAI Press - Decentralized Academic Publishing Platform</p>
+            <p>Project ID: ${projectData.id} | Stored on Irys Network</p>
+        </div>
+    </div>
+
+    <script>
+        function likeProject() {
+            // This would interact with the SCAI system to record likes
+            alert('Like functionality will be implemented with smart contracts!');
+        }
+    </script>
+</body>
+</html>`;
+  };
+
+  // Initialize data when user is available
+  useEffect(() => {
+    if (user?.id) {
+      checkScholarProfile();
+      loadUserGroups();
+    }
+    // Load all public groups for explore view
+    loadAllGroups();
+  }, [user?.id, checkScholarProfile, loadUserGroups, loadAllGroups]);
+
+
+
+
+
+
+
+  // Group handling functions
+
+  const handleDeleteDocument = async (document) => {
+    Modal.confirm({
+      title: 'Delete Document',
+      content: 'Are you sure you want to delete this document? This action cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          // In a real implementation, you would mark the document as deleted on Irys
+          // For now, we'll just remove it from the local state
+          setGroupDocuments(prev => prev.filter(doc => doc.id !== document.id));
+          message.success('Document deleted successfully');
+        } catch (error) {
+          console.error('Error deleting document:', error);
+          message.error('Failed to delete document');
+        }
+      }
+    });
+  };
+
+  const renderGroupsContent = () => {
+    if (currentView === 'group-detail' && selectedGroup) {
+      return renderGroupWorkspace();
+    }
+
+    const groups = currentView === 'my-groups' ? userGroups : allGroups;
+    const isMyGroups = currentView === 'my-groups';
+
+    if (loading) {
+      return (
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <Spin size="large" />
+          <Paragraph style={{ marginTop: '1rem' }}>
+            Loading {isMyGroups ? 'your' : 'all'} groups...
+          </Paragraph>
+        </div>
+      );
+    }
+
+    if (groups.length === 0) {
+      return (
+        <div className="empty-state">
+          {isMyGroups ? (
+            <BookOutlined style={{ fontSize: '64px', color: '#ee1111' }} />
+          ) : (
+            <UserOutlined />
+          )}
+          <Title level={4}>
+            {isMyGroups ? 'No Research Groups Yet' : 'No Public Groups Available'}
+          </Title>
+          <Paragraph>
+            {isMyGroups
+              ? 'Create your first research group to start collaborating with other researchers. Share knowledge and work together on projects.'
+              : 'The community hasn\'t shared any public research groups yet. Be the first to contribute by creating and sharing your group!'
+            }
+          </Paragraph>
+          {isMyGroups ? (
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button
+                type="primary"
+                size="large"
+                onClick={() => setCreateGroupModalVisible(true)}
+                style={{ marginTop: "15px" }}
+              >
+                Create Your First Group
+              </Button>
+              <Button
+                size="large"
+                onClick={() => setJoinPrivateGroupModalVisible(true)}
+                style={{ marginTop: "15px" }}
+              >
+                Join Private Group
+              </Button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button
+                type="primary"
+                size="large"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setCurrentView('my-groups');
+                  setCreateGroupModalVisible(true);
+                }}
+              >
+                Create a Group
+              </Button>
+              <Button
+                size="large"
+                icon={<UserOutlined />}
+                onClick={() => setCurrentView('my-groups')}
+              >
+                View My Groups
+              </Button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="projects-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+        {groups.map(group => (
+          <Card
+            key={group.id}
+            hoverable
+            className="project-card"
+            actions={isMyGroups ? [
+              <Button type="text" icon={<EyeOutlined />} onClick={() => handleViewGroup(group)}>Enter</Button>,
+              <Button type="text" icon={<EditOutlined />} onClick={() => handleEditGroup(group)}>Edit</Button>,
+              <Button type="text" icon={<UserOutlined />}>Members: {group.memberCount}</Button>
+            ] : [
+              <Button type="text" icon={<EyeOutlined />} onClick={() => handleViewGroup(group)}>View</Button>,
+              <Button type="text" icon={<UserOutlined />} onClick={() => handleJoinGroup(group)}>Join</Button>,
+              <Button type="text" icon={<BookOutlined />}>Docs: {group.documentsCount}</Button>
+            ]}
+          >
+            <Card.Meta
+              title={group.name}
+              description={
+                <div>
+                  <Paragraph ellipsis={{ rows: 2 }}>{group.description}</Paragraph>
+                  <div style={{ marginTop: '1rem' }}>
+                    <Tag color={group.type === 'private' ? 'red' : 'blue'}>
+                      {group.type === 'private' ? 'Private' : 'Public'}
+                    </Tag>
+                    {group.tags && group.tags.map(tag => (
+                      <Tag key={tag} color="default">{tag}</Tag>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: '0.5rem', fontSize: '12px', color: '#666' }}>
+                    Created by {group.creatorProfile?.displayName || 'Unknown'} • {group.memberCount} members
+                  </div>
+                </div>
+              }
+            />
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const renderDashboard = () => (
+    <div className="press-dashboard">
+      {/* Hero Section */}
+      <div className="hero-section" style={{ marginBottom: "2.5rem" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="hero-content"
+        >
+          <Title level={1} className="hero-title">
+            SCAI Press
+          </Title>
+          <Paragraph className="hero-subtitle">
+            Research Project Management & Publishing Platform
+          </Paragraph>
+          <Paragraph className="hero-description">
+            Create research projects, manage your papers, and publish with permanent decentralized storage.
+          </Paragraph>
+
+          <div className="hero-actions">
+            <Button
+              type={currentView === 'my-groups' ? 'primary' : 'default'}
+              size="large"
+              icon={<UserOutlined />}
+              onClick={() => setCurrentView('my-groups')}
+              className={currentView === 'my-groups' ? 'submit-btn' : 'browse-btn'}
             >
-              <Input placeholder="Enter keywords (comma-separated)" />
-            </Form.Item>
+              My Groups
+            </Button>
+            <Button
+              type={currentView === 'explore-groups' ? 'primary' : 'default'}
+              size="large"
+              icon={<BookOutlined />}
+              className={currentView === 'explore-groups' ? 'submit-btn' : 'browse-btn'}
+              onClick={() => setCurrentView('explore-groups')}
+            >
+              Explore Groups
+            </Button>
           </div>
-        );
+        </motion.div>
+      </div>
 
-      case 1:
-        return (
-          <div className="step-content">
-            <Form.Item
-              name="manuscript"
-              label="Manuscript (PDF)"
-              rules={[{ required: true, message: 'Please upload your manuscript' }]}
-            >
-              <Upload.Dragger
-                name="manuscript"
-                accept=".pdf"
-                maxCount={1}
-                beforeUpload={(file) => beforeUpload(file, 'manuscript')}
-                onChange={(info) => handleFileUpload(info, 'manuscript')}
-                fileList={selectedFiles.manuscript ? [selectedFiles.manuscript] : []}
-              >
-                <p className="ant-upload-drag-icon">
-                  <FileTextOutlined />
-                </p>
-                <p className="ant-upload-text">Click or drag PDF file to this area to upload</p>
-                <p className="ant-upload-hint">
-                  Upload your main manuscript file (PDF format only, max 50MB)
-                </p>
-              </Upload.Dragger>
-            </Form.Item>
-
-            <Form.Item
-              name="supplementary"
-              label="Supplementary Materials (Optional)"
-            >
-              <Upload.Dragger
-                name="supplementary"
-                multiple
-                beforeUpload={(file) => beforeUpload(file, 'supplementary')}
-                onChange={(info) => handleFileUpload(info, 'supplementary')}
-                fileList={selectedFiles.supplementary}
-              >
-                <p className="ant-upload-drag-icon">
-                  <UploadOutlined />
-                </p>
-                <p className="ant-upload-text">Click or drag files to this area to upload</p>
-                <p className="ant-upload-hint">
-                  Upload any supplementary materials (data files, code, additional figures, etc.)
-                </p>
-              </Upload.Dragger>
-            </Form.Item>
-
-            {uploading && (
-              <div className="upload-progress">
-                <Progress percent={uploadProgress} status="active" />
-                <Text type="secondary">Uploading to decentralized storage...</Text>
-              </div>
+      {/* Groups Section */}
+      <div className="projects-section" style={{ padding: '2rem', maxWidth: '1200px', margin: ' auto' }}>
+        <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <Title level={2}>
+            {currentView === 'my-groups' ? 'My Research Groups' :
+              currentView === 'explore-groups' ? 'Explore Research Groups' :
+                'Group Workspace'}
+          </Title>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {currentView === 'my-groups' && (
+              <>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setCreateGroupModalVisible(true)}
+                >
+                  Create Group
+                </Button>
+                <Button
+                  icon={<UserOutlined />}
+                  onClick={() => setJoinPrivateGroupModalVisible(true)}
+                >
+                  Join Private Group
+                </Button>
+              </>
             )}
+            {currentView === 'group-detail' && selectedGroup && (
+              <Button
+                icon={<PlusOutlined />}
+                onClick={() => setCreateDocModalVisible(true)}
+              >
+                New Document
+              </Button>
+            )}
+            <Text type="secondary">
+              Total: {currentView === 'my-groups' ? userGroups.length :
+                currentView === 'explore-groups' ? allGroups.length :
+                  groupDocuments.length}
+            </Text>
           </div>
-        );
+        </div>
 
-      case 2:
-        return (
-          <div className="step-content">
-            <div className="submission-review">
-              <Title level={4}>Review Your Submission</Title>
-              <Divider />
+        {renderGroupsContent()}
+      </div>
+    </div>
+  );
 
-              <div className="review-section">
-                <Text strong>Title:</Text>
-                <Paragraph>{submissionData.title}</Paragraph>
-              </div>
+  // Group handling functions
+  const handleViewGroup = (group) => {
+    setSelectedGroup(group);
+    setCurrentView('group-detail');
+    loadGroupDocuments(group.id);
+  };
 
-              <div className="review-section">
-                <Text strong>Authors:</Text>
-                <Paragraph>{submissionData.authors}</Paragraph>
-              </div>
+  const handleEditGroup = (group) => {
+    // TODO: Implement group editing
+    message.info('Group editing feature coming soon!');
+  };
 
-              <div className="review-section">
-                <Text strong>Category:</Text>
-                <Paragraph>{submissionData.category} - {submissionData.subcategory}</Paragraph>
-              </div>
+  const handleJoinGroup = async (group) => {
+    if (!user?.id) {
+      message.error('Please sign in to join a group');
+      return;
+    }
 
-              <div className="review-section">
-                <Text strong>Keywords:</Text>
-                <Paragraph>{submissionData.keywords}</Paragraph>
-              </div>
+    if (group.members.includes(user.id)) {
+      message.warning('You are already a member of this group');
+      return;
+    }
 
-              <div className="review-section">
-                <Text strong>Abstract:</Text>
-                <Paragraph>{submissionData.abstract}</Paragraph>
-              </div>
+    try {
+      // Add user to group members
+      const updatedGroupData = {
+        ...group,
+        members: [...group.members, user.id],
+        memberCount: group.memberCount + 1
+      };
 
-              <Divider />
+      // Upload updated group data to Irys
+      const tags = [
+        { name: 'App-Name', value: 'scai-press' },
+        { name: 'Content-Type', value: 'application/json' },
+        { name: 'Data-Type', value: 'group' },
+        { name: 'Group-Type', value: group.type },
+        { name: 'Creator', value: group.creator },
+        { name: 'Group-Name', value: group.name },
+        { name: 'Updated-At', value: Date.now().toString() }
+      ];
 
-              <div className="submission-agreement">
-                <Paragraph>
-                  By submitting this paper, you agree to the SCAI Press publication terms and conditions.
-                  Your paper will be made available under an open access license.
-                </Paragraph>
+      await irysService.uploadData(JSON.stringify(updatedGroupData), tags);
+
+      message.success(`Successfully joined group: ${group.name}`);
+
+      // Refresh groups
+      await loadAllGroups();
+      await loadUserGroups();
+
+    } catch (error) {
+      console.error('Error joining group:', error);
+      message.error('Failed to join group. Please try again.');
+    }
+  };
+
+  // Group workspace rendering
+  const renderGroupWorkspace = () => {
+    if (!selectedGroup) return null;
+
+    return (
+      <div className="group-workspace">
+        <div className="group-header" style={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          padding: '2rem',
+          borderRadius: '12px',
+          marginBottom: '2rem',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <Title level={3} style={{ color: 'white', margin: 0 }}>
+                {selectedGroup.name}
+              </Title>
+              <Paragraph style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '0.5rem 0' }}>
+                {selectedGroup.description}
+              </Paragraph>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <Tag color={selectedGroup.type === 'private' ? 'red' : 'blue'}>
+                  {selectedGroup.type === 'private' ? 'Private' : 'Public'}
+                </Tag>
+                {selectedGroup.tags && selectedGroup.tags.map(tag => (
+                  <Tag key={tag} color="default">{tag}</Tag>
+                ))}
               </div>
             </div>
+            <Button
+              onClick={() => setCurrentView('my-groups')}
+              icon={<BookOutlined />}
+            >
+              Back to Groups
+            </Button>
           </div>
-        );
+        </div>
 
-      default:
-        return null;
-    }
+        <div className="documents-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <Title level={4} style={{ color: 'white', margin: 0 }}>
+              Group Documents ({groupDocuments.length})
+            </Title>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setCreateDocModalVisible(true)}
+            >
+              New Document
+            </Button>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <Spin size="large" />
+              <Paragraph style={{ marginTop: '1rem', color: 'white' }}>
+                Loading documents...
+              </Paragraph>
+            </div>
+          ) : groupDocuments.length === 0 ? (
+            <div className="empty-state" style={{ textAlign: 'center', padding: '3rem' }}>
+              <FileTextOutlined style={{ fontSize: '48px', color: '#ee1111' }} />
+              <Title level={4} style={{ color: 'white', marginTop: '1rem' }}>
+                No Documents Yet
+              </Title>
+              <Paragraph style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                Start collaborating by creating the first document in this group.
+              </Paragraph>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setCreateDocModalVisible(true)}
+              >
+                Create First Document
+              </Button>
+            </div>
+          ) : (
+            <div className="documents-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: '1rem'
+            }}>
+              {groupDocuments.map(doc => (
+                <Card
+                  key={doc.id}
+                  hoverable
+                  className="document-card"
+                  actions={[
+                    <Button type="text" icon={<EyeOutlined />} onClick={() => handleViewDocument(doc)}>View</Button>,
+                    doc.author === user?.id && (
+                      <Button type="text" icon={<EditOutlined />} onClick={() => handleEditDocumentClick(doc)}>Edit</Button>
+                    ),
+                    doc.author === user?.id && (
+                      <Button type="text" icon={<DeleteOutlined />} onClick={() => handleDeleteDocument(doc)} danger>Delete</Button>
+                    )
+                  ].filter(Boolean)}
+                >
+                  <Card.Meta
+                    title={doc.title}
+                    description={
+                      <div>
+                        <Paragraph ellipsis={{ rows: 2 }}>
+                          {doc.content.substring(0, 100)}...
+                        </Paragraph>
+                        <div style={{ marginTop: '0.5rem', fontSize: '12px', color: '#666' }}>
+                          By {doc.authorProfile?.displayName || 'Unknown'} •
+                          {new Date(doc.updatedAt).toLocaleDateString()}
+                        </div>
+                        {doc.tags && doc.tags.length > 0 && (
+                          <div style={{ marginTop: '0.5rem' }}>
+                            {doc.tags.map(tag => (
+                              <Tag key={tag} size="small">{tag}</Tag>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    }
+                  />
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Document handling functions
+  const handleViewDocument = (document) => {
+    // TODO: Implement document viewer modal
+    message.info('Document viewer coming soon!');
+  };
+
+  const handleEditDocumentClick = (document) => {
+    setSelectedDocument(document);
+    documentForm.setFieldsValue({
+      title: document.title,
+      content: document.content,
+      tags: document.tags
+    });
+    setEditDocModalVisible(true);
   };
 
   return (
     <Layout>
       <div className={`press-page light-theme`}>
-        {/* Hero Section */}
-        <div className="hero-section1">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="hero-content"
-          >
-            <Title level={1} className="hero-title">SCAI Press</Title>
-            <Paragraph className="hero-subtitle">
-              Open Access Scientific Publishing Platform
-            </Paragraph>
-            <Paragraph className="hero-description">
-              Publish your research with permanent, decentralized storage.
-              Fast peer review, immediate publication, and global accessibility.
-            </Paragraph>
-
-            <div className="hero-actions">
-              <div className="submit-section">
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<SendOutlined />}
-                  onClick={() => setSubmitModalVisible(true)}
-                  className="submit-btn"
-                >
-                  I Want to Submit
-                </Button>
-
-              </div>
-              <Button
-                size="large"
-                icon={<EditOutlined />}
-                className="browse-btn"
-                onClick={() => setPolishModalVisible(true)}
-              >
-                I Want to Audit
-              </Button>
-            </div>
-          </motion.div>
-        </div>
+        {renderDashboard()}
 
 
 
-        {/* Submission Modal */}
-        <Modal
-          title={
-            <div className="submission-modal-header">
-              <SendOutlined className="modal-icon" />
-              <div style={{ marginRight: "50px" }}>
-                <Title level={3} style={{ margin: 0, color: 'inherit' }}>Submit Paper</Title>
-                <p style={{ fontSize: "14px", fontWeight: 300 }}>Publish your research on the decentralized academic network</p>
 
-              </div>
-              <Button
-                size="large"
-                icon={<InfoCircleOutlined />}
-                className="guidelines-btn"
-                onClick={() => {
-                  if (!submitModalVisible) {
-                    setSubmitModalVisible(true);
-                    setShowGuidelines(true);
-                  } else {
-                    setShowGuidelines(!showGuidelines);
-                  }
-                }}
-              >
-                Submission Guidelines
-              </Button>
-            </div>
-          }
-          open={submitModalVisible}
-          onCancel={() => {
-            setSubmitModalVisible(false);
-            setCurrentStep(0);
-            setShowGuidelines(false);
-            form.resetFields();
-          }}
-          footer={null}
-          width="100%"
-          style={{ maxWidth: '1600px' }}
-          className="submission-modal"
-        >
-          <div className="submission-content">
-            {showGuidelines ? (
-              <div>
-                <div className="guideline-section">
-                  <Title level={3}>
-                    <FileTextOutlined style={{ marginRight: 8, color: '#52c41a' }} />
-                    Manuscript Preparation
-                  </Title>
-
-                  <Title level={5}>File Format Requirements</Title>
-                  <ul>
-                    <li>Submit manuscripts in <strong>PDF format only</strong></li>
-                    <li>Maximum file size: <strong>50MB</strong></li>
-                    <li>Minimum resolution: <strong>300 DPI</strong> for figures</li>
-                    <li>Embed all fonts and ensure text is searchable</li>
-                  </ul>
-
-                  <Title level={5}>Content Structure</Title>
-                  <ul>
-                    <li>Title: Clear, concise, and descriptive (max 200 characters)</li>
-                    <li>Abstract: Structured summary (max 2000 characters)</li>
-                    <li>Keywords: 3-8 relevant terms for indexing</li>
-                    <li>Author information: Full names, affiliations, ORCID IDs</li>
-                    <li>References: Complete and properly formatted</li>
-                  </ul>
-
-                  <Title level={5}>Formatting Standards</Title>
-                  <ul>
-                    <li>Use standard academic formatting (APA, IEEE, or similar)</li>
-                    <li>12pt font, double-spaced text</li>
-                    <li>Number all pages consecutively</li>
-                    <li>Include line numbers for review process</li>
-                  </ul>
-                </div>
-
-                <div className="guideline-section">
-                  <Title level={3}>
-                    <CheckCircleOutlined style={{ marginRight: 8, color: '#52c41a' }} />
-                    Review Process
-                  </Title>
-
-                  <Title level={5}>Peer Review Timeline</Title>
-                  <ul>
-                    <li><strong>Initial screening:</strong> 1-2 business days</li>
-                    <li><strong>Peer review:</strong> 7-14 days</li>
-                    <li><strong>Author revision:</strong> 30 days (if required)</li>
-                    <li><strong>Final decision:</strong> 3-5 days after revision</li>
-                    <li><strong>Publication:</strong> Immediate upon acceptance</li>
-                  </ul>
-
-                  <Title level={5}>Review Criteria</Title>
-                  <ul>
-                    <li>Scientific rigor and methodology</li>
-                    <li>Novelty and significance of findings</li>
-                    <li>Clarity of presentation and writing quality</li>
-                    <li>Appropriate use of references and citations</li>
-                    <li>Ethical compliance and data availability</li>
-                  </ul>
-
-                  <Title level={5}>Review Types</Title>
-                  <ul>
-                    <li><strong>Single-blind:</strong> Reviewers know author identities</li>
-                    <li><strong>Open review:</strong> Optional transparent review process</li>
-                    <li><strong>Post-publication:</strong> Community feedback encouraged</li>
-                  </ul>
-                </div>
-
-                <div className="guideline-section">
-                  <Title level={3}>
-                    <ClockCircleOutlined style={{ marginRight: 8, color: '#52c41a' }} />
-                    Submission Categories
-                  </Title>
-
-                  <Title level={5}>Research Articles</Title>
-                  <ul>
-                    <li>Original research with novel findings</li>
-                    <li>Typical length: 3,000-8,000 words</li>
-                    <li>Include: Abstract, Introduction, Methods, Results, Discussion</li>
-                  </ul>
-
-                  <Title level={5}>Review Articles</Title>
-                  <ul>
-                    <li>Comprehensive overview of a research area</li>
-                    <li>Typical length: 5,000-12,000 words</li>
-                    <li>Systematic analysis of existing literature</li>
-                  </ul>
-
-                  <Title level={5}>Short Communications</Title>
-                  <ul>
-                    <li>Brief reports of significant findings</li>
-                    <li>Typical length: 1,500-3,000 words</li>
-                    <li>Rapid publication track available</li>
-                  </ul>
-
-                  <Title level={5}>Preprints</Title>
-                  <ul>
-                    <li>Early-stage research for community feedback</li>
-                    <li>No length restrictions</li>
-                    <li>Immediate publication with version control</li>
-                  </ul>
-                </div>
-
-                <div className="guideline-section">
-                  <Title level={5}>
-                    <UserOutlined style={{ marginRight: 8, color: '#52c41a' }} />
-                    Author Responsibilities
-                  </Title>
-
-                  <Title level={5}>Authorship Criteria</Title>
-                  <ul>
-                    <li>Substantial contribution to conception or design</li>
-                    <li>Acquisition, analysis, or interpretation of data</li>
-                    <li>Drafting or critical revision of manuscript</li>
-                    <li>Final approval of version to be published</li>
-                  </ul>
-
-                  <Title level={5}>Ethical Requirements</Title>
-                  <ul>
-                    <li>Original work not published elsewhere</li>
-                    <li>Proper attribution of all sources</li>
-                    <li>Disclosure of conflicts of interest</li>
-                    <li>Compliance with research ethics guidelines</li>
-                  </ul>
-
-                  <Title level={5}>Data Sharing</Title>
-                  <ul>
-                    <li>Make data available upon reasonable request</li>
-                    <li>Include data availability statement</li>
-                    <li>Use appropriate repositories for supplementary data</li>
-                  </ul>
-                </div>
-
-
-                {/* <div className="guidelines-footer">
-                  <Card className="footer-card">
-                    <Title level={3}>
-                      <SendOutlined style={{ marginRight: 8 }} />
-                      Ready to Submit?
-                    </Title>
-                    <Paragraph>
-                      Once you've reviewed these guidelines and prepared your manuscript according to our standards,
-                      you can proceed with your submission.
-                    </Paragraph>
-                    <Button
-                      type="primary"
-                      size="large"
-                      onClick={() => setShowGuidelines(false)}
-                      className="proceed-button"
-                    >
-                      Proceed to Submission Form
-                    </Button>
-                  </Card>
-                </div> */}
-              </div>
-            ) : (
-              <>
-                <Steps current={currentStep} className="submission-steps">
-                  {submissionSteps.map((step, index) => (
-                    <Step
-                      key={index}
-                      title={step.title}
-                      description={step.description}
-                    />
-                  ))}
-                </Steps>
-
-                <Form
-                  form={form}
-                  layout="vertical"
-                  onFinish={handleSubmit}
-                  className="submission-form"
-                >
-                  {renderStepContent()}
-
-                  <div className="step-actions">
-                    {currentStep > 0 && (
-                      <Button onClick={handleStepPrev}>
-                        Previous
-                      </Button>
-                    )}
-                    {currentStep < submissionSteps.length - 1 && (
-                      <Button type="primary" onClick={handleStepNext}>
-                        Next
-                      </Button>
-                    )}
-                    {currentStep === submissionSteps.length - 1 && (
-                      <Button type="primary" htmlType="submit">
-                        Submit Paper
-                      </Button>
-                    )}
-                  </div>
-                </Form>
-              </>
-            )}
-          </div>
-        </Modal>
-
-        {/* Polish Papers Modal */}
-        <Modal
-          title={
-            <div className="polish-modal-header">
-              <EditOutlined className="modal-icon" />
-              <div>
-                <Title level={3} style={{ margin: 0, color: 'inherit' }}>Polish Papers</Title>
-                <Text type="secondary" style={{ fontSize: '0.9rem' }}>AI-powered tools to enhance your academic writing</Text>
-              </div>
-            </div>
-          }
-          open={polishModalVisible}
-          onCancel={() => setPolishModalVisible(false)}
-          footer={null}
-          width="100%"
-          style={{ maxWidth: '1600px' }}
-          className="polish-modal"
-        >
-          <div className="polish-content-full">
-            <Tabs defaultActiveKey="grammar" className="polish-tabs-enhanced">
-              <Tabs.TabPane
-                tab={
-                  <span>
-                    <EditOutlined />
-                    Grammar & Style
-                  </span>
-                }
-                key="grammar"
-              >
-                <div className="polish-section-enhanced">
-                  <div className="polish-header">
-                    <Title level={4}>AI-Powered Text Enhancement</Title>
-                    <Paragraph>
-                      Transform your academic writing with advanced AI that understands scientific language patterns,
-                      improves clarity, and maintains your original meaning while enhancing readability.
-                    </Paragraph>
-                  </div>
-
-                  <div className="polish-workspace">
-                    <div className="input-section">
-                      <Title level={5}>Original Text</Title>
-                      <TextArea
-                        rows={12}
-                        placeholder="Paste your paragraph, abstract, or section here for enhancement...
-
-Example: 'The results shows that our method perform better than existing approaches in most cases and we believe this is due to the novel algorithm we developed.'
-
-Our AI will improve grammar, style, and academic tone while preserving your meaning."
-                        value={polishText}
-                        onChange={(e) => setPolishText(e.target.value)}
-                        maxLength={5000}
-                        showCount
-                        className="polish-textarea"
-                      />
-
-                      <div className="polish-controls">
-                        <div className="control-group">
-                          <Button
-                            type="primary"
-                            size="large"
-                            onClick={handlePolishText}
-                            loading={polishLoading}
-                            disabled={!polishText.trim()}
-                            className="polish-button"
-                          >
-                            <EditOutlined />
-                            Polish Text
-                          </Button>
-                          <Button
-                            size="large"
-                            onClick={() => {
-                              setPolishText('');
-                              setPolishedResult('');
-                            }}
-                            className="clear-button"
-                          >
-                            Clear All
-                          </Button>
-                        </div>
-
-                        <div className="polish-options">
-                          <Text type="secondary">Enhancement focus:</Text>
-                          <Select defaultValue="academic" style={{ width: 150, marginLeft: 8 }}>
-                            <Option value="academic">Academic Tone</Option>
-                            <Option value="clarity">Clarity</Option>
-                            <Option value="concise">Conciseness</Option>
-                            <Option value="formal">Formal Style</Option>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-
-                    {polishedResult && (
-                      <div className="output-section">
-                        <div className="result-header">
-                          <Title level={5}>Enhanced Text</Title>
-                          <div className="result-actions">
-                            <Button
-                              onClick={() => navigator.clipboard.writeText(polishedResult)}
-                              className="copy-button"
-                            >
-                              Copy Result
-                            </Button>
-                            <Button
-                              onClick={() => setPolishText(polishedResult)}
-                              className="use-button"
-                            >
-                              Use as Input
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="polish-result-enhanced">
-                          {polishedResult}
-                        </div>
-
-                        <div className="improvement-summary">
-                          <Title level={6}>Improvements Made:</Title>
-                          <div className="improvement-tags">
-                            <Tag color="green">Grammar corrected</Tag>
-                            <Tag color="blue">Academic tone enhanced</Tag>
-                            <Tag color="orange">Clarity improved</Tag>
-                            <Tag color="purple">Word choice optimized</Tag>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Tabs.TabPane>
-
-              <Tabs.TabPane
-                tab={
-                  <span>
-                    <BookOutlined />
-                    Citation Formatter
-                  </span>
-                }
-                key="citation"
-              >
-                <div className="polish-section-enhanced">
-                  <div className="polish-header">
-                    <Title level={4}>Citation Formatter & Validator</Title>
-                    <Paragraph>
-                      Format your citations according to major academic styles (APA, IEEE, MLA, Chicago)
-                      and validate reference completeness.
-                    </Paragraph>
-                  </div>
-
-                  <div className="citation-workspace">
-                    <div className="citation-input">
-                      <Title level={5}>Raw Citation Input</Title>
-                      <TextArea
-                        rows={6}
-                        placeholder="Enter your raw citations here, one per line:
-
-Smith, J. (2023). Machine Learning Applications. Journal of AI Research.
-https://doi.org/10.1234/example
-arXiv:2301.12345
-ISBN: 978-0123456789"
-                        className="citation-textarea"
-                      />
-
-                      <div className="citation-controls">
-                        <Select defaultValue="apa" style={{ width: 120 }}>
-                          <Option value="apa">APA Style</Option>
-                          <Option value="ieee">IEEE</Option>
-                          <Option value="mla">MLA</Option>
-                          <Option value="chicago">Chicago</Option>
-                        </Select>
-                        <Button type="primary" style={{ marginLeft: 8 }}>
-                          Format Citations
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="citation-features">
-                      <Card title="Features" className="feature-card">
-                        <ul>
-                          <li>✅ Auto-detect citation type (DOI, arXiv, ISBN, URL)</li>
-                          <li>✅ Format according to style guides</li>
-                          <li>✅ Validate completeness and accuracy</li>
-                          <li>✅ Generate bibliography automatically</li>
-                          <li>✅ Check for duplicate references</li>
-                          <li>✅ Export to BibTeX, EndNote, Zotero</li>
-                        </ul>
-                      </Card>
-                    </div>
-                  </div>
-
-                  <div className="coming-soon-notice">
-                    <Card className="notice-card">
-                      <Title level={5}>🚀 Coming Soon</Title>
-                      <Paragraph>
-                        Our citation formatter is currently in development. It will support:
-                      </Paragraph>
-                      <ul>
-                        <li>Automatic DOI and metadata retrieval</li>
-                        <li>Real-time citation validation</li>
-                        <li>Integration with major reference managers</li>
-                        <li>Bulk citation processing</li>
-                      </ul>
-                    </Card>
-                  </div>
-                </div>
-              </Tabs.TabPane>
-
-              <Tabs.TabPane
-                tab={
-                  <span>
-                    <CheckCircleOutlined />
-                    Plagiarism Check
-                  </span>
-                }
-                key="plagiarism"
-              >
-                <div className="polish-section-enhanced">
-                  <div className="polish-header">
-                    <Title level={4}>Plagiarism Detection & Originality Check</Title>
-                    <Paragraph>
-                      Ensure your work is original by checking against academic databases,
-                      preprint servers, and web sources.
-                    </Paragraph>
-                  </div>
-
-                  <div className="plagiarism-workspace">
-                    <div className="plagiarism-input">
-                      <Title level={5}>Text to Check</Title>
-                      <TextArea
-                        rows={8}
-                        placeholder="Paste your text here to check for potential plagiarism...
-
-Our system will compare your text against:
-• Academic journal databases
-• Preprint servers (arXiv, bioRxiv, etc.)
-• Web sources and publications
-• Previously submitted papers"
-                        className="plagiarism-textarea"
-                      />
-
-                      <div className="plagiarism-controls">
-                        <Button type="primary" size="large">
-                          <CheckCircleOutlined />
-                          Check Originality
-                        </Button>
-                        <div className="check-options">
-                          <Text type="secondary">Check against:</Text>
-                          <div style={{ marginTop: 8 }}>
-                            <Tag.CheckableTag checked>Academic Journals</Tag.CheckableTag>
-                            <Tag.CheckableTag checked>Preprint Servers</Tag.CheckableTag>
-                            <Tag.CheckableTag checked>Web Sources</Tag.CheckableTag>
-                            <Tag.CheckableTag>Internal Database</Tag.CheckableTag>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="plagiarism-features">
-                      <Card title="Detection Features" className="feature-card">
-                        <ul>
-                          <li>🔍 Deep semantic analysis</li>
-                          <li>📊 Similarity percentage scoring</li>
-                          <li>🎯 Highlighted matching sections</li>
-                          <li>📚 Source identification and linking</li>
-                          <li>📈 Detailed originality report</li>
-                          <li>💡 Suggestions for improvement</li>
-                        </ul>
-                      </Card>
-                    </div>
-                  </div>
-
-                  <div className="coming-soon-notice">
-                    <Card className="notice-card">
-                      <Title level={5}>🔬 Advanced Detection Coming Soon</Title>
-                      <Paragraph>
-                        Our plagiarism detection system is being developed with:
-                      </Paragraph>
-                      <ul>
-                        <li>AI-powered semantic similarity detection</li>
-                        <li>Integration with major academic databases</li>
-                        <li>Real-time checking against latest publications</li>
-                        <li>Paraphrasing and translation detection</li>
-                        <li>Collaborative filtering with SCAI network</li>
-                      </ul>
-                    </Card>
-                  </div>
-                </div>
-              </Tabs.TabPane>
-
-              <Tabs.TabPane
-                tab={
-                  <span>
-                    <FileTextOutlined />
-                    Document Analysis
-                  </span>
-                }
-                key="analysis"
-              >
-                <div className="polish-section-enhanced">
-                  <div className="polish-header">
-                    <Title level={4}>Document Structure & Readability Analysis</Title>
-                    <Paragraph>
-                      Analyze your document structure, readability metrics, and get suggestions
-                      for improving academic presentation.
-                    </Paragraph>
-                  </div>
-
-                  <div className="analysis-workspace">
-                    <div className="upload-section">
-                      <Title level={5}>Upload Document for Analysis</Title>
-                      <Upload.Dragger
-                        accept=".pdf,.doc,.docx,.txt"
-                        beforeUpload={() => false}
-                        className="analysis-uploader"
-                      >
-                        <p className="ant-upload-drag-icon">
-                          <FileTextOutlined />
-                        </p>
-                        <p className="ant-upload-text">Click or drag file to upload</p>
-                        <p className="ant-upload-hint">
-                          Supports PDF, Word documents, and plain text files
-                        </p>
-                      </Upload.Dragger>
-                    </div>
-
-                    <div className="analysis-features-grid">
-                      <Card title="📊 Readability Metrics" className="analysis-card">
-                        <ul>
-                          <li>Flesch Reading Ease Score</li>
-                          <li>Gunning Fog Index</li>
-                          <li>Average sentence length</li>
-                          <li>Vocabulary complexity</li>
-                        </ul>
-                      </Card>
-
-                      <Card title="📝 Structure Analysis" className="analysis-card">
-                        <ul>
-                          <li>Section organization</li>
-                          <li>Paragraph length distribution</li>
-                          <li>Heading hierarchy</li>
-                          <li>Citation density</li>
-                        </ul>
-                      </Card>
-
-                      <Card title="🎯 Content Quality" className="analysis-card">
-                        <ul>
-                          <li>Keyword density</li>
-                          <li>Transition word usage</li>
-                          <li>Passive voice detection</li>
-                          <li>Redundancy identification</li>
-                        </ul>
-                      </Card>
-
-                      <Card title="📈 Improvement Suggestions" className="analysis-card">
-                        <ul>
-                          <li>Clarity enhancements</li>
-                          <li>Structure recommendations</li>
-                          <li>Style improvements</li>
-                          <li>Academic tone adjustments</li>
-                        </ul>
-                      </Card>
-                    </div>
-                  </div>
-                </div>
-              </Tabs.TabPane>
-            </Tabs>
-          </div>
-        </Modal>
       </div>
+
+      {/* Create Group Modal */}
+      <Modal
+        title={
+          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              <UserOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <div>
+                <Title level={3} style={{ margin: 0, color: 'inherit' }}>Create Research Group</Title>
+                <Text type="secondary">Create a collaborative space for your research team</Text>
+              </div>
+            </div>
+          </div>
+        }
+        open={createGroupModalVisible}
+        onCancel={() => {
+          setCreateGroupModalVisible(false);
+          groupForm.resetFields();
+        }}
+        footer={null}
+        width="100%"
+        style={{ maxWidth: '600px' }}
+        className="create-group-modal"
+      >
+        <Form
+          form={groupForm}
+          layout="vertical"
+          onFinish={handleCreateGroup}
+          style={{ marginTop: '2rem' }}
+        >
+          <Form.Item
+            name="name"
+            label="Group Name"
+            rules={[{ required: true, message: 'Please enter group name' }]}
+            extra="A clear, descriptive name for your research group"
+          >
+            <Input placeholder="e.g., Quantum AI Research Lab" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label="Group Description"
+            rules={[{ required: true, message: 'Please enter group description' }]}
+            extra="Describe the purpose and focus of your research group"
+          >
+            <TextArea
+              rows={4}
+              placeholder="Describe your group's research focus, goals, and collaboration approach..."
+              maxLength={1000}
+              showCount
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="type"
+            label="Group Type"
+            rules={[{ required: true, message: 'Please select group type' }]}
+            extra="Public groups are discoverable by everyone, private groups require a hash to join"
+          >
+            <Select placeholder="Select group type" size="large">
+              <Option value="public">Public - Anyone can discover and join</Option>
+              <Option value="private">Private - Requires hash to join</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="tags"
+            label="Research Tags (Optional)"
+            extra="Tags that describe your research areas (comma-separated)"
+          >
+            <Input placeholder="machine learning, quantum computing, collaboration" size="large" />
+          </Form.Item>
+
+          <div style={{ textAlign: 'right', marginTop: '2rem' }}>
+            <Button
+              onClick={() => {
+                setCreateGroupModalVisible(false);
+                groupForm.resetFields();
+              }}
+              style={{ marginRight: '1rem' }}
+            >
+              Cancel
+            </Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Create Group
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* Join Private Group Modal */}
+      <Modal
+        title={
+          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              <UserOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <div>
+                <Title level={3} style={{ margin: 0, color: 'inherit' }}>Join Private Group</Title>
+                <Text type="secondary">Enter the group hash prefix to join a private group</Text>
+              </div>
+            </div>
+          </div>
+        }
+        open={joinPrivateGroupModalVisible}
+        onCancel={() => {
+          setJoinPrivateGroupModalVisible(false);
+          joinGroupForm.resetFields();
+        }}
+        footer={null}
+        width="100%"
+        style={{ maxWidth: '500px' }}
+        className="join-group-modal"
+      >
+        <Form
+          form={joinGroupForm}
+          layout="vertical"
+          onFinish={handleJoinPrivateGroup}
+          style={{ marginTop: '2rem' }}
+        >
+          <Form.Item
+            name="hashPrefix"
+            label="Group Hash Prefix"
+            rules={[
+              { required: true, message: 'Please enter the hash prefix' },
+              { len: 15, message: 'Hash prefix must be exactly 15 characters' }
+            ]}
+            extra="Enter the 15-character hash prefix provided by the group creator"
+          >
+            <Input
+              placeholder="Enter 15-character hash prefix"
+              size="large"
+              maxLength={15}
+              style={{ fontFamily: 'monospace', fontSize: '16px' }}
+            />
+          </Form.Item>
+
+          <div style={{ textAlign: 'right', marginTop: '2rem' }}>
+            <Button
+              onClick={() => {
+                setJoinPrivateGroupModalVisible(false);
+                joinGroupForm.resetFields();
+              }}
+              style={{ marginRight: '1rem' }}
+            >
+              Cancel
+            </Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Join Group
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* Create Document Modal */}
+      <Modal
+        title={
+          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              <FileTextOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <div>
+                <Title level={3} style={{ margin: 0, color: 'inherit' }}>Create Document</Title>
+                <Text type="secondary">Create a new Markdown document in this group</Text>
+              </div>
+            </div>
+          </div>
+        }
+        open={createDocModalVisible}
+        onCancel={() => {
+          setCreateDocModalVisible(false);
+          documentForm.resetFields();
+        }}
+        footer={null}
+        width="100%"
+        style={{ maxWidth: '800px' }}
+        className="create-doc-modal"
+      >
+        <Form
+          form={documentForm}
+          layout="vertical"
+          onFinish={handleCreateDocument}
+          style={{ marginTop: '2rem' }}
+        >
+          <Form.Item
+            name="title"
+            label="Document Title"
+            rules={[{ required: true, message: 'Please enter document title' }]}
+          >
+            <Input placeholder="e.g., Research Proposal Draft" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            name="content"
+            label="Content (Markdown)"
+            rules={[{ required: true, message: 'Please enter document content' }]}
+            extra="Write your document content in Markdown format"
+          >
+            <TextArea
+              rows={12}
+              placeholder="# Document Title
+
+## Introduction
+
+Write your content here using Markdown syntax...
+
+## Methodology
+
+- Point 1
+- Point 2
+
+## Results
+
+..."
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="tags"
+            label="Tags (Optional)"
+            extra="Tags to categorize this document (comma-separated)"
+          >
+            <Input placeholder="draft, proposal, methodology" size="large" />
+          </Form.Item>
+
+          <div style={{ textAlign: 'right', marginTop: '2rem' }}>
+            <Button
+              onClick={() => {
+                setCreateDocModalVisible(false);
+                documentForm.resetFields();
+              }}
+              style={{ marginRight: '1rem' }}
+            >
+              Cancel
+            </Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Create Document
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* Edit Document Modal */}
+      <Modal
+        title={
+          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              <EditOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <div>
+                <Title level={3} style={{ margin: 0, color: 'inherit' }}>Edit Document</Title>
+                <Text type="secondary">Update the document content</Text>
+              </div>
+            </div>
+          </div>
+        }
+        open={editDocModalVisible}
+        onCancel={() => {
+          setEditDocModalVisible(false);
+          setSelectedDocument(null);
+          documentForm.resetFields();
+        }}
+        footer={null}
+        width="100%"
+        style={{ maxWidth: '800px' }}
+        className="edit-doc-modal"
+      >
+        <Form
+          form={documentForm}
+          layout="vertical"
+          onFinish={handleEditDocument}
+          style={{ marginTop: '2rem' }}
+        >
+          <Form.Item
+            name="title"
+            label="Document Title"
+            rules={[{ required: true, message: 'Please enter document title' }]}
+          >
+            <Input placeholder="e.g., Research Proposal Draft" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            name="content"
+            label="Content (Markdown)"
+            rules={[{ required: true, message: 'Please enter document content' }]}
+            extra="Write your document content in Markdown format"
+          >
+            <TextArea
+              rows={12}
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="tags"
+            label="Tags (Optional)"
+            extra="Tags to categorize this document (comma-separated)"
+          >
+            <Input placeholder="draft, proposal, methodology" size="large" />
+          </Form.Item>
+
+          <div style={{ textAlign: 'right', marginTop: '2rem' }}>
+            <Button
+              onClick={() => {
+                setEditDocModalVisible(false);
+                setSelectedDocument(null);
+                documentForm.resetFields();
+              }}
+              style={{ marginRight: '1rem' }}
+            >
+              Cancel
+            </Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Update Document
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+
     </Layout>
   );
 };
