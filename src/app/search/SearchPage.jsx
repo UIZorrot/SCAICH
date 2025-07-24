@@ -568,9 +568,9 @@ export default function SearchPage() {
                 </label>
 
                 {/* Latest Papers按钮 */}
-                <Button type={showLatestPapers ? "primary" : "default"} icon={<DatabaseOutlined />} onClick={handleLatestPapersClick} loading={loading && showLatestPapers} className="latest-papers-btn">
+                {/* <Button type={showLatestPapers ? "primary" : "default"} icon={<DatabaseOutlined />} onClick={handleLatestPapersClick} loading={loading && showLatestPapers} className="latest-papers-btn">
                   {showLatestPapers ? "Hide Latest Papers" : "Show Latest Papers"}
-                </Button>
+                </Button> */}
 
                 {/* 历史记录展开按钮 */}
                 {searchHistory.length > 0 && (
