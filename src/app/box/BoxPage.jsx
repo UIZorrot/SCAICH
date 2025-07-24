@@ -25,7 +25,7 @@ import { useUser } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import Layout from "../../components/layout/Layout";
 
-import { uploadToIrys, validateFileType, validateFileSize } from "../../utils/irysUploader";
+import { uploadToIrys, validateFileType, validateFileSize, getSupportedFileTypes } from "../../utils/irysUploader";
 import ChatModal from "../../components/chatpage";
 import "./BoxPage.css";
 
@@ -1910,7 +1910,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user }) => {
   const uploadProps = {
     beforeUpload: (file) => {
       if (!validateFileType(file)) {
-        message.error("You can only upload PDF, text, or document files!");
+        message.error("Unsupported file type! Please upload PDF, text, HTML, XML, Markdown, Office documents, or other rich text formats.");
         return false;
       }
       if (!validateFileSize(file, 10)) {
@@ -2157,7 +2157,9 @@ const UploadModal = ({ visible, onClose, onSuccess, user }) => {
               <InboxOutlined />
             </p>
             <p className="ant-upload-text">Click or drag file to this area to upload</p>
-            <p className="ant-upload-hint">Support for PDF, text, and document files. Maximum file size: 10MB</p>
+            <p className="ant-upload-hint">
+              Supported formats: {getSupportedFileTypes().join(', ')}. Maximum file size: 10MB
+            </p>
           </Upload.Dragger>
         </Form.Item>
 

@@ -82,9 +82,8 @@ const uploadToIrysNetwork = async (file, metadata = {}) => {
     ];
 
     // 调用后端API进行真正的Irys上传
-    const apiUrl = process.env.NODE_ENV === 'development'
-      ? 'http://localhost:3001/api/irys/upload'  // 后端默认3001
-      : '/api/irys/upload';
+    // 暂时强制使用localhost进行调试
+    const apiUrl = 'http://localhost:3001/api/irys/upload';
 
     console.log('🔄 调用Irys API:', apiUrl);
 
@@ -354,11 +353,47 @@ export const generateAccessUrl = (txId) => {
 // 验证文件类型
 export const validateFileType = (file) => {
   const allowedTypes = [
+    // PDF files
     'application/pdf',
+
+    // Text files
     'text/plain',
     'text/markdown',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    'text/html',
+    'text/xml',
+    'text/csv',
+    'text/rtf',
+
+    // Microsoft Office documents
+    'application/msword', // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/vnd.ms-excel', // .xls
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-powerpoint', // .ppt
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+
+    // OpenDocument formats
+    'application/vnd.oasis.opendocument.text', // .odt
+    'application/vnd.oasis.opendocument.spreadsheet', // .ods
+    'application/vnd.oasis.opendocument.presentation', // .odp
+
+    // Rich text and markup
+    'application/rtf',
+    'application/xml',
+    'text/xml',
+    'application/xhtml+xml',
+
+    // JSON and structured data
+    'application/json',
+    'text/json',
+
+    // LaTeX
+    'application/x-latex',
+    'text/x-tex',
+
+    // Other document formats
+    'application/epub+zip', // .epub
+    'text/x-markdown' // alternative markdown MIME type
   ];
 
   return allowedTypes.includes(file.type);
@@ -368,4 +403,43 @@ export const validateFileType = (file) => {
 export const validateFileSize = (file, maxSizeMB = 10) => {
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   return file.size <= maxSizeBytes;
+};
+
+// 获取支持的文件类型列表（用于显示）
+export const getSupportedFileTypes = () => {
+  return [
+    'PDF', 'TXT', 'MD', 'HTML', 'XML', 'CSV', 'RTF',
+    'DOC', 'DOCX', 'XLS', 'XLSX', 'PPT', 'PPTX',
+    'ODT', 'ODS', 'ODP', 'JSON', 'LaTeX', 'EPUB'
+  ];
+};
+
+// 根据文件扩展名获取MIME类型
+export const getMimeTypeFromExtension = (filename) => {
+  const ext = filename.toLowerCase().split('.').pop();
+  const mimeMap = {
+    'pdf': 'application/pdf',
+    'txt': 'text/plain',
+    'md': 'text/markdown',
+    'markdown': 'text/markdown',
+    'html': 'text/html',
+    'htm': 'text/html',
+    'xml': 'text/xml',
+    'csv': 'text/csv',
+    'rtf': 'text/rtf',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt': 'application/vnd.ms-powerpoint',
+    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'odt': 'application/vnd.oasis.opendocument.text',
+    'ods': 'application/vnd.oasis.opendocument.spreadsheet',
+    'odp': 'application/vnd.oasis.opendocument.presentation',
+    'json': 'application/json',
+    'tex': 'application/x-latex',
+    'latex': 'application/x-latex',
+    'epub': 'application/epub+zip'
+  };
+  return mimeMap[ext] || null;
 };

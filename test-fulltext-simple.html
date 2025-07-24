@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Fulltext Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .doi-button {
+            background: #6c757d;
+        }
+        .doi-button:hover { background: #545b62; }
+        .url-display {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Fulltext Button Test</h1>
+    
+    <div class="test-section">
+        <h3>Test DOI: 10.1136/heartjnl-2017-311198</h3>
+        
+        <div class="url-display">
+            <strong>Expected Proxy URL:</strong><br>
+            https://api.scai.sh/api/fulltext/proxy/10.1136%2Fheartjnl-2017-311198
+        </div>
+        
+        <div class="url-display">
+            <strong>Fallback DOI URL:</strong><br>
+            https://doi.org/10.1136/heartjnl-2017-311198
+        </div>
+        
+        <button onclick="testFulltext()">View Fulltext (Proxy)</button>
+        <button class="doi-button" onclick="testDoi()">DOI (Fallback)</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test DOI: 10.1038/nature12373</h3>
+        
+        <div class="url-display">
+            <strong>Expected Proxy URL:</strong><br>
+            https://api.scai.sh/api/fulltext/proxy/10.1038%2Fnature12373
+        </div>
+        
+        <div class="url-display">
+            <strong>Fallback DOI URL:</strong><br>
+            https://doi.org/10.1038/nature12373
+        </div>
+        
+        <button onclick="testFulltext2()">View Fulltext (Proxy)</button>
+        <button class="doi-button" onclick="testDoi2()">DOI (Fallback)</button>
+    </div>
+
+    <div class="test-section">
+        <h3>URL Verification</h3>
+        <p>Check that the URLs are correct:</p>
+        <ul>
+            <li>✅ Should use <code>https://api.scai.sh</code> (not app.scai.sh)</li>
+            <li>✅ Should properly encode DOI with <code>encodeURIComponent()</code></li>
+            <li>✅ Should open in new tab</li>
+            <li>✅ Should have DOI fallback option</li>
+        </ul>
+    </div>
+
+    <script>
+        // 模拟SearchResult组件的逻辑
+        function handleFulltextOpen(doi) {
+            const cleanDoi = doi.replace(/^https?:\/\/doi\.org\//i, "");
+            const encodedDoi = encodeURIComponent(cleanDoi);
+            
+            // 构建正确的绝对URL
+            const proxyUrl = `https://api.scai.sh/api/fulltext/proxy/${encodedDoi}`;
+            
+            console.log(`Opening fulltext for DOI: ${cleanDoi}`);
+            console.log(`Proxy URL: ${proxyUrl}`);
+            
+            // 打开代理URL
+            const newWindow = window.open(proxyUrl, '_blank');
+            
+            if (!newWindow) {
+                alert('Popup blocked! Please allow popups and try again.');
+                return;
+            }
+            
+            console.log('✅ Fulltext window opened successfully');
+        }
+
+        function handleDoiOpen(doi) {
+            const cleanDoi = doi.replace(/^https?:\/\/doi\.org\//i, "");
+            const doiUrl = `https://doi.org/${cleanDoi}`;
+            
+            console.log(`Opening DOI official website: ${doiUrl}`);
+            window.open(doiUrl, '_blank');
+        }
+
+        // 测试函数
+        function testFulltext() {
+            handleFulltextOpen('10.1136/heartjnl-2017-311198');
+        }
+
+        function testDoi() {
+            handleDoiOpen('10.1136/heartjnl-2017-311198');
+        }
+
+        function testFulltext2() {
+            handleFulltextOpen('10.1038/nature12373');
+        }
+
+        function testDoi2() {
+            handleDoiOpen('10.1038/nature12373');
+        }
+    </script>
+</body>
+</html>

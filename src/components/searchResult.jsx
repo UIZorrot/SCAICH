@@ -187,6 +187,83 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
     }
   };
 
+  // 检查代理URL是否可用
+  const checkProxyAvailability = async (proxyUrl) => {
+    try {
+      // 使用AbortController实现超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超时
+
+      const response = await fetch(proxyUrl, {
+        method: 'HEAD', // 只检查头部，不下载内容
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      // 检查是否返回PDF内容
+      const contentType = response.headers.get('content-type');
+      const isSuccess = response.ok && (
+        contentType?.includes('application/pdf') ||
+        contentType?.includes('application/octet-stream') ||
+        response.status === 200
+      );
+
+      console.log(`Proxy check: ${response.status}, Content-Type: ${contentType}, Available: ${isSuccess}`);
+      return isSuccess;
+
+    } catch (error) {
+      console.log('Proxy availability check failed:', error.message);
+      return false;
+    }
+  };
+
+  // 智能全文打开：先尝试代理，失败则回退到DOI
+  const handleFulltextOpen = async (result) => {
+    const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
+    const encodedDoi = encodeURIComponent(cleanDoi);
+
+    // 构建代理URL和DOI回退URL
+    const proxyUrl = `https://api.scai.sh/api/fulltext/proxy/${encodedDoi}`;
+    const doiUrl = `https://doi.org/${cleanDoi}`;
+
+    console.log(`Attempting to open fulltext for DOI: ${cleanDoi}`);
+    console.log(`Proxy URL: ${proxyUrl}`);
+    console.log(`Fallback DOI URL: ${doiUrl}`);
+
+    // 首先检查代理是否可用
+    const isProxyAvailable = await checkProxyAvailability(proxyUrl);
+
+    if (isProxyAvailable) {
+      console.log('✅ Proxy is available, opening proxy URL');
+      // 创建一个链接元素来确保PDF在浏览器中显示
+      const link = document.createElement('a');
+      link.href = proxyUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      // 不设置download属性，让浏览器决定如何处理PDF
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.log('❌ Proxy not available, falling back to DOI page');
+      window.open(doiUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // DOI模式打开：直接打开DOI官方页面
+  const handleDoiOpen = (result) => {
+    const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
+    const doiUrl = `https://doi.org/${cleanDoi}`;
+
+    console.log(`Opening DOI page for: ${cleanDoi}`);
+    console.log(`DOI URL: ${doiUrl}`);
+
+    window.open(doiUrl, '_blank', 'noopener,noreferrer');
+  };
+
+
+
   // 处理收藏/取消收藏
   const handleFavoriteClick = (result) => {
     const isCurrentlyFavorited = favoritedPapers.has(result.doi);
@@ -302,7 +379,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
               >
                 <Title
                   onClick={() => {
-                    window.open(result.url, "_blank");
+                    handleDoiOpen(result);
                   }}
                   level={5}
                   style={{
@@ -351,19 +428,58 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                   </Text>
                 </p>
                 <div style={{ display: "flex", gap: "8px", marginTop: 8, flexWrap: "wrap" }}>
-                  <Button
-                    type="primary"
-                    icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
-                    style={{
-                      color: "#ffffff",
-                      background: buttonColor,
-                    }}
-                    onClick={() => {
-                      window.open(buttonUrl, "_blank");
-                    }}
-                  >
-                    {buttonText}
-                  </Button>
+                  {/* 根据按钮文本决定样式和行为 */}
+                  {buttonText === "View Fulltext" ? (
+                    // View Fulltext 按钮：绿色，使用智能API逻辑
+                    <Button
+                      type="primary"
+                      icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
+                      style={{
+                        color: "#ffffff",
+                        background: "#52c41a",
+                        borderColor: "#52c41a",
+                      }}
+                      onClick={() => handleFulltextOpen(result)}
+                    >
+                      View Fulltext
+                    </Button>
+                  ) : buttonText === "View Source" ? (
+                    // View Source 按钮：黑色outlined样式，直接使用DOI
+                    <Button
+                      type="default"
+                      icon={<FileTextOutlined style={{ color: "#000" }} />}
+                      style={{
+                        color: "#000",
+                        borderColor: "#000",
+                        background: "transparent",
+                      }}
+                      onClick={() => handleDoiOpen(result)}
+                    >
+                      View Source
+                    </Button>
+                  ) : (
+                    // 其他按钮（如Sci-Net）：保持原有逻辑
+                    <Button
+                      type="primary"
+                      icon={<FileTextOutlined style={{ color: "#ffffff" }} />}
+                      style={{
+                        color: "#ffffff",
+                        background: buttonColor,
+                        borderColor: buttonColor,
+                      }}
+                      onClick={() => {
+                        if (result.scinet) {
+                          window.open(buttonUrl, "_blank");
+                        } else {
+                          handleDoiOpen(result);
+                        }
+                      }}
+                    >
+                      {buttonText}
+                    </Button>
+                  )}
+
+
 
                   {/* 收藏按钮 */}
                   <Button

@@ -16,8 +16,8 @@ const Header = () => {
   const navigation = [
     { name: "Search", href: "/app/search", key: "search" },
     { name: "Box", href: "/app/box", key: "box" },
-    { name: "Press", href: "/app/press", key: "press" },
-    { name: "Tools", href: "/app/tools", key: "tools" },
+    // { name: "Press", href: "/app/press", key: "press" },
+    // { name: "Tools", href: "/app/tools", key: "tools" },
     { name: "Community", href: "https://t.me/+AMy9MvWuVqhlNDY1", external: true },
   ];
 

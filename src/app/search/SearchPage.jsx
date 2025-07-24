@@ -47,6 +47,7 @@ export default function SearchPage() {
   const [latestPapers, setLatestPapers] = useState([]);
   const [showLatestPapers, setShowLatestPapers] = useState(false);
   const [totalPapersCount, setTotalPapersCount] = useState("--");
+  const [irysStatus, setIrysStatus] = useState("checking"); // "checking", "available", "unavailable"
   const navigate = useNavigate();
 
   // 检查是否为重复历史记录
@@ -56,12 +57,43 @@ export default function SearchPage() {
 
   // GraphQL查询函数
   const executeGraphQLQuery = async (query) => {
-    const response = await fetch("https://uploader.irys.xyz/graphql", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-    });
-    return response.json();
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+      const response = await fetch("/api/irys/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        // 如果是504或502错误，说明Irys服务不可用
+        if (response.status === 504 || response.status === 502) {
+          console.warn('Irys service is currently unavailable');
+          setIrysStatus("unavailable");
+          return { data: { transactions: { edges: [] } } }; // 返回空结果
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setIrysStatus("available");
+      return result;
+    } catch (error) {
+      console.error('GraphQL query error:', error);
+      setIrysStatus("unavailable");
+      if (error.name === 'AbortError') {
+        console.warn('Irys query timeout - service may be unavailable');
+        return { data: { transactions: { edges: [] } } }; // 返回空结果而不是抛出错误
+      }
+      // 对于其他网络错误，也返回空结果而不是让整个搜索失败
+      console.warn('Irys query failed, continuing without Irys results:', error.message);
+      return { data: { transactions: { edges: [] } } };
+    }
   };
 
   // 查询PDF版本
@@ -110,8 +142,22 @@ export default function SearchPage() {
   const processPaperMetadata = async (edge) => {
     try {
       const id = edge.node.id;
-      const metadataResponse = await fetch(`https://gateway.irys.xyz/${id}`);
-      if (!metadataResponse.ok) return null;
+      console.log(`📄 Processing paper metadata: ${id}`);
+
+      // 添加超时控制
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+
+      const metadataResponse = await fetch(`https://gateway.irys.xyz/${id}`, {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!metadataResponse.ok) {
+        console.warn(`⚠️ Failed to fetch metadata for ${id}: ${metadataResponse.status}`);
+        return null;
+      }
 
       const paper = await metadataResponse.json();
       const doi = edge.node.tags.find((tag) => tag.name === "doi")?.value;
@@ -122,9 +168,14 @@ export default function SearchPage() {
         paper.pdfVersions = [];
       }
 
+      console.log(`✅ Successfully processed paper: ${paper.title || 'Untitled'}`);
       return paper;
     } catch (error) {
-      console.error("Error processing paper metadata:", error);
+      if (error.name === 'AbortError') {
+        console.warn(`⏱️ Timeout processing paper metadata: ${edge.node.id}`);
+      } else {
+        console.error("❌ Error processing paper metadata:", error);
+      }
       return null;
     }
   };
@@ -141,7 +192,7 @@ export default function SearchPage() {
               { name: "App-Name", values: ["scivault"] },
               { name: "Content-Type", values: ["application/json"] }
             ],
-            first: 20,
+            limit: 20,
             order: DESC
           ) {
             edges {
@@ -155,10 +206,22 @@ export default function SearchPage() {
         }
       `;
 
+      console.log("🔍 Querying Irys for latest papers...");
       const result = await executeGraphQLQuery(latestPapersQuery);
       const metadataNodes = result.data?.transactions?.edges || [];
+
+      console.log(`📊 Found ${metadataNodes.length} metadata nodes from Irys`);
+
+      if (metadataNodes.length === 0) {
+        console.warn("⚠️ No papers found on Irys - service may be unavailable");
+        setLatestPapers([]);
+        return;
+      }
+
       const papers = await Promise.all(metadataNodes.map((edge) => processPaperMetadata(edge)));
       const validPapers = papers.filter((paper) => paper !== null);
+
+      console.log(`✅ Successfully processed ${validPapers.length} papers`);
 
       // 转换为搜索结果格式
       const formattedPapers = validPapers.map((paper) => ({
@@ -177,8 +240,10 @@ export default function SearchPage() {
 
       setLatestPapers(formattedPapers);
     } catch (error) {
-      console.error("Error loading latest papers:", error);
-      message.error("Failed to load latest papers");
+      console.error("❌ Error loading latest papers:", error);
+      console.warn("🔄 Irys service appears to be unavailable, showing empty results");
+      setLatestPapers([]);
+      // 不显示错误消息，因为这是正常的降级行为
     } finally {
       setLoading(false); // 使用共用的loading状态
     }
@@ -187,6 +252,8 @@ export default function SearchPage() {
   // 异步加载总论文数量 - 从Irys统计数据获取
   const loadTotalPapersCount = useCallback(async () => {
     try {
+      console.log("📊 Loading total papers count from Irys...");
+
       // 查询最新的统计数据
       const statisticsQuery = `
         query {
@@ -197,7 +264,7 @@ export default function SearchPage() {
               { name: "Version", values: ["2.0.0"] },
               { name: "type", values: ["statistics"] }
             ],
-            first: 1,
+            limit: 1,
             order: DESC
           ) {
             edges {
@@ -214,7 +281,7 @@ export default function SearchPage() {
       const edges = result.data?.transactions?.edges || [];
 
       if (edges.length === 0) {
-        console.warn("No statistics data found");
+        console.warn("⚠️ No statistics data found on Irys");
         setTotalPapersCount("--");
         return;
       }
@@ -224,9 +291,11 @@ export default function SearchPage() {
       const countTag = node.tags.find(tag => tag.name === "count");
 
       if (countTag && countTag.value) {
+        console.log(`✅ Found paper count in tags: ${countTag.value}`);
         setTotalPapersCount(countTag.value);
       } else {
         // 如果tags中没有count，则下载统计文件获取详细数据
+        console.log("📥 Downloading statistics file...");
         const statsId = node.id;
         const statsResponse = await fetch(`https://gateway.irys.xyz/${statsId}`);
 
@@ -236,10 +305,12 @@ export default function SearchPage() {
 
         const statsData = await statsResponse.json();
         const totalCount = statsData.root?.totalCount || statsData.totalCount || 0;
+        console.log(`✅ Found paper count in file: ${totalCount}`);
         setTotalPapersCount(totalCount.toString());
       }
     } catch (error) {
-      console.error("Error loading total papers count:", error);
+      console.error("❌ Error loading total papers count:", error);
+      console.warn("🔄 Using fallback count due to Irys unavailability");
       setTotalPapersCount("--");
     }
   }, []);
@@ -652,6 +723,30 @@ export default function SearchPage() {
                         <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <DatabaseOutlined style={{ color: "#1890ff" }} />
                           Latest Papers from SCAI Box
+                          {irysStatus === "unavailable" && (
+                            <span style={{
+                              fontSize: "12px",
+                              color: "#ff4d4f",
+                              backgroundColor: "#fff2f0",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              border: "1px solid #ffccc7"
+                            }}>
+                              Irys Offline
+                            </span>
+                          )}
+                          {irysStatus === "available" && (
+                            <span style={{
+                              fontSize: "12px",
+                              color: "#52c41a",
+                              backgroundColor: "#f6ffed",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              border: "1px solid #b7eb8f"
+                            }}>
+                              Irys Online
+                            </span>
+                          )}
                         </span>
                         <span className="papers-count-badge">{totalPapersCount} papers</span>
                       </h3>

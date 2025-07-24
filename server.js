@@ -30,15 +30,19 @@ const getIrysUploader = async () => {
   }
 
   try {
+    console.log("🔄 Initializing Irys uploader...");
+
     if (!process.env.PRIVATE_KEY) {
       throw new Error('PRIVATE_KEY environment variable is required');
     }
 
+    console.log("🔑 Private key found, creating uploader...");
     irysUploader = await Uploader(Solana).withWallet(process.env.PRIVATE_KEY);
-    console.log("✅ Irys uploader initialized");
+    console.log("✅ Irys uploader initialized successfully");
     return irysUploader;
   } catch (error) {
     console.error("❌ Failed to initialize Irys uploader:", error);
+    console.error("Error details:", error.stack);
     throw error;
   }
 };
@@ -46,10 +50,12 @@ const getIrysUploader = async () => {
 // Irys上传API端点
 app.post('/api/irys/upload', async (req, res) => {
   try {
+    console.log("📥 Received upload request");
     const { data, tags } = req.body;
 
     // 验证请求数据
     if (!data || !Array.isArray(data)) {
+      console.log("❌ Invalid data format");
       return res.status(400).json({
         success: false,
         error: 'Invalid data format'
@@ -57,6 +63,7 @@ app.post('/api/irys/upload', async (req, res) => {
     }
 
     if (!tags || !Array.isArray(tags)) {
+      console.log("❌ Invalid tags format");
       return res.status(400).json({
         success: false,
         error: 'Invalid tags format'
@@ -65,9 +72,11 @@ app.post('/api/irys/upload', async (req, res) => {
 
     // 将数组转换回buffer
     const buffer = Buffer.from(data);
+    console.log(`📊 Buffer created: ${buffer.length} bytes`);
 
     // 检查文件大小
     if (buffer.length > MAX_FREE_SIZE) {
+      console.log(`❌ File too large: ${buffer.length} bytes`);
       return res.status(400).json({
         success: false,
         error: `File too large: ${(buffer.length / 1024).toFixed(2)} KB > 100 KB`
@@ -75,12 +84,17 @@ app.post('/api/irys/upload', async (req, res) => {
     }
 
     console.log(`📁 Uploading file: ${buffer.length} bytes (${(buffer.length / 1024).toFixed(2)} KB)`);
+    console.log(`🏷️ Tags:`, tags);
 
     // 初始化Irys上传器
+    console.log("🔄 Getting Irys uploader...");
     const irys = await getIrysUploader();
+    console.log("✅ Irys uploader ready");
 
     // 上传到Irys网络
+    console.log("🚀 Starting upload to Irys...");
     const receipt = await irys.upload(buffer, { tags });
+    console.log("📋 Upload receipt:", receipt);
 
     console.log(`✅ Upload successful: https://gateway.irys.xyz/${receipt.id}`);
 
@@ -94,12 +108,13 @@ app.post('/api/irys/upload', async (req, res) => {
     });
 
   } catch (error) {
-    console.error(`❌ Upload failed: ${error.message}`);
+    console.error(`❌ Upload failed:`, error);
+    console.error("Error stack:", error.stack);
 
     // 返回错误响应
     return res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message || 'Upload failed'
     });
   }
 });
@@ -111,6 +126,44 @@ app.get('/api/health', (req, res) => {
     message: 'Irys upload server is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Irys GraphQL代理端点
+app.post('/api/irys/graphql', async (req, res) => {
+  try {
+    // 创建AbortController用于超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+    const response = await fetch('https://uploader.irys.xyz/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      },
+      body: JSON.stringify(req.body),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('GraphQL proxy error:', error);
+
+    if (error.name === 'AbortError') {
+      res.status(504).json({ error: 'Request timeout - Irys service is not responding' });
+    } else if (error.message.includes('HTTP error')) {
+      res.status(502).json({ error: `Irys service error: ${error.message}` });
+    } else {
+      res.status(500).json({ error: 'GraphQL proxy error' });
+    }
+  }
 });
 
 // DOI查询API
