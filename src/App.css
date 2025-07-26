@@ -110,9 +110,9 @@ p {
 }
 
 @media (max-width: 1280px) {
-  .nav-links {
+  /* .nav-links {
     display: none !important;
-  }
+  } */
 
   .mobile-nav {
     display: block !important;

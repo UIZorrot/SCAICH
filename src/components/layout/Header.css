@@ -312,13 +312,13 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 375px) {
   .unified-header {
     width: 95%;
     margin: 5px auto 0;
     padding: 12px 16px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    /* background-color: rgba(255, 255, 255, 0.9); */
+    /* border: 1px solid rgba(0, 0, 0, 0.1); */
     border-radius: 16px;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -339,10 +339,10 @@
     color: #333;
   }
 
-  .desktop-nav-center,
+  /* .desktop-nav-center,
   .header-right {
     display: none;
-  }
+  } */
 
   .mobile-menu-button {
     display: flex;
