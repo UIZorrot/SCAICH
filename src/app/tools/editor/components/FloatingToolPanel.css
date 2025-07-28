@@ -1,0 +1,323 @@
+/* 悬浮工具面板样式 */
+
+/* 触发按钮 */
+.floating-trigger-button {
+  position: fixed;
+  right: 24px;
+  top: 35%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.floating-trigger-button .trigger-button {
+  width: 56px;
+  height: 56px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  border: none;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  transition: all 0.3s ease;
+}
+
+.floating-trigger-button .trigger-button:hover {
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.floating-trigger-button .trigger-button:active {
+  transform: translateY(0);
+}
+
+/* 悬浮面板 */
+.floating-tool-panel {
+  position: fixed;
+  right: 24px;
+  top: 35%;
+  transform: translateY(-50%);
+  width: 400px;
+  max-height: 80vh;
+  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.floating-tool-panel .search-panel-card {
+  height: 100%;
+  border: none;
+  border-radius: 8px;
+}
+
+.floating-tool-panel .search-panel-card .ant-card-head {
+  background: linear-gradient(135deg, #f0f9ff, #e6f7ff);
+  border-bottom: 1px solid #d9d9d9;
+  padding: 12px 16px;
+}
+
+.floating-tool-panel .search-panel-card .ant-card-head-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.floating-tool-panel .search-panel-card .ant-card-body {
+  padding: 16px;
+  max-height: calc(80vh - 60px);
+  overflow-y: auto;
+}
+
+/* 搜索类型选择器 */
+.search-type-selector {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+/* 搜索选项 */
+.search-options {
+  padding: 8px 12px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+}
+
+.search-options .option-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  text-align: center;
+}
+
+/* 搜索结果容器 */
+.search-results-container {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* 综述部分 */
+.summary-section {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+}
+
+.summary-section .ant-typography h5 {
+  margin-bottom: 8px;
+  color: #389e0d;
+}
+
+.summary-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* 结果部分 */
+.results-section {
+  margin-top: 16px;
+}
+
+.results-section .ant-typography h5 {
+  margin-bottom: 12px;
+  color: #1890ff;
+  border-bottom: 1px solid #e8e8e8;
+  padding-bottom: 4px;
+}
+
+/* 结果项 */
+.result-item {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.result-item:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 2px 8px rgba(64, 169, 255, 0.1);
+}
+
+.result-content {
+  width: 100%;
+}
+
+.result-title {
+  margin-bottom: 6px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  color: #1890ff;
+  cursor: pointer;
+}
+
+.result-title:hover {
+  color: #40a9ff;
+}
+
+.result-meta {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.result-abstract {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* 无结果状态 */
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+/* 滚动条样式 */
+.search-results-container::-webkit-scrollbar,
+.floating-tool-panel .ant-card-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-results-container::-webkit-scrollbar-track,
+.floating-tool-panel .ant-card-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.search-results-container::-webkit-scrollbar-thumb,
+.floating-tool-panel .ant-card-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.search-results-container::-webkit-scrollbar-thumb:hover,
+.floating-tool-panel .ant-card-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .floating-tool-panel {
+    width: calc(100vw - 48px);
+    right: 24px;
+    left: 24px;
+    max-height: 70vh;
+  }
+
+  .floating-trigger-button {
+    right: 16px;
+  }
+
+  .floating-trigger-button .trigger-button {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* 暗色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .floating-tool-panel .search-panel-card .ant-card-head {
+    background: linear-gradient(135deg, #1f1f1f, #2a2a2a);
+    border-bottom-color: #434343;
+  }
+
+  .search-type-selector {
+    background: #2a2a2a;
+    border-color: #434343;
+  }
+
+  .search-options {
+    background: #262626;
+    border-color: #434343;
+  }
+
+  .summary-section {
+    background: #162312;
+    border-color: #389e0d;
+  }
+
+  .result-item {
+    background: #1f1f1f;
+    border-color: #434343;
+  }
+
+  .result-item:hover {
+    border-color: #40a9ff;
+    box-shadow: 0 2px 8px rgba(64, 169, 255, 0.2);
+  }
+
+  .result-title {
+    color: #40a9ff;
+  }
+
+  .result-meta {
+    color: #999;
+  }
+
+  .result-abstract {
+    color: #d9d9d9;
+  }
+
+  .summary-text {
+    color: #d9d9d9;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-item {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.summary-section {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Badge 样式调整 */
+.floating-trigger-button .ant-badge {
+  display: block;
+}
+
+.floating-trigger-button .ant-badge-count {
+  background: #ff4d4f;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(255, 77, 79, 0.3);
+}

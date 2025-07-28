@@ -1,0 +1,125 @@
+.editor-toolbar {
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.editor-toolbar:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 2px 4px rgba(64, 169, 255, 0.1);
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-section .ant-btn {
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.toolbar-section .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-section .ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.toolbar-section .ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.toolbar-section .ant-divider-vertical {
+  height: 20px;
+  margin: 0 4px;
+  border-color: #e8e8e8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .editor-toolbar {
+    padding: 6px 8px;
+  }
+  
+  .toolbar-section {
+    gap: 4px;
+  }
+  
+  .toolbar-section .ant-btn {
+    padding: 0 6px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .editor-toolbar {
+    background: #1f1f1f;
+    border-color: #434343;
+  }
+  
+  .editor-toolbar:hover {
+    border-color: #177ddc;
+  }
+  
+  .toolbar-section .ant-divider-vertical {
+    border-color: #434343;
+  }
+}
+
+/* Animation for toolbar appearance */
+.editor-toolbar {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Compact button groups styling */
+.toolbar-section .ant-space-compact {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.toolbar-section .ant-space-compact .ant-btn {
+  border-radius: 0;
+}
+
+.toolbar-section .ant-space-compact .ant-btn:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.toolbar-section .ant-space-compact .ant-btn:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* Disabled button styling */
+.toolbar-section .ant-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-section .ant-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
