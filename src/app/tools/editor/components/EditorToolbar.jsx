@@ -70,7 +70,7 @@ const EditorToolbar = ({ editor }) => {
       if (level === 0) {
         editor?.chain().focus().setParagraph().run();
       } else {
-        editor?.chain().focus().toggleNumberedHeading({ level }).run();
+        editor?.chain().focus().toggleHeading({ level }).run();
       }
     },
     [editor]
@@ -131,7 +131,8 @@ const EditorToolbar = ({ editor }) => {
 
   const handleEquationSubmit = useCallback(() => {
     equationForm.validateFields().then((values) => {
-      editor?.chain().focus().setEquationBlock({ latex: values.latex }).run();
+      // 使用 insertText 来触发第三方扩展的转换规则
+      editor?.chain().focus().insertText(`$$${values.latex}$$`).run();
       setEquationModalVisible(false);
       equationForm.resetFields();
     });
@@ -240,9 +241,6 @@ const EditorToolbar = ({ editor }) => {
           <Tooltip title="删除线">
             <Button size="small" type={editor.isActive("strike") ? "primary" : "default"} icon={<StrikethroughOutlined />} onClick={toggleStrike} />
           </Tooltip>
-          <Tooltip title="行内代码">
-            <Button size="small" type={editor.isActive("code") ? "primary" : "default"} icon={<CodeOutlined />} onClick={toggleCode} />
-          </Tooltip>
         </Space.Compact>
 
         <Divider type="vertical" />
@@ -279,9 +277,6 @@ const EditorToolbar = ({ editor }) => {
 
         {/* Academic Elements */}
         <Space.Compact>
-          <Tooltip title="插入公式">
-            <Button size="small" icon={<FunctionOutlined />} onClick={addEquation} />
-          </Tooltip>
           <Tooltip title="插入定理">
             <Button size="small" icon={<ExperimentOutlined />} onClick={addTheorem} />
           </Tooltip>

@@ -4,7 +4,6 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
-import Mathematics from "@tiptap/extension-mathematics";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
@@ -13,17 +12,24 @@ import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableCell } from "@tiptap/extension-table-cell";
+import CodeBlock from "@tiptap/extension-code-block";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+
+// Import NodeView components
+import CodeBlockNodeView from "./CodeBlockNodeView";
+// import MathBlockNodeView from "./MathBlockNodeView"; // 暂时注释，等待第三方扩展
+import TheoremBlockNodeView from "./TheoremBlockNodeView";
 import { Button, Tooltip, Divider, Dropdown } from "antd";
-import { BoldOutlined, ItalicOutlined, StrikethroughOutlined, LinkOutlined, PictureOutlined, TableOutlined, FunctionOutlined, ExperimentOutlined, QuestionCircleOutlined, BulbOutlined, HighlightOutlined, FontSizeOutlined, DownOutlined } from "@ant-design/icons";
+import { BoldOutlined, ItalicOutlined, StrikethroughOutlined, LinkOutlined, PictureOutlined, TableOutlined, FunctionOutlined, ExperimentOutlined, QuestionCircleOutlined, BulbOutlined, HighlightOutlined, FontSizeOutlined, DownOutlined, CodeOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import "katex/dist/katex.min.css";
 import "./TipTapEditor.css";
 
 // Import custom academic nodes
-import { NumberedHeading, FigureWithCaption, EquationBlock, TheoremBlock, EnhancedBlockquote } from "../extensions/AcademicNodes";
+import { FigureWithCaption, TheoremBlock, EnhancedBlockquote } from "../extensions/AcademicNodes";
 import { SlashCommands, slashCommandItems } from "../extensions/SlashCommands";
 import { renderSlashCommands } from "../extensions/SlashCommandsRenderer";
-import { createHeadingNumberingPlugin, addNumberingCommands } from "../extensions/HeadingNumberingPlugin";
+import MathExtension from "@aarkue/tiptap-math-extension";
 
 // Import EditorToolbar
 import EditorToolbar from "./EditorToolbar";
@@ -62,6 +68,19 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
         },
+        // Disable default codeBlock to use our custom one
+        codeBlock: false,
+      }),
+      // Add CodeBlock with custom configuration and NodeView
+      CodeBlock.configure({
+        HTMLAttributes: {
+          class: "code-block",
+        },
+        languageClassPrefix: "language-",
+      }).extend({
+        addNodeView() {
+          return ReactNodeViewRenderer(CodeBlockNodeView);
+        },
       }),
       Placeholder.configure({
         placeholder,
@@ -69,19 +88,16 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
       Typography,
       Underline,
       CharacterCount,
-      Mathematics.configure({
+      // 第三方数学扩展 - 支持 $...$ 和 $$...$$ 自动转换
+      // 暂时使用简单配置，不使用自定义 NodeView
+      // configureMathExtension(),
+      MathExtension.configure({
+        evaluation: false,
+        delimiters: "dollar",
         katexOptions: {
           throwOnError: false,
-          displayMode: true,
         },
-        blockOptions: {
-          onClick: (node, pos) => {
-            const latex = window.prompt("编辑 LaTeX 公式:", node.attrs.latex);
-            if (latex) {
-              editor.chain().setNodeSelection(pos).updateBlockMath({ latex }).focus().run();
-            }
-          },
-        },
+        renderTextMode: "raw-latex",
       }),
       Image.configure({
         HTMLAttributes: {
@@ -102,8 +118,12 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
       TableCell,
       // Custom academic nodes
       FigureWithCaption,
-      EquationBlock,
-      TheoremBlock,
+      // EquationBlock, // 将被第三方数学扩展替代
+      TheoremBlock.extend({
+        addNodeView() {
+          return ReactNodeViewRenderer(TheoremBlockNodeView);
+        },
+      }),
       EnhancedBlockquote,
       // Slash commands
       SlashCommands.configure({
@@ -183,13 +203,6 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }, [editor]);
 
-  const addEquation = useCallback(() => {
-    const latex = window.prompt("请输入LaTeX公式:", "E = mc^2");
-    if (latex) {
-      editor.chain().focus().setEquationBlock({ latex }).run();
-    }
-  }, [editor]);
-
   const addTheorem = useCallback(() => {
     const type = window.prompt("定理类型 (theorem/lemma/corollary/definition):", "theorem");
     const title = window.prompt("定理标题 (可选):");
@@ -209,19 +222,98 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
         // Convert to paragraph
         editor.chain().focus().setParagraph().run();
       } else {
-        // Set numbered heading
-        editor.chain().focus().toggleNumberedHeading({ level }).run();
+        // Set heading level using standard TipTap method
+        editor.chain().focus().toggleHeading({ level }).run();
       }
     },
     [editor]
   );
+
+  // 优化的标题菜单项 - 使用分组和更好的视觉效果
+  const headingItems = [
+    {
+      key: "0",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", padding: "4px 0" }}>
+          <span style={{ fontSize: "14px", fontWeight: "normal", color: "#666" }}>正文</span>
+        </div>
+      ),
+      onClick: () => setHeading(0),
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "1",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", padding: "4px 0" }}>
+          <span style={{ fontSize: "18px", fontWeight: "bold", color: "#1890ff" }}>H1</span>
+          <span style={{ marginLeft: "12px", fontSize: "16px", fontWeight: "bold" }}>一级标题</span>
+        </div>
+      ),
+      onClick: () => setHeading(1),
+    },
+    {
+      key: "2",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", padding: "4px 0" }}>
+          <span style={{ fontSize: "16px", fontWeight: "bold", color: "#52c41a" }}>H2</span>
+          <span style={{ marginLeft: "12px", fontSize: "15px", fontWeight: "bold" }}>二级标题</span>
+        </div>
+      ),
+      onClick: () => setHeading(2),
+    },
+    {
+      key: "3",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", padding: "4px 0" }}>
+          <span style={{ fontSize: "14px", fontWeight: "bold", color: "#faad14" }}>H3</span>
+          <span style={{ marginLeft: "12px", fontSize: "14px", fontWeight: "bold" }}>三级标题</span>
+        </div>
+      ),
+      onClick: () => setHeading(3),
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "4",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", padding: "2px 0" }}>
+          <span style={{ fontSize: "12px", fontWeight: "600", color: "#999", width: "24px" }}>H4</span>
+          <span style={{ marginLeft: "8px", fontSize: "13px", fontWeight: "600", color: "#666" }}>四级标题</span>
+        </div>
+      ),
+      onClick: () => setHeading(4),
+    },
+    {
+      key: "5",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", padding: "2px 0" }}>
+          <span style={{ fontSize: "12px", fontWeight: "600", color: "#999", width: "24px" }}>H5</span>
+          <span style={{ marginLeft: "8px", fontSize: "12px", fontWeight: "600", color: "#666" }}>五级标题</span>
+        </div>
+      ),
+      onClick: () => setHeading(5),
+    },
+    {
+      key: "6",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", padding: "2px 0" }}>
+          <span style={{ fontSize: "12px", fontWeight: "600", color: "#999", width: "24px" }}>H6</span>
+          <span style={{ marginLeft: "8px", fontSize: "11px", fontWeight: "600", color: "#666" }}>六级标题</span>
+        </div>
+      ),
+      onClick: () => setHeading(6),
+    },
+  ];
 
   // Get current heading level
   const getCurrentHeadingLevel = useCallback(() => {
     if (!editor) return 0;
 
     for (let level = 1; level <= 6; level++) {
-      if (editor.isActive("numberedHeading", { level })) {
+      if (editor.isActive("heading", { level })) {
         return level;
       }
     }
@@ -273,43 +365,7 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
           {/* Heading Dropdown */}
           <Dropdown
             menu={{
-              items: [
-                {
-                  key: "0",
-                  label: "正文",
-                  onClick: () => setHeading(0),
-                },
-                {
-                  key: "1",
-                  label: "一级标题",
-                  onClick: () => setHeading(1),
-                },
-                {
-                  key: "2",
-                  label: "二级标题",
-                  onClick: () => setHeading(2),
-                },
-                {
-                  key: "3",
-                  label: "三级标题",
-                  onClick: () => setHeading(3),
-                },
-                {
-                  key: "4",
-                  label: "四级标题",
-                  onClick: () => setHeading(4),
-                },
-                {
-                  key: "5",
-                  label: "五级标题",
-                  onClick: () => setHeading(5),
-                },
-                {
-                  key: "6",
-                  label: "六级标题",
-                  onClick: () => setHeading(6),
-                },
-              ],
+              items: headingItems,
             }}
             trigger={["click"]}
           >
@@ -337,10 +393,6 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
 
           <Divider type="vertical" />
 
-          <Tooltip title="插入公式">
-            <Button size="small" icon={<FunctionOutlined />} onClick={addEquation} />
-          </Tooltip>
-
           <Tooltip title="插入定理">
             <Button size="small" icon={<ExperimentOutlined />} onClick={addTheorem} />
           </Tooltip>
@@ -352,7 +404,27 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
               icon={<QuestionCircleOutlined />}
               onClick={() => {
                 try {
-                  editor.chain().focus().toggleWrap("enhancedBlockquote").run();
+                  if (editor.isActive("enhancedBlockquote")) {
+                    // If already in blockquote, toggle it off
+                    editor.chain().focus().toggleBlockquote().run();
+                  } else {
+                    // If not in blockquote, create one and optionally ask for citation
+                    editor.chain().focus().toggleBlockquote().run();
+
+                    // Optionally prompt for citation info
+                    setTimeout(() => {
+                      const author = window.prompt("作者 (可选):");
+                      const citation = window.prompt("引用来源 (可选):");
+
+                      if (author || citation) {
+                        editor
+                          .chain()
+                          .focus()
+                          .setBlockquoteCitation({ author: author || "", citation: citation || "" })
+                          .run();
+                      }
+                    }, 100);
+                  }
                 } catch (error) {
                   console.warn("Enhanced blockquote command not available:", error);
                 }

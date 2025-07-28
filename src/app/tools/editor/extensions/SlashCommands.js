@@ -100,15 +100,6 @@ export const slashCommandItems = [
     },
   },
   {
-    title: "数学公式",
-    description: "插入LaTeX数学公式",
-    searchTerms: ["math", "equation", "公式", "latex"],
-    icon: "🧮",
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setEquationBlock({ latex: "E = mc^2" }).run();
-    },
-  },
-  {
     title: "定理",
     description: "插入定理块",
     searchTerms: ["theorem", "定理", "lemma"],

@@ -1,4 +1,5 @@
 import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
 
 // NumberedHeading - 使用JavaScript编号系统
 export const NumberedHeading = Node.create({
@@ -197,6 +198,10 @@ export const TheoremBlock = Node.create({
 
   content: "block+",
 
+  isolating: true,
+
+  defining: true,
+
   addAttributes() {
     return {
       type: {
@@ -215,6 +220,11 @@ export const TheoremBlock = Node.create({
     return [
       {
         tag: 'div[data-type="theorem-block"]',
+        getAttrs: (dom) => ({
+          type: dom.getAttribute("data-theorem-type") || "theorem",
+          title: dom.getAttribute("data-title") || "",
+          number: dom.getAttribute("data-number") || "",
+        }),
       },
     ];
   },
@@ -225,6 +235,7 @@ export const TheoremBlock = Node.create({
       mergeAttributes(HTMLAttributes, {
         "data-type": "theorem-block",
         "data-theorem-type": node.attrs.type,
+        "data-title": node.attrs.title,
         "data-number": node.attrs.number,
       }),
       ["div", { class: "theorem-header" }, `${node.attrs.type.charAt(0).toUpperCase() + node.attrs.type.slice(1)} ${node.attrs.number}${node.attrs.title ? `: ${node.attrs.title}` : ""}`],
@@ -236,20 +247,21 @@ export const TheoremBlock = Node.create({
     return {
       setTheoremBlock:
         (attributes = {}) =>
-        ({ commands }) => {
+        ({ commands, state }) => {
           const { type = "theorem", title = "", number = "" } = attributes;
 
-          // Use insertContent with HTML string for better compatibility
-          const theoremHTML = `
-            <div data-type="theorem-block" data-theorem-type="${type}" data-number="${number}">
-              <div class="theorem-header">${type.charAt(0).toUpperCase() + type.slice(1)} ${number}${title ? `: ${title}` : ""}</div>
-              <div class="theorem-content">
-                <p>在此输入定理内容...</p>
-              </div>
-            </div>
-          `;
+          // Create the theorem block node
+          const theoremNode = state.schema.nodes.theoremBlock.create({ type, title, number }, state.schema.nodes.paragraph.create({}, state.schema.text("在此输入定理内容...")));
 
-          return commands.insertContent(theoremHTML);
+          // Insert the node
+          return commands.insertContent(theoremNode.toJSON());
+        },
+
+      // Add delete command for better deletion support
+      deleteTheoremBlock:
+        () =>
+        ({ commands }) => {
+          return commands.deleteNode("theoremBlock");
         },
     };
   },
@@ -257,6 +269,18 @@ export const TheoremBlock = Node.create({
   addKeyboardShortcuts() {
     return {
       "Mod-Alt-t": () => this.editor.commands.setTheoremBlock(),
+      // Add delete shortcut when inside theorem block
+      Backspace: ({ editor }) => {
+        const { selection } = editor.state;
+        const { $from } = selection;
+
+        // Check if we're at the start of a theorem block
+        if ($from.parent.type.name === "theoremBlock" && $from.parentOffset === 0) {
+          return editor.commands.deleteTheoremBlock();
+        }
+
+        return false;
+      },
     };
   },
 });
@@ -284,38 +308,71 @@ export const EnhancedBlockquote = Node.create({
     return [
       {
         tag: 'blockquote[data-type="enhanced"]',
+        getAttrs: (dom) => ({
+          author: dom.getAttribute("data-author") || "",
+          citation: dom.getAttribute("data-citation") || "",
+        }),
+      },
+      // Also support standard blockquote for compatibility
+      {
+        tag: "blockquote",
+        getAttrs: (dom) => {
+          // Only match if it doesn't have data-type="enhanced" already
+          if (dom.getAttribute("data-type") === "enhanced") return false;
+          return {
+            author: dom.getAttribute("data-author") || "",
+            citation: dom.getAttribute("data-citation") || "",
+          };
+        },
       },
     ];
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    return [
+    const elements = [
       "blockquote",
       mergeAttributes(HTMLAttributes, {
         "data-type": "enhanced",
+        "data-author": node.attrs.author,
+        "data-citation": node.attrs.citation,
       }),
       0,
-      node.attrs.author || node.attrs.citation ? ["cite", {}, node.attrs.author ? `— ${node.attrs.author}` : "", node.attrs.citation ? ` (${node.attrs.citation})` : ""] : null,
-    ].filter(Boolean);
+    ];
+
+    // Add citation element if author or citation exists
+    if (node.attrs.author || node.attrs.citation) {
+      const citeText = [node.attrs.author ? `— ${node.attrs.author}` : "", node.attrs.citation ? ` (${node.attrs.citation})` : ""].filter(Boolean).join("");
+
+      elements.push(["cite", {}, citeText]);
+    }
+
+    return elements;
   },
 
   addCommands() {
     return {
       setEnhancedBlockquote:
-        (attributes) =>
+        (attributes = {}) =>
         ({ commands }) => {
           return commands.wrapIn(this.name, attributes);
         },
       toggleEnhancedBlockquote:
-        (attributes) =>
+        (attributes = {}) =>
         ({ commands }) => {
           return commands.toggleWrap(this.name, attributes);
         },
       // 提供标准的blockquote命令以兼容工具栏
       toggleBlockquote:
-        (attributes) =>
+        (attributes = {}) =>
         ({ commands }) => {
           return commands.toggleWrap(this.name, attributes);
+        },
+      // Add command to set citation info
+      setBlockquoteCitation:
+        (attributes = {}) =>
+        ({ commands }) => {
+          const { author = "", citation = "" } = attributes;
+          return commands.updateAttributes(this.name, { author, citation });
         },
     };
   },

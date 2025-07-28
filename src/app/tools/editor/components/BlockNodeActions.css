@@ -1,0 +1,110 @@
+/* Block Node Actions Styles */
+.block-node-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.block-node-actions.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.actions-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.action-btn {
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.action-btn:hover {
+  background: #f5f5f5 !important;
+  transform: scale(1.1);
+}
+
+.action-btn.move-up:hover {
+  background: #e6f7ff !important;
+  color: #1890ff !important;
+}
+
+.action-btn.move-down:hover {
+  background: #e6f7ff !important;
+  color: #1890ff !important;
+}
+
+.action-btn.edit:hover {
+  background: #f6ffed !important;
+  color: #52c41a !important;
+}
+
+.action-btn.delete:hover {
+  background: #fff2f0 !important;
+  color: #ff4d4f !important;
+}
+
+/* Block wrapper styles for hover effect */
+.block-node-wrapper {
+  position: relative;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.block-node-wrapper:hover {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.block-node-wrapper:hover .block-node-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Specific styles for different block types */
+.code-block-wrapper {
+  margin: 16px 0;
+}
+
+.math-block-wrapper {
+  margin: 24px 0;
+}
+
+.theorem-block-wrapper {
+  margin: 24px 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .block-node-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .actions-container {
+    padding: 6px;
+    gap: 4px;
+  }
+  
+  .action-btn {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}

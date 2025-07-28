@@ -212,8 +212,188 @@
   font-size: 1.1em;
 }
 
-/* Theorem Block */
-.ProseMirror div[data-type="theorem-block"] {
+/* Math Block - Updated for third-party extension */
+.ProseMirror .math-block-container,
+.ProseMirror .math-container {
+  position: relative;
+  margin: 24px 0;
+}
+
+.ProseMirror .math-block {
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #ee1d1d;
+  border-radius: 4px;
+  text-align: center;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Math Inline - For third-party extension */
+.ProseMirror .math-inline-wrapper {
+  display: inline-block;
+  position: relative;
+  margin: 0 2px;
+}
+
+.ProseMirror .math-inline {
+  display: inline-block;
+  padding: 2px 4px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 3px;
+}
+
+/* Third-party math extension styles */
+.ProseMirror .math-node {
+  position: relative;
+}
+
+.ProseMirror .math-node:hover .block-node-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* @aarkue/tiptap-math-extension specific styles */
+.ProseMirror .math-inline-node {
+  display: inline-block;
+  position: relative;
+  margin: 0 2px;
+  padding: 2px 6px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.ProseMirror .math-inline-node:hover {
+  background: #e9ecef;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.ProseMirror .math-block-node {
+  display: block;
+  margin: 16px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  text-align: center;
+  position: relative;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 14px;
+  overflow-x: auto;
+  transition: all 0.2s ease;
+}
+
+.ProseMirror .math-block-node:hover {
+  background: #e9ecef;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 为第三方扩展的数学节点添加代码块风格 */
+.ProseMirror .math-node,
+.ProseMirror .math-container {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.ProseMirror .math-node:hover,
+.ProseMirror .math-container:hover {
+  background: #e9ecef;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 第三方扩展的行内数学节点 */
+.ProseMirror .math-inline-wrapper .math-container {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 4px 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* 第三方扩展的块级数学节点 */
+.ProseMirror .math-block-wrapper .math-container {
+  display: block;
+  margin: 16px 0;
+  padding: 16px;
+  text-align: center;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+/* 确保 KaTeX 渲染的内容居中 */
+.ProseMirror .math-block .katex-display {
+  margin: 0 !important;
+  text-align: center !important;
+}
+
+.ProseMirror .math-block .katex {
+  font-size: 1.2em !important;
+}
+
+/* 第三方扩展的默认样式覆盖 */
+.ProseMirror .math-inline {
+  display: inline-block;
+  padding: 4px 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  margin: 0 2px;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  transition: all 0.2s ease;
+}
+
+.ProseMirror .math-inline:hover {
+  background: #e9ecef;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 为第三方扩展的块级数学公式添加样式 */
+.ProseMirror .math-display {
+  display: block;
+  margin: 16px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  text-align: center;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  transition: all 0.2s ease;
+}
+
+.ProseMirror .math-display:hover {
+  background: #e9ecef;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 通用数学节点样式 */
+.ProseMirror [data-type="math"] {
+  position: relative;
+}
+
+.ProseMirror [data-type="math"]:hover .block-node-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Theorem Block - Updated for NodeView */
+.ProseMirror .theorem-block-container {
+  position: relative;
   margin: 24px 0;
   border: 1px solid #d9d9d9;
   border-radius: 8px;
@@ -221,7 +401,7 @@
   background: #fff;
 }
 
-.ProseMirror div[data-type="theorem-block"] .theorem-header {
+.ProseMirror .theorem-block-container .theorem-header {
   background: linear-gradient(135deg, #ee1d1d, #ff4d4f);
   color: white;
   padding: 12px 16px;
@@ -231,7 +411,7 @@
   letter-spacing: 0.5px;
 }
 
-.ProseMirror div[data-type="theorem-block"] .theorem-content {
+.ProseMirror .theorem-block-container .theorem-content {
   padding: 16px;
   background: #fafafa;
 }
@@ -296,6 +476,33 @@
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin: 16px 0;
+}
+
+/* Code Block - Updated for NodeView */
+.ProseMirror .code-block-container {
+  position: relative;
+  margin: 16px 0;
+}
+
+.ProseMirror .code-block {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0;
+}
+
+.ProseMirror .code-block code {
+  background: none;
+  padding: 0;
+  border: none;
+  font-family: inherit;
 }
 
 /* Tables */

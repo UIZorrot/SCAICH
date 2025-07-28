@@ -482,46 +482,6 @@ const AcademicEditor = ({ onBackToTools }) => {
           console.log("Citation inserted:", paper);
         }}
       />
-
-      {/* 底部快捷键提示栏 */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: "rgba(0, 0, 0, 0.8)",
-          color: "white",
-          padding: "8px 16px",
-          fontSize: "12px",
-          zIndex: 1000,
-          display: "flex",
-          justifyContent: "center",
-          gap: "24px",
-          backdropFilter: "blur(4px)",
-        }}
-      >
-        <span>
-          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+S</kbd>
-          保存文档
-        </span>
-        <span>
-          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+B</kbd>
-          加粗
-        </span>
-        <span>
-          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+I</kbd>
-          斜体
-        </span>
-        <span>
-          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+Z</kbd>
-          撤销
-        </span>
-        <span>
-          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+Y</kbd>
-          重做
-        </span>
-      </div>
     </div>
   );
 };
