@@ -81,7 +81,7 @@
 
 .editor-container .tiptap-editor-container {
   width: 100%;
-  height: calc(100vh - 300px); /* Account for header and padding */
+  height: 100%; /* Account for header and padding */
 }
 
 /* Welcome Screen */

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Layout, Button, Space, Typography, Card, Row, Col, Drawer, message, Modal } from "antd";
 import { EditOutlined, FileTextOutlined, UnorderedListOutlined, BulbOutlined, FullscreenOutlined, FullscreenExitOutlined, MenuOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +21,10 @@ const AcademicEditor = ({ onBackToTools }) => {
   const [activeTab, setActiveTab] = useState("documents"); // 'documents', 'outline', or 'ai'
   const [selectedText, setSelectedText] = useState("");
   const [editorInstance, setEditorInstance] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Ref for DocumentManager to access its methods
+  const documentManagerRef = useRef(null);
 
   // Load current document from localStorage on mount
   useEffect(() => {
@@ -33,6 +37,48 @@ const AcademicEditor = ({ onBackToTools }) => {
       }
     }
   }, []);
+
+  // Add global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Ctrl+S or Cmd+S for save
+      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+        event.preventDefault();
+        if (currentDocument) {
+          // Use the DocumentManager ref to trigger save
+          if (documentManagerRef.current && documentManagerRef.current.saveCurrentDocument) {
+            documentManagerRef.current.saveCurrentDocument();
+          } else {
+            message.info("保存功能暂时不可用");
+          }
+        } else {
+          message.warning("没有打开的文档需要保存");
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentDocument]);
+
+  // Sync hasUnsavedChanges state from DocumentManager
+  useEffect(() => {
+    const syncUnsavedChanges = () => {
+      if (documentManagerRef.current) {
+        setHasUnsavedChanges(documentManagerRef.current.hasUnsavedChanges || false);
+      }
+    };
+
+    // Initial sync
+    syncUnsavedChanges();
+
+    // Set up interval to sync periodically
+    const interval = setInterval(syncUnsavedChanges, 100);
+
+    return () => clearInterval(interval);
+  }, [currentDocument]);
 
   // Handle document content changes
   const handleDocumentChange = useCallback(
@@ -69,11 +115,18 @@ const AcademicEditor = ({ onBackToTools }) => {
   // AI optimization handlers
   const handleAIOptimize = useCallback(
     async (text) => {
+      if (!text || text.trim().length === 0) {
+        message.warning("请先选择要优化的文本");
+        return;
+      }
+
       try {
         message.loading("正在优化文本...", 0);
 
-        // Call AI service to optimize text
-        const aiService = (await import("./services/AIService")).default;
+        // Import and create AI service instance
+        const AIServiceClass = (await import("./services/AIService")).default;
+        const aiService = new AIServiceClass();
+
         const response = await aiService.improveContent({
           content: text,
           improvementType: "general",
@@ -82,6 +135,7 @@ const AcademicEditor = ({ onBackToTools }) => {
 
         const optimizedText = response.choices?.[0]?.message?.content;
         if (optimizedText) {
+          message.destroy();
           // Show optimization result in a modal for user to choose
           Modal.confirm({
             title: "AI文本优化结果",
@@ -90,31 +144,41 @@ const AcademicEditor = ({ onBackToTools }) => {
                 <p>
                   <strong>原文：</strong>
                 </p>
-                <div style={{ background: "#f5f5f5", padding: "8px", borderRadius: "4px", marginBottom: "16px" }}>{text}</div>
+                <div style={{ background: "#f5f5f5", padding: "8px", borderRadius: "4px", marginBottom: "16px", maxHeight: "150px", overflow: "auto" }}>{text}</div>
                 <p>
                   <strong>优化后：</strong>
                 </p>
-                <div style={{ background: "#e6f7ff", padding: "8px", borderRadius: "4px" }}>{optimizedText}</div>
+                <div style={{ background: "#e6f7ff", padding: "8px", borderRadius: "4px", maxHeight: "150px", overflow: "auto" }}>{optimizedText}</div>
               </div>
             ),
             okText: "替换原文",
             cancelText: "取消",
-            width: 600,
+            width: 700,
             onOk: () => {
               // Replace selected text with optimized version
               if (editorInstance) {
                 const { from, to } = editorInstance.state.selection;
-                editorInstance.chain().focus().deleteRange({ from, to }).insertContent(optimizedText).run();
+                if (from !== to) {
+                  // Replace selected text
+                  editorInstance.chain().focus().deleteRange({ from, to }).insertContent(optimizedText).run();
+                } else {
+                  // Insert at cursor position
+                  editorInstance.chain().focus().insertContent(optimizedText).run();
+                }
+                message.success("文本已替换为优化版本");
+              } else {
+                message.error("编辑器未准备就绪");
               }
-              message.success("文本已替换为优化版本");
             },
           });
+        } else {
+          message.destroy();
+          message.error("AI 服务返回空内容，请重试");
         }
-
-        message.destroy();
       } catch (error) {
         message.destroy();
-        message.error("文本优化失败：" + error.message);
+        console.error("AI optimization error:", error);
+        message.error("文本优化失败：" + (error.message || "未知错误"));
       }
     },
     [editorInstance]
@@ -122,11 +186,18 @@ const AcademicEditor = ({ onBackToTools }) => {
 
   const handleAIPolish = useCallback(
     async (text) => {
+      if (!text || text.trim().length === 0) {
+        message.warning("请先选择要润色的文本");
+        return;
+      }
+
       try {
         message.loading("正在润色文本...", 0);
 
-        // Call AI service to polish text
-        const aiService = new (await import("./services/AIService")).default();
+        // Import and create AI service instance
+        const AIServiceClass = (await import("./services/AIService")).default;
+        const aiService = new AIServiceClass();
+
         const response = await aiService.improveContent({
           content: text,
           improvementType: "style",
@@ -135,6 +206,7 @@ const AcademicEditor = ({ onBackToTools }) => {
 
         const polishedText = response.choices?.[0]?.message?.content;
         if (polishedText) {
+          message.destroy();
           // Show polishing result in a modal for user to choose
           Modal.confirm({
             title: "AI文本润色结果",
@@ -143,31 +215,41 @@ const AcademicEditor = ({ onBackToTools }) => {
                 <p>
                   <strong>原文：</strong>
                 </p>
-                <div style={{ background: "#f5f5f5", padding: "8px", borderRadius: "4px", marginBottom: "16px" }}>{text}</div>
+                <div style={{ background: "#f5f5f5", padding: "8px", borderRadius: "4px", marginBottom: "16px", maxHeight: "150px", overflow: "auto" }}>{text}</div>
                 <p>
                   <strong>润色后：</strong>
                 </p>
-                <div style={{ background: "#f6ffed", padding: "8px", borderRadius: "4px" }}>{polishedText}</div>
+                <div style={{ background: "#f6ffed", padding: "8px", borderRadius: "4px", maxHeight: "150px", overflow: "auto" }}>{polishedText}</div>
               </div>
             ),
             okText: "替换原文",
             cancelText: "取消",
-            width: 600,
+            width: 700,
             onOk: () => {
               // Replace selected text with polished version
               if (editorInstance) {
                 const { from, to } = editorInstance.state.selection;
-                editorInstance.chain().focus().deleteRange({ from, to }).insertContent(polishedText).run();
+                if (from !== to) {
+                  // Replace selected text
+                  editorInstance.chain().focus().deleteRange({ from, to }).insertContent(polishedText).run();
+                } else {
+                  // Insert at cursor position
+                  editorInstance.chain().focus().insertContent(polishedText).run();
+                }
+                message.success("文本已替换为润色版本");
+              } else {
+                message.error("编辑器未准备就绪");
               }
-              message.success("文本已替换为润色版本");
             },
           });
+        } else {
+          message.destroy();
+          message.error("AI 服务返回空内容，请重试");
         }
-
-        message.destroy();
       } catch (error) {
         message.destroy();
-        message.error("文本润色失败：" + error.message);
+        console.error("AI polish error:", error);
+        message.error("文本润色失败：" + (error.message || "未知错误"));
       }
     },
     [editorInstance]
@@ -180,6 +262,25 @@ const AcademicEditor = ({ onBackToTools }) => {
       setSidebarCollapsed(true);
     }
   }, [isFullscreen]);
+
+  // Quick create document function
+  const handleQuickCreateDocument = useCallback(async () => {
+    if (documentManagerRef.current) {
+      try {
+        const newDoc = await documentManagerRef.current.createDocument();
+        if (newDoc) {
+          message.success("新文档已创建，开始编写吧！");
+          // Close mobile drawer if open
+          if (isMobile) {
+            setMobileDrawerVisible(false);
+          }
+        }
+      } catch (error) {
+        console.error("Quick create document error:", error);
+        message.error("创建文档失败，请重试");
+      }
+    }
+  }, []);
 
   // Responsive sidebar for mobile
   const isMobile = window.innerWidth <= 768;
@@ -198,17 +299,24 @@ const AcademicEditor = ({ onBackToTools }) => {
         </Button>
       </div>
 
+      {/* DocumentManager should always be rendered to maintain ref */}
+      <DocumentManager ref={documentManagerRef} currentDocument={currentDocument} onDocumentChange={setCurrentDocument} onDocumentLoad={handleDocumentLoad} autoSave={true} editorInstance={editorInstance} visible={activeTab === "documents"} />
+
       <div className="sidebar-content">
         <AnimatePresence mode="wait">
-          {activeTab === "documents" && (
-            <motion.div key="documents" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
-              <DocumentManager currentDocument={currentDocument} onDocumentChange={setCurrentDocument} onDocumentLoad={handleDocumentLoad} autoSave={true} />
-            </motion.div>
-          )}
           {activeTab === "outline" && (
             <motion.div key="outline" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
               <DocumentOutline
                 editor={editorInstance}
+                currentDocument={currentDocument}
+                onSave={() => {
+                  if (documentManagerRef.current && documentManagerRef.current.saveCurrentDocument) {
+                    documentManagerRef.current.saveCurrentDocument();
+                  } else {
+                    message.info("保存功能暂时不可用");
+                  }
+                }}
+                hasUnsavedChanges={hasUnsavedChanges}
                 onNodeClick={(node) => {
                   console.log("Outline node clicked:", node);
                   // Jump to the position in editor
@@ -235,18 +343,18 @@ const AcademicEditor = ({ onBackToTools }) => {
           {activeTab === "ai" && (
             <motion.div key="ai" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
               <AISuggestionsPanel
-                editor={currentDocument?.editor}
+                editor={editorInstance}
                 selectedText={selectedText}
                 onApplySuggestion={(suggestion) => {
                   // Apply suggestion to editor
-                  if (currentDocument?.editor) {
-                    currentDocument.editor.commands.insertContent(suggestion);
+                  if (editorInstance) {
+                    editorInstance.commands.insertContent(suggestion);
                   }
                 }}
                 onInsertContent={(content) => {
                   // Insert generated content to editor
-                  if (currentDocument?.editor) {
-                    currentDocument.editor.commands.insertContent(content, {
+                  if (editorInstance) {
+                    editorInstance.commands.insertContent(content, {
                       parseOptions: {
                         preserveWhitespace: false,
                       },
@@ -343,18 +451,7 @@ const AcademicEditor = ({ onBackToTools }) => {
                     <p style={{ fontSize: 16, color: "#666", marginBottom: 32 }}>专为学术写作设计的智能编辑器，支持数学公式、图表、定理等学术元素</p>
 
                     <Space direction="vertical" size="large">
-                      <Button
-                        type="primary"
-                        size="large"
-                        icon={<FileTextOutlined />}
-                        onClick={() => {
-                          // Trigger document creation
-                          setActiveTab("documents");
-                          if (isMobile) {
-                            setMobileDrawerVisible(true);
-                          }
-                        }}
-                      >
+                      <Button type="primary" size="large" icon={<FileTextOutlined />} onClick={handleQuickCreateDocument}>
                         创建新文档
                       </Button>
 
@@ -385,6 +482,46 @@ const AcademicEditor = ({ onBackToTools }) => {
           console.log("Citation inserted:", paper);
         }}
       />
+
+      {/* 底部快捷键提示栏 */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "rgba(0, 0, 0, 0.8)",
+          color: "white",
+          padding: "8px 16px",
+          fontSize: "12px",
+          zIndex: 1000,
+          display: "flex",
+          justifyContent: "center",
+          gap: "24px",
+          backdropFilter: "blur(4px)",
+        }}
+      >
+        <span>
+          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+S</kbd>
+          保存文档
+        </span>
+        <span>
+          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+B</kbd>
+          加粗
+        </span>
+        <span>
+          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+I</kbd>
+          斜体
+        </span>
+        <span>
+          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+Z</kbd>
+          撤销
+        </span>
+        <span>
+          <kbd style={{ background: "#333", padding: "2px 6px", borderRadius: "3px", marginRight: "4px" }}>Ctrl+Y</kbd>
+          重做
+        </span>
+      </div>
     </div>
   );
 };

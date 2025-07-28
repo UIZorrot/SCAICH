@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 
-// 简化的NumberedHeading - 使用CSS计数器避免React重渲染问题
+// NumberedHeading - 使用JavaScript编号系统
 export const NumberedHeading = Node.create({
   name: "numberedHeading",
 
@@ -23,6 +23,10 @@ export const NumberedHeading = Node.create({
         default: 1,
         rendered: false,
       },
+      number: {
+        default: "",
+        rendered: false,
+      },
     };
   },
 
@@ -36,11 +40,13 @@ export const NumberedHeading = Node.create({
   renderHTML({ node, HTMLAttributes }) {
     const hasLevel = this.options.levels.includes(node.attrs.level);
     const level = hasLevel ? node.attrs.level : this.options.levels[0];
+    const number = node.attrs.number || "";
 
     return [
       `h${level}`,
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         "data-level": level,
+        "data-number": number,
         class: "numbered-heading",
       }),
       0,
@@ -52,7 +58,9 @@ export const NumberedHeading = Node.create({
       setNumberedHeading:
         (attributes) =>
         ({ commands }) => {
-          return commands.setNode(this.name, attributes);
+          // NumberedHeading has content: "inline*", so it should work with setNode
+          // But let's use toggleNode for better compatibility
+          return commands.toggleNode(this.name, "paragraph", attributes);
         },
       toggleNumberedHeading:
         (attributes) =>
@@ -133,68 +141,50 @@ export const FigureWithCaption = Node.create({
   addCommands() {
     return {
       setFigureWithCaption:
-        (attributes) =>
+        (attributes = {}) =>
         ({ commands }) => {
-          return commands.setNode(this.name, attributes);
+          const { src = "", alt = "", title = "", caption = "", number = "" } = attributes;
+
+          // Use insertContent with HTML string for better compatibility
+          const figureHTML = `
+            <figure data-type="figure-with-caption" data-number="${number}">
+              <img src="${src}" alt="${alt}" title="${title}" />
+              <figcaption>Figure ${number}: ${caption}</figcaption>
+            </figure>
+          `;
+
+          return commands.insertContent(figureHTML);
         },
     };
   },
 });
 
-// Equation Block Node
+// Custom Equation Block Node - Using TipTap Mathematics extension instead
+// This provides a wrapper command for compatibility with existing code
 export const EquationBlock = Node.create({
-  name: "equationBlock",
-
-  group: "block",
-
-  content: "",
-
-  marks: "",
-
-  addAttributes() {
-    return {
-      latex: {
-        default: "",
-      },
-      number: {
-        default: "",
-      },
-    };
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: 'div[data-type="equation-block"]',
-      },
-    ];
-  },
-
-  renderHTML({ node, HTMLAttributes }) {
-    return [
-      "div",
-      mergeAttributes(HTMLAttributes, {
-        "data-type": "equation-block",
-        "data-latex": node.attrs.latex,
-        "data-number": node.attrs.number,
-      }),
-      node.attrs.latex,
-    ];
-  },
+  name: "equationBlockWrapper",
 
   addCommands() {
     return {
       setEquationBlock:
-        (attributes) =>
+        (attributes = {}) =>
         ({ commands }) => {
-          return commands.setNode(this.name, attributes);
+          const { latex = "" } = attributes;
+          // Use insertBlockMath from Mathematics extension
+          return commands.insertBlockMath({ latex });
         },
     };
   },
 
   addKeyboardShortcuts() {
     return {
-      "Mod-Alt-e": () => this.editor.commands.setEquationBlock(),
+      "Mod-Alt-e": () => {
+        const latex = window.prompt("请输入LaTeX公式:", "E = mc^2");
+        if (latex) {
+          return this.editor.commands.setEquationBlock({ latex });
+        }
+        return false;
+      },
     };
   },
 });
@@ -245,9 +235,21 @@ export const TheoremBlock = Node.create({
   addCommands() {
     return {
       setTheoremBlock:
-        (attributes) =>
+        (attributes = {}) =>
         ({ commands }) => {
-          return commands.setNode(this.name, attributes);
+          const { type = "theorem", title = "", number = "" } = attributes;
+
+          // Use insertContent with HTML string for better compatibility
+          const theoremHTML = `
+            <div data-type="theorem-block" data-theorem-type="${type}" data-number="${number}">
+              <div class="theorem-header">${type.charAt(0).toUpperCase() + type.slice(1)} ${number}${title ? `: ${title}` : ""}</div>
+              <div class="theorem-content">
+                <p>在此输入定理内容...</p>
+              </div>
+            </div>
+          `;
+
+          return commands.insertContent(theoremHTML);
         },
     };
   },

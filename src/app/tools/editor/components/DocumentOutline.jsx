@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Tree, Typography, Card, Space, Button, Tooltip, Empty, Modal, Form, Input, Select, Row, Col, Divider, message } from "antd";
-import { UnorderedListOutlined, EyeOutlined, EyeInvisibleOutlined, ExpandOutlined, CompressOutlined, BulbOutlined, CopyOutlined, CloseOutlined } from "@ant-design/icons";
+import { UnorderedListOutlined, EyeOutlined, EyeInvisibleOutlined, ExpandOutlined, CompressOutlined, BulbOutlined, CopyOutlined, CloseOutlined, SaveOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useAIAssistant } from "../hooks/useAIAssistant";
 import aiService from "../services/AIService";
@@ -8,7 +8,7 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const DocumentOutline = ({ editor, onNodeClick, showWordCount = true, collapsible = true }) => {
+const DocumentOutline = ({ editor, onNodeClick, showWordCount = true, collapsible = true, currentDocument, onSave, hasUnsavedChanges }) => {
   const [treeData, setTreeData] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [isVisible, setIsVisible] = useState(true);

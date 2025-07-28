@@ -84,6 +84,71 @@
   color: #6a6a6a;
 }
 
+/* CSS计数器用于标题编号 */
+.ProseMirror {
+  counter-reset: h1-counter;
+}
+
+.ProseMirror .numbered-heading[data-level="1"] {
+  counter-increment: h1-counter;
+  counter-reset: h2-counter h3-counter h4-counter h5-counter h6-counter;
+}
+
+.ProseMirror .numbered-heading[data-level="2"] {
+  counter-increment: h2-counter;
+  counter-reset: h3-counter h4-counter h5-counter h6-counter;
+}
+
+.ProseMirror .numbered-heading[data-level="3"] {
+  counter-increment: h3-counter;
+  counter-reset: h4-counter h5-counter h6-counter;
+}
+
+.ProseMirror .numbered-heading[data-level="4"] {
+  counter-increment: h4-counter;
+  counter-reset: h5-counter h6-counter;
+}
+
+.ProseMirror .numbered-heading[data-level="5"] {
+  counter-increment: h5-counter;
+  counter-reset: h6-counter;
+}
+
+.ProseMirror .numbered-heading[data-level="6"] {
+  counter-increment: h6-counter;
+}
+
+/* 显示编号 */
+.ProseMirror .numbered-heading[data-level="1"]::before {
+  content: counter(h1-counter) ". ";
+  font-weight: inherit;
+}
+
+.ProseMirror .numbered-heading[data-level="2"]::before {
+  content: counter(h1-counter) "." counter(h2-counter) ". ";
+  font-weight: inherit;
+}
+
+.ProseMirror .numbered-heading[data-level="3"]::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) ". ";
+  font-weight: inherit;
+}
+
+.ProseMirror .numbered-heading[data-level="4"]::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter) ". ";
+  font-weight: inherit;
+}
+
+.ProseMirror .numbered-heading[data-level="5"]::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter) "." counter(h5-counter) ". ";
+  font-weight: inherit;
+}
+
+.ProseMirror .numbered-heading[data-level="6"]::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter) "." counter(h5-counter) "." counter(h6-counter) ". ";
+  font-weight: inherit;
+}
+
 /* Ensure proper cursor behavior in headings */
 .ProseMirror h1,
 .ProseMirror h2,

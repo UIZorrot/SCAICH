@@ -10,7 +10,7 @@ class AIService {
     // Support for custom API configuration
     this.apiKey = process.env.REACT_APP_OPENAI_API_KEY || "sk-1UUUQmO8a5SZiAdX8uQgo4rg0AZspMyCxizjhtbaPVOcBm9g";
     this.baseURL = process.env.REACT_APP_OPENAI_BASE_URL || "https://x666.me/v1";
-    this.model = process.env.REACT_APP_OPENAI_MODEL || "gemini-2.0-flash-exp";
+    this.model = process.env.REACT_APP_OPENAI_MODEL || "gemini-2.5-pro";
     this.maxTokens = 150000;
     this.temperature = 0.7;
   }
@@ -363,7 +363,7 @@ Provide the content in plain text format with citations in APA style.`;
           content: prompt,
         },
       ],
-      max_tokens: Math.min(this.maxTokens * 1.5, wordCount * 3), // Allow more tokens for literature-enhanced content
+      max_tokens: this.maxTokens, // Allow more tokens for literature-enhanced content
       temperature: this.temperature,
     };
 
@@ -575,7 +575,7 @@ Provide the improved version with clear, academic language suitable for scholarl
           content: prompt,
         },
       ],
-      max_tokens: this.maxTokens * 1.5,
+      max_tokens: this.maxTokens,
       temperature: 0.3, // Lower temperature for editing tasks
     };
 

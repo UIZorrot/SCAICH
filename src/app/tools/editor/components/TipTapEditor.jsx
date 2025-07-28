@@ -8,6 +8,7 @@ import Mathematics from "@tiptap/extension-mathematics";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
+import { CharacterCount } from "@tiptap/extension-character-count";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableHeader } from "@tiptap/extension-table-header";
@@ -19,9 +20,10 @@ import "katex/dist/katex.min.css";
 import "./TipTapEditor.css";
 
 // Import custom academic nodes
-import { FigureWithCaption, EquationBlock, TheoremBlock, EnhancedBlockquote } from "../extensions/AcademicNodes";
+import { NumberedHeading, FigureWithCaption, EquationBlock, TheoremBlock, EnhancedBlockquote } from "../extensions/AcademicNodes";
 import { SlashCommands, slashCommandItems } from "../extensions/SlashCommands";
 import { renderSlashCommands } from "../extensions/SlashCommandsRenderer";
+import { createHeadingNumberingPlugin, addNumberingCommands } from "../extensions/HeadingNumberingPlugin";
 
 // Import EditorToolbar
 import EditorToolbar from "./EditorToolbar";
@@ -60,20 +62,25 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
         },
-        // Disable default blockquote to use our enhanced version
-        blockquote: false,
       }),
       Placeholder.configure({
         placeholder,
       }),
       Typography,
       Underline,
+      CharacterCount,
       Mathematics.configure({
-        HTMLAttributes: {
-          class: "math-node",
+        katexOptions: {
+          throwOnError: false,
+          displayMode: true,
         },
-        renderHTML({ HTMLAttributes }) {
-          return ["span", HTMLAttributes, 0];
+        blockOptions: {
+          onClick: (node, pos) => {
+            const latex = window.prompt("编辑 LaTeX 公式:", node.attrs.latex);
+            if (latex) {
+              editor.chain().setNodeSelection(pos).updateBlockMath({ latex }).focus().run();
+            }
+          },
         },
       }),
       Image.configure({
@@ -378,8 +385,8 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
       {/* Editor Status Bar */}
       <div className="editor-status-bar">
         <div className="editor-stats">
-          <span>字符数: {editor.storage.characterCount?.characters() || 0}</span>
-          <span>单词数: {editor.storage.characterCount?.words() || 0}</span>
+          <span>字符数: {editor?.storage?.characterCount?.characters?.() || 0}</span>
+          <span>单词数: {editor?.storage?.characterCount?.words?.() || 0}</span>
         </div>
         <div className="editor-mode">
           <Button size="small" type={editable ? "primary" : "default"}>
