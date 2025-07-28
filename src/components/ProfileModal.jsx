@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Modal, notification, Button, Input, Avatar, Space, Card, Row, Col, Typography, Upload } from "antd";
 import { CopyOutlined, UploadOutlined, HistoryOutlined, ExportOutlined, LogoutOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
+import { useAuthService } from "../services/authService";
 
 const { Title, Text } = Typography;
 
 const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLoggedIn, setLoginModalVisible, setHisVisible }) => {
+  const { logout, user } = useAuthService();
   const [username, setUsername] = useState(localStorage.getItem("username") || `User_${userId.slice(0, 4)}`);
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "logo512.png");
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -58,22 +60,30 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
 
   const handleLogout = () => {
     Modal.confirm({
-      title: "Confirm Logout",
-      content: "Are you sure you want to log out? You'll need your User ID to log in again.",
-      okText: "Logout",
+      title: "确认登出",
+      content: "您确定要登出吗？登出后需要重新登录。",
+      okText: "登出",
+      cancelText: "取消",
       okButtonProps: { danger: true },
-      onOk: () => {
-        localStorage.removeItem("userId");
-        localStorage.removeItem("loginTime");
-        localStorage.removeItem("registerTime");
-        localStorage.removeItem("username");
-        localStorage.removeItem("theme");
-        localStorage.removeItem("avatar");
-        setUserId("");
-        setIsLoggedIn(false);
-        setLoginModalVisible(true);
-        notification.info({ message: "Logged out successfully" });
-        onClose();
+      onOk: async () => {
+        try {
+          await logout();
+          // 清理本地存储的旧数据
+          localStorage.removeItem("userId");
+          localStorage.removeItem("loginTime");
+          localStorage.removeItem("registerTime");
+          localStorage.removeItem("username");
+          localStorage.removeItem("theme");
+          localStorage.removeItem("avatar");
+          setUserId("");
+          setIsLoggedIn(false);
+          setLoginModalVisible(true);
+          notification.success({ message: "登出成功" });
+          onClose();
+        } catch (error) {
+          console.error('登出失败:', error);
+          notification.error({ message: "登出失败，请重试" });
+        }
       },
     });
   };

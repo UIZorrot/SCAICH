@@ -14,6 +14,8 @@ import { color, motion } from "framer-motion";
 import ProfileModal from "./components/ProfileModal.jsx"; // 新增导入
 import { InviteCodeGuideModal } from "./components/InviteCodeGuideModal.jsx"; // 新增导入
 import { useNavigate } from "react-router-dom"; // 新增导入
+import { useAuthService } from "./services/authService";
+import apiService from "./services/apiService";
 
 const { Title, Text } = Typography;
 
@@ -244,48 +246,50 @@ export default function SearchApp() {
   const [selectedPaperId, setSelectedPaperId] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
   const navigate = useNavigate();
+  
+  // 使用新的认证服务
+  const { user, isAuthenticated, hasPermission, login, logout, getBackendToken } = useAuthService();
 
-  // 验证用户 ID
-  const verifyUserId = async (userId) => {
+  // 验证用户认证状态
+  const verifyAuthentication = async () => {
     try {
-      const response = await fetch(`https://api.scai.sh/verify-user?user_id=${encodeURIComponent(userId)}`);
-      const data = await response.json();
-      if (!data.success) {
-        localStorage.removeItem("userId");
-        localStorage.removeItem("loginTime");
-        setUserId("");
-        setIsLoggedIn(false);
+      if (!isAuthenticated) {
         setLoginModalVisible(true);
-        notification.error({ message: "Invalid user ID. Please log in again." });
+        notification.error({ message: "Please log in to continue." });
         return false;
       }
+      
+      // 获取后端token以验证认证状态
+      const backendToken = await getBackendToken();
+      if (!backendToken) {
+        setLoginModalVisible(true);
+        notification.error({ message: "Authentication failed. Please log in again." });
+        return false;
+      }
+      
       return true;
     } catch (error) {
-      console.error("Error verifying user ID:", error);
-      localStorage.removeItem("userId");
-      localStorage.removeItem("loginTime");
-      setUserId("");
-      setIsLoggedIn(false);
+      console.error("Error verifying authentication:", error);
       setLoginModalVisible(true);
-      notification.error({ message: "Failed to verify user ID. Please log in again." });
+      notification.error({ message: "Failed to verify authentication. Please log in again." });
       return false;
     }
   };
 
-  // 页面加载时验证用户 ID
+  // 页面加载时验证认证状态
   useEffect(() => {
-    if (userId) {
-      verifyUserId(userId).then((isValid) => {
-        if (isValid) {
-          setIsLoggedIn(true);
-        } else {
-          setLoginModalVisible(true);
-        }
-      });
-    } else {
+    if (!isAuthenticated) {
       setLoginModalVisible(true);
+      setIsLoggedIn(false);
+    } else {
+      setIsLoggedIn(true);
+      // 同步用户信息
+      if (user?.id) {
+        setUserId(user.id);
+        localStorage.setItem("userId", user.id);
+      }
     }
-  }, [userId]);
+  }, [isAuthenticated, user]);
 
   // 处理 URL 参数
   useEffect(() => {
@@ -380,30 +384,22 @@ export default function SearchApp() {
   };
 
   const handleSearch = async () => {
-    if (!isLoggedIn || !userId) {
-      notification.error({ message: "Please log in to use the app" });
-      setLoginModalVisible(true);
-      return;
-    }
-
-    const isValid = await verifyUserId(userId);
+    const isValid = await verifyAuthentication();
     if (!isValid) return;
 
     if (query.replace(" ", "") === "") {
       return;
     }
+    
     setLoading(true);
     try {
-      const response = await fetch(`https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`, {
-        method: "GET",
-        mode: "cors",
-        headers: {
-          "Access-Control-Allow-Origin": true,
-          "ngrok-skip-browser-warning": true,
-          "Content-Type": "Authorization",
-        },
+      // 使用新的API服务进行搜索
+      const data = await apiService.search({
+        query: query,
+        limit: 10,
+        openAccessOnly: openAccessOnly
       });
-      const data = await response.json();
+      
       setIsFromLocal(false);
       setResults(data.results);
       setSummary(data.summary);
@@ -486,14 +482,21 @@ export default function SearchApp() {
   };
 
   const handleReadFullText = async (paperId, source) => {
-    if (!isLoggedIn || !userId) {
-      notification.error({ message: "Please log in to use Deep Research" });
-      setLoginModalVisible(true);
+    const isValid = await verifyAuthentication();
+    if (!isValid) return;
+
+    // 检查用户是否有深度研究权限
+    try {
+      const hasDeepResearchPermission = await hasPermission('deep_research');
+      if (!hasDeepResearchPermission) {
+        notification.error({ message: "You don't have permission to use Deep Research. Please upgrade your account." });
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking permission:', error);
+      notification.error({ message: "Permission check failed, please try again." });
       return;
     }
-
-    const isValid = await verifyUserId(userId);
-    if (!isValid) return;
 
     setSelectedPaperId(paperId);
     setChatModalVisible(true);
@@ -612,13 +615,17 @@ export default function SearchApp() {
                   borderRadius: "8px",
                   color: "#fff",
                 }}
-                onClick={() => {
-                  localStorage.removeItem("userId");
-                  localStorage.removeItem("loginTime");
-                  setUserId("");
-                  setIsLoggedIn(false);
-                  setLoginModalVisible(true);
-                  notification.info({ message: "Logged out successfully" });
+                onClick={async () => {
+                  try {
+                    await logout();
+                    setUserId("");
+                    setIsLoggedIn(false);
+                    setLoginModalVisible(true);
+                    notification.info({ message: "Logged out successfully" });
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                    notification.error({ message: "Failed to logout" });
+                  }
                 }}
               >
                 Logout
@@ -650,13 +657,17 @@ export default function SearchApp() {
                   borderRadius: "8px",
                   color: "#fff",
                 }}
-                onClick={() => {
-                  localStorage.removeItem("userId");
-                  localStorage.removeItem("loginTime");
-                  setUserId("");
-                  setIsLoggedIn(false);
-                  setLoginModalVisible(true);
-                  notification.info({ message: "Logged out successfully" });
+                onClick={async () => {
+                  try {
+                    await logout();
+                    setUserId("");
+                    setIsLoggedIn(false);
+                    setLoginModalVisible(true);
+                    notification.info({ message: "Logged out successfully" });
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                    notification.error({ message: "Failed to logout" });
+                  }
                 }}
               >
                 Logout
@@ -694,13 +705,17 @@ export default function SearchApp() {
                   borderRadius: "8px",
                   color: "#fff",
                 }}
-                onClick={() => {
-                  localStorage.removeItem("userId");
-                  localStorage.removeItem("loginTime");
-                  setUserId("");
-                  setIsLoggedIn(false);
-                  setLoginModalVisible(true);
-                  notification.info({ message: "Logged out successfully" });
+                onClick={async () => {
+                  try {
+                    await logout();
+                    setUserId("");
+                    setIsLoggedIn(false);
+                    setLoginModalVisible(true);
+                    notification.info({ message: "Logged out successfully" });
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                    notification.error({ message: "Failed to logout" });
+                  }
                 }}
               >
                 Logout

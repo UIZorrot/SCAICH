@@ -13,6 +13,10 @@ import { motion } from "framer-motion";
 import ProfileModal from "../../components/ProfileModal.jsx";
 import { InviteCodeGuideModal } from "../../components/InviteCodeGuideModal.jsx";
 import { useNavigate } from "react-router-dom";
+import { useAuthService } from "../../services/authService";
+import apiService from "../../services/apiService";
+import PermissionGuard from "../../components/PermissionGuard";
+import ErrorBoundary from "../../components/ErrorBoundary";
 
 import Layout from "../../components/layout/Layout";
 
@@ -20,7 +24,7 @@ import "./SearchPage.css";
 
 const { Title, Text } = Typography;
 
-export default function SearchPage() {
+function SearchPage() {
   const [canvasResults, setCanvasResults] = useState(0);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -49,6 +53,9 @@ export default function SearchPage() {
   const [totalPapersCount, setTotalPapersCount] = useState("--");
   const [irysStatus, setIrysStatus] = useState("checking"); // "checking", "available", "unavailable"
   const navigate = useNavigate();
+  
+  // 使用新的认证服务
+  const { isAuthenticated, hasPermission } = useAuthService();
 
   // 检查是否为重复历史记录
   const isDuplicateHistory = (newQuery) => {
@@ -334,9 +341,14 @@ export default function SearchPage() {
 
   // 搜索功能
   const handleSearch = async () => {
+    console.log("🔍 Search button clicked, query:", query);
+    
     if (query.replace(" ", "") === "") {
+      console.log("❌ Empty query, returning");
       return;
     }
+    
+    console.log("✅ Starting search...");
     setLoading(true);
     // 清空之前的结果，确保显示加载状态
     setResults([]);
@@ -346,16 +358,10 @@ export default function SearchPage() {
     setLatestPapers([]);
 
     try {
-      const response = await fetch(`https://api.scai.sh/search?query=${encodeURIComponent(query)}&limit=10&oa=${openAccessOnly}`, {
-        method: "GET",
-        mode: "cors",
-        headers: {
-          "Access-Control-Allow-Origin": true,
-          "ngrok-skip-browser-warning": true,
-          "Content-Type": "Authorization",
-        },
-      });
-      const data = await response.json();
+      console.log("📡 Calling apiService.searchPapers...");
+      const data = await apiService.searchPapers(query, 10, openAccessOnly);
+      console.log("✅ Search results received:", data);
+      
       setIsFromLocal(false);
       setResults(data.results);
       setSummary(data.summary);
@@ -367,10 +373,11 @@ export default function SearchPage() {
         localStorage.setItem("searchHistory", JSON.stringify(trimmedHistory));
       }
     } catch (error) {
-      console.error("Error fetching search results:", error);
-      notification.error({ message: "Failed to fetch search results" });
+      console.error("❌ Error fetching search results:", error);
+      notification.error({ message: "搜索失败，请稍后重试" });
     } finally {
       setLoading(false);
+      console.log("🏁 Search completed");
     }
   };
 
@@ -501,6 +508,28 @@ export default function SearchPage() {
 
   // 深度研究功能
   const handleReadFullText = async (paperId, source) => {
+    // 检查认证状态
+    if (!isAuthenticated) {
+      notification.warning({ message: "请先登录后再使用深度研究功能" });
+      return;
+    }
+    
+    try {
+      // 检查深度研究权限
+      const hasDeepResearchPermission = await hasPermission('deep_research');
+      if (!hasDeepResearchPermission) {
+        notification.warning({ 
+          message: "权限不足", 
+          description: "您需要升级账户才能使用深度研究功能" 
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking permission:', error);
+      notification.error({ message: "权限检查失败，请重试" });
+      return;
+    }
+    
     console.log("Opening chat for paper:", paperId, "source:", source);
     setSelectedPaperId(paperId);
     setSelectedSource(source);
@@ -831,5 +860,14 @@ export default function SearchPage() {
         )}
       </div>
     </Layout>
+  );
+}
+
+// 使用ErrorBoundary包装SearchPage组件
+export default function WrappedSearchPage() {
+  return (
+    <ErrorBoundary>
+      <SearchPage />
+    </ErrorBoundary>
   );
 }

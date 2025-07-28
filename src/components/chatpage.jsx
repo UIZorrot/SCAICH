@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Input, Button, Typography, Spin, List, Modal } from "antd";
+import { Input, Button, Typography, Spin, List, Modal, notification } from "antd";
 import io from "socket.io-client";
 import { SendOutlined } from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
+import { useAuthService } from "../services/authService";
 
 const { Paragraph } = Typography;
 
@@ -22,6 +23,9 @@ function ChatModal({ visible, paperId, source, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const socketRef = useRef(null); // 使用 ref 存储 socket 实例
+  
+  // 使用认证服务
+  const { isAuthenticated, getBackendToken } = useAuthService();
 
   useEffect(() => {
     if (!visible) {
@@ -65,53 +69,85 @@ function ChatModal({ visible, paperId, source, onClose }) {
 
     console.log("Connecting to WebSocket with:", { id: cleanPaperId, source: cleanSource });
 
-    const newSocket = io(url, {
-      query: { id: cleanPaperId, source: cleanSource },
-      transports: ["websocket"], // 强制使用 WebSocket，避免 polling 重连
-      reconnectionAttempts: 3, // 限制重连次数
-      reconnectionDelay: 1000,
-    });
-    socketRef.current = newSocket;
-    setSocket(newSocket);
-
-    newSocket.on("connect", () => {
-      console.log("WebSocket connected, SID:", newSocket.id);
-    });
-
-    newSocket.on("session_id", (data) => {
-      console.log("Session ID received:", data.session_id);
-      setSessionId(data.session_id);
-      setMessages((prev) => [...prev, { role: "system", content: "Agent connected" }]);
-      setLoading(false);
-    });
-
-    newSocket.on("response", (data) => {
-      console.log("Received response chunk:", data.chunk);
-      setMessages((prev) => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.role === "assistant") {
-          return [...prev.slice(0, -1), { ...lastMessage, content: lastMessage.content + data.chunk }];
+    // 获取认证token用于WebSocket连接
+    const connectWithAuth = async () => {
+      try {
+        if (!isAuthenticated) {
+          setError("请先登录后再使用深度研究功能");
+          setLoading(false);
+          return;
         }
-        return [...prev, { role: "assistant", content: data.chunk }];
-      });
-      setLoading(false);
-    });
+        
+        const token = await getBackendToken();
+        if (!token) {
+          setError("认证失败，请重新登录");
+          setLoading(false);
+          return;
+        }
+        
+        const newSocket = io(url, {
+          query: { id: cleanPaperId, source: cleanSource },
+          auth: { token }, // 添加认证token
+          transports: ["websocket"], // 强制使用 WebSocket，避免 polling 重连
+          reconnectionAttempts: 3, // 限制重连次数
+          reconnectionDelay: 1000,
+        });
+        
+        socketRef.current = newSocket;
+        setSocket(newSocket);
+        
+        // 设置WebSocket事件监听器
+         setupSocketListeners(newSocket);
+       } catch (error) {
+         console.error("Failed to connect with authentication:", error);
+         setError("连接失败，请检查网络或重新登录");
+         setLoading(false);
+       }
+     };
+     
+     // 设置WebSocket事件监听器的函数
+     const setupSocketListeners = (socket) => {
+       socket.on("connect", () => {
+         console.log("WebSocket connected, SID:", socket.id);
+       });
 
-    newSocket.on("error", (data) => {
-      console.error("WebSocket error:", data.message);
-      setError(data.message);
-      setLoading(false);
-    });
+       socket.on("session_id", (data) => {
+         console.log("Session ID received:", data.session_id);
+         setSessionId(data.session_id);
+         setMessages((prev) => [...prev, { role: "system", content: "Agent connected" }]);
+         setLoading(false);
+       });
 
-    newSocket.on("disconnect", () => {
-      console.log("WebSocket disconnected");
-    });
+       socket.on("response", (data) => {
+         console.log("Received response chunk:", data.chunk);
+         setMessages((prev) => {
+           const lastMessage = prev[prev.length - 1];
+           if (lastMessage && lastMessage.role === "assistant") {
+             return [...prev.slice(0, -1), { ...lastMessage, content: lastMessage.content + data.chunk }];
+           }
+           return [...prev, { role: "assistant", content: data.chunk }];
+         });
+         setLoading(false);
+       });
 
-    newSocket.on("connect_error", (err) => {
-      console.error("WebSocket connect error:", err.message);
-      setError("Failed to connect to server. Please try again.");
-      setLoading(false);
-    });
+       socket.on("error", (data) => {
+         console.error("WebSocket error:", data.message);
+         setError(data.message);
+         setLoading(false);
+       });
+
+       socket.on("disconnect", () => {
+         console.log("WebSocket disconnected");
+       });
+
+       socket.on("connect_error", (err) => {
+         console.error("WebSocket connect error:", err.message);
+         setError("连接失败，请稍后重试");
+         setLoading(false);
+       });
+     };
+     
+     connectWithAuth();
 
     return () => {
       // 清理函数只在组件卸载时执行
@@ -134,12 +170,18 @@ function ChatModal({ visible, paperId, source, onClose }) {
   }, [visible, paperId, source]); // 依赖项不变，但逻辑优化
 
   const sendQuery = () => {
+    // 检查认证状态
+    if (!isAuthenticated) {
+      setError("请先登录后再发送消息");
+      return;
+    }
+    
     if (!sessionId) {
-      setError("Session not initialized yet. Please wait...");
+      setError("会话未初始化，请稍等...");
       return;
     }
     if (!query.trim()) {
-      setError("Please enter a query");
+      setError("请输入您的问题");
       return;
     }
     setLoading(true);

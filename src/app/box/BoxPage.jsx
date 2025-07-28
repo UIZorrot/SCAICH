@@ -24,6 +24,8 @@ import {
 import { useUser } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import Layout from "../../components/layout/Layout";
+import { useAuthService } from "../../services/authService";
+import apiService from "../../services/apiService";
 
 import { uploadToIrys, validateFileType, validateFileSize, getSupportedFileTypes } from "../../utils/irysUploader";
 import ChatModal from "../../components/chatpage";
@@ -266,7 +268,7 @@ const generateProfileHTML = (profileData, user) => {
 };
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
+// const { TabPane } = Tabs; // Deprecated, using items instead
 
 // Favorites management utility functions
 const getFavorites = () => {
@@ -293,6 +295,7 @@ const removeFromFavorites = (doi) => {
 
 const BoxPage = () => {
   const { isSignedIn, user } = useUser();
+  const { isAuthenticated, hasPermission } = useAuthService();
 
   // Only use light mode
   const currentTheme = {
@@ -371,7 +374,25 @@ const BoxPage = () => {
   };
 
   // Deep Research handler function
-  const handleDeepResearch = (paperId, source) => {
+  const handleDeepResearch = async (paperId, source) => {
+    // 检查认证状态和深度研究权限
+    if (!isAuthenticated) {
+      message.warning("请先登录后再使用深度研究功能");
+      return;
+    }
+    
+    try {
+      const hasDeepResearchPermission = await hasPermission('deep_research');
+      if (!hasDeepResearchPermission) {
+        message.warning("您没有深度研究功能的权限");
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking permission:', error);
+      message.error("权限检查失败，请重试");
+      return;
+    }
+    
     console.log("Opening chat for paper:", paperId, "source:", source);
     setSelectedPaperId(paperId);
     setSelectedSource(source);
@@ -473,43 +494,68 @@ const BoxPage = () => {
                 </Button>
               </div>
             ) : (
-              <Tabs activeKey={activeTab} onChange={setActiveTab} size="large" style={{ marginBottom: "2rem" }} className="scholar-tabs">
-                <TabPane
-                  tab={
-                    <span>
-                      <HeartOutlined style={{ marginRight: "5px" }} />
-                      My Favorites ({favorites.length})
-                    </span>
+              <Tabs 
+                activeKey={activeTab} 
+                onChange={setActiveTab} 
+                size="large" 
+                style={{ marginBottom: "2rem" }} 
+                className="scholar-tabs"
+                items={[
+                  {
+                    key: 'favorites',
+                    label: (
+                      <span>
+                        <HeartOutlined style={{ marginRight: "5px" }} />
+                        My Favorites ({favorites.length})
+                      </span>
+                    ),
+                    children: (
+                      <FavoritesTab 
+                        favorites={favorites} 
+                        onRemove={handleRemoveFavorite} 
+                        onDeepResearch={handleDeepResearch} 
+                        currentTheme={currentTheme} 
+                        isAuthenticated={isAuthenticated} 
+                        hasPermission={hasPermission} 
+                      />
+                    )
+                  },
+                  {
+                    key: 'uploads',
+                    label: (
+                      <span>
+                        <CloudUploadOutlined style={{ marginRight: "5px" }} />
+                        My Uploads ({myUploads.length})
+                      </span>
+                    ),
+                    children: (
+                      <UploadsTab 
+                        uploads={myUploads} 
+                        onUpload={() => setUploadModalVisible(true)} 
+                        onRemoveUpload={handleRemoveUpload} 
+                        currentTheme={currentTheme} 
+                      />
+                    )
+                  },
+                  {
+                    key: 'profile',
+                    label: (
+                      <span>
+                        <UserOutlined style={{ marginRight: "5px" }} />
+                        Scholar Profile
+                      </span>
+                    ),
+                    children: (
+                      <ProfileTab 
+                        user={user} 
+                        onEdit={() => setProfileModalVisible(true)} 
+                        onRefresh={profileRefreshTrigger} 
+                        currentTheme={currentTheme} 
+                      />
+                    )
                   }
-                  key="favorites"
-                >
-                  <FavoritesTab favorites={favorites} onRemove={handleRemoveFavorite} onDeepResearch={handleDeepResearch} currentTheme={currentTheme} />
-                </TabPane>
-
-                <TabPane
-                  tab={
-                    <span>
-                      <CloudUploadOutlined style={{ marginRight: "5px" }} />
-                      My Uploads ({myUploads.length})
-                    </span>
-                  }
-                  key="uploads"
-                >
-                  <UploadsTab uploads={myUploads} onUpload={() => setUploadModalVisible(true)} onRemoveUpload={handleRemoveUpload} currentTheme={currentTheme} />
-                </TabPane>
-
-                <TabPane
-                  tab={
-                    <span>
-                      <UserOutlined style={{ marginRight: "5px" }} />
-                      Scholar Profile
-                    </span>
-                  }
-                  key="profile"
-                >
-                  <ProfileTab user={user} onEdit={() => setProfileModalVisible(true)} onRefresh={profileRefreshTrigger} currentTheme={currentTheme} />
-                </TabPane>
-              </Tabs>
+                ]}
+              />
             )}
           </div>
         </div>
@@ -539,7 +585,7 @@ const BoxPage = () => {
 };
 
 // Tab component definitions
-const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch }) => {
+const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAuthenticated, hasPermission }) => {
   const [bibtexModalVisible, setBibtexModalVisible] = useState(false);
   const [currentBibtex, setCurrentBibtex] = useState("");
   const [currentPaperTitle, setCurrentPaperTitle] = useState("");
@@ -641,10 +687,28 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch }) => 
   };
 
   // Deep Research handler function
-  const handleDeepResearch = (paper) => {
+  const handleDeepResearch = async (paper) => {
+    // 检查认证状态和深度研究权限
+    if (!isAuthenticated) {
+      message.warning("请先登录后再使用深度研究功能");
+      return;
+    }
+    
+    try {
+      const hasDeepResearchPermission = await hasPermission('deep_research');
+      if (!hasDeepResearchPermission) {
+        message.warning("您没有深度研究功能的权限");
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking permission:', error);
+      message.error("权限检查失败，请重试");
+      return;
+    }
+    
     // Check if fulltext is available
     if (!hasFulltext(paper)) {
-      message.warning("This paper has no fulltext available, cannot perform deep research");
+      message.warning("该论文没有全文可用，无法进行深度研究");
       return;
     }
 
@@ -1766,37 +1830,27 @@ const UploadModal = ({ visible, onClose, onSuccess, user }) => {
 
     setDoiLoading(true);
     try {
-      // Choose API endpoint based on environment
-      const apiUrl = process.env.NODE_ENV === "development" ? `http://localhost:3001/api/paper-info` : "/api/paper-info";
-
-      // Call API to query DOI information
-      const response = await fetch(`${apiUrl}?doi=${encodeURIComponent(doi.trim())}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data && !data.error) {
-          setPaperMetadata(data);
-          // Auto-fill form fields
-          form.setFieldsValue({
-            title: data.title,
-            description: data.abstract && data.abstract !== "Abstract Not Available" ? data.abstract.substring(0, 200) + "..." : "Paper abstract",
-            authors: data.author,
-            year: data.year,
-          });
-          message.success("DOI information retrieved successfully");
-        } else {
-          setPaperMetadata(null);
-          message.warning(data.error || "No information found for this DOI");
-        }
+      // 使用新的 API 服务
+      const data = await apiService.getPaperInfo(doi.trim());
+      
+      if (data && !data.error) {
+        setPaperMetadata(data);
+        // Auto-fill form fields
+        form.setFieldsValue({
+          title: data.title,
+          description: data.abstract && data.abstract !== "Abstract Not Available" ? data.abstract.substring(0, 200) + "..." : "论文摘要",
+          authors: data.author,
+          year: data.year,
+        });
+        message.success("DOI信息获取成功");
       } else {
-        const errorData = await response.json().catch(() => ({}));
         setPaperMetadata(null);
-        message.error(errorData.error || "DOI query failed");
+        message.warning(data?.error || "未找到该DOI的信息");
       }
     } catch (error) {
       console.error("DOI search error:", error);
       setPaperMetadata(null);
-      message.error("DOI query error: " + error.message);
+      message.error("DOI查询错误: " + error.message);
     } finally {
       setDoiLoading(false);
     }

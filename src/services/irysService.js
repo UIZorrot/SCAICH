@@ -224,6 +224,112 @@ class IrysService {
   getWalletAddress() {
     return this.wallet?.publicKey?.toString() || null;
   }
+
+  // Query transactions from Irys GraphQL endpoint
+  async queryTransactions(queryParams) {
+    try {
+      const { tags } = queryParams;
+      
+      // Build GraphQL query
+      let tagsFilter = '';
+      if (tags && tags.length > 0) {
+        const tagConditions = tags.map(tag => `{name: "${tag.name}", values: ["${tag.value}"]}`).join(', ');
+        tagsFilter = `tags: [${tagConditions}]`;
+      }
+
+      const query = `
+        query {
+          transactions(
+            ${tagsFilter}
+            first: 100
+            order: DESC
+          ) {
+            edges {
+              node {
+                id
+                tags {
+                  name
+                  value
+                }
+                owner {
+                  address
+                }
+                block {
+                  timestamp
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await fetch('https://arweave.mainnet.irys.xyz/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query })
+      });
+
+      if (!response.ok) {
+        throw new Error(`GraphQL query failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+      }
+
+      // Transform the response to match expected format
+      return result.data.transactions.edges.map(edge => ({
+        id: edge.node.id,
+        tags: edge.node.tags,
+        owner: edge.node.owner.address,
+        timestamp: edge.node.block?.timestamp
+      }));
+    } catch (error) {
+      console.error('Error querying transactions:', error);
+      throw error;
+    }
+  }
+
+  // Get transaction data from Irys gateway
+  async getTransactionData(txId) {
+    try {
+      const response = await fetch(`https://gateway.irys.xyz/${txId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transaction data: ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      } else {
+        return await response.text();
+      }
+    } catch (error) {
+      console.error('Error getting transaction data:', error);
+      throw error;
+    }
+  }
+
+  // Upload data to Irys
+  async uploadData(data, tags = []) {
+    if (!this.irys) {
+      throw new Error('Irys not initialized');
+    }
+
+    try {
+      const receipt = await this.irys.upload(data, { tags });
+      return receipt.id;
+    } catch (error) {
+      console.error('Failed to upload data:', error);
+      throw error;
+    }
+  }
 }
 
 const irysService = new IrysService();
