@@ -1,6 +1,6 @@
 /* Tools Page Styles */
 .tools-page {
-  min-height: 100vh;
+  min-height: 80vh;
   position: relative;
 }
 
@@ -15,6 +15,28 @@
 .hero-content {
   max-width: 800px;
   margin: 0 auto;
+}
+
+/* View Toggle */
+.view-toggle {
+  margin-top: 2rem;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toggle-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.toggle-option:hover {
+  transform: translateY(-2px);
 }
 
 /* Main Content */
@@ -265,7 +287,10 @@
   box-shadow: 0 4px 12px rgba(238, 29, 29, 0.4) !important;
 }
 
-
+.tools-page .ant-btn-primary:disabled {
+  color: rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {

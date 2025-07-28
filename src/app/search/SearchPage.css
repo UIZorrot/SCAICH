@@ -190,14 +190,6 @@
   transform: translateY(-2px) !important;
 }
 
-.light-theme .oa-checkbox {
-  color: #fff;
-}
-
-.dark-theme .oa-checkbox {
-  color: rgba(255, 255, 255, 0.8);
-}
-
 .history-toggle-btn {
   font-size: 0.9rem !important;
   height: auto !important;
