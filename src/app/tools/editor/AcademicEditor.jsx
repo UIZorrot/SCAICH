@@ -123,9 +123,8 @@ const AcademicEditor = ({ onBackToTools }) => {
       try {
         message.loading("正在优化文本...", 0);
 
-        // Import and create AI service instance
-        const AIServiceClass = (await import("./services/AIService")).default;
-        const aiService = new AIServiceClass();
+        // Import AI service singleton instance
+        const aiService = (await import("./services/AIService")).default;
 
         const response = await aiService.improveContent({
           content: text,
@@ -194,9 +193,8 @@ const AcademicEditor = ({ onBackToTools }) => {
       try {
         message.loading("正在润色文本...", 0);
 
-        // Import and create AI service instance
-        const AIServiceClass = (await import("./services/AIService")).default;
-        const aiService = new AIServiceClass();
+        // Import AI service singleton instance
+        const aiService = (await import("./services/AIService")).default;
 
         const response = await aiService.improveContent({
           content: text,
