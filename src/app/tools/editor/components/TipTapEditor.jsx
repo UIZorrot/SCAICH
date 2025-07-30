@@ -20,7 +20,7 @@ import CodeBlockNodeView from "./CodeBlockNodeView";
 // import MathBlockNodeView from "./MathBlockNodeView"; // 暂时注释，等待第三方扩展
 import TheoremBlockNodeView from "./TheoremBlockNodeView";
 import { Button, Tooltip, Divider, Dropdown } from "antd";
-import { BoldOutlined, ItalicOutlined, StrikethroughOutlined, LinkOutlined, PictureOutlined, TableOutlined, FunctionOutlined, ExperimentOutlined, QuestionCircleOutlined, BulbOutlined, HighlightOutlined, FontSizeOutlined, DownOutlined, CodeOutlined } from "@ant-design/icons";
+import { BoldOutlined, ItalicOutlined, StrikethroughOutlined, LinkOutlined, PictureOutlined, TableOutlined, FunctionOutlined, ExperimentOutlined, QuestionCircleOutlined, BulbOutlined, HighlightOutlined, FontSizeOutlined, DownOutlined, CodeOutlined, TranslationOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import "katex/dist/katex.min.css";
 import "./TipTapEditor.css";
@@ -34,8 +34,9 @@ import MathExtension from "@aarkue/tiptap-math-extension";
 // Import EditorToolbar
 import EditorToolbar from "./EditorToolbar";
 
-const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelection, onAIOptimize, onAIPolish, onEditorReady, placeholder = "开始写作您的学术论文...", editable = true }) => {
+const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelection, onAIOptimize, onAIPolish, onAITranslate, onEditorReady, placeholder = "开始写作您的学术论文...", editable: initialEditable = true }) => {
   const [selectedText, setSelectedText] = useState("");
+  const [editable, setEditable] = useState(initialEditable);
 
   // 稳定化回调函数，避免重渲染
   const handleUpdate = useCallback(
@@ -336,122 +337,139 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
     }
   }, [selectedText, onAIPolish]);
 
+  const handleAITranslate = useCallback(() => {
+    if (selectedText && onAITranslate) {
+      onAITranslate(selectedText);
+    }
+  }, [selectedText, onAITranslate]);
+
   if (!editor) {
     return null;
   }
 
   return (
     <div className="tiptap-editor-container">
-      {/* Editor Toolbar */}
-      <EditorToolbar editor={editor} />
+      {/* Editor Toolbar - Only show in edit mode */}
+      {editable && <EditorToolbar editor={editor} />}
 
-      {/* Bubble Menu for text formatting */}
-      <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu">
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="bubble-menu-content">
-          <Tooltip title="加粗">
-            <Button size="small" type={editor.isActive("bold") ? "primary" : "text"} icon={<BoldOutlined />} onClick={() => editor.chain().focus().toggleBold().run()} />
-          </Tooltip>
-
-          <Tooltip title="斜体">
-            <Button size="small" type={editor.isActive("italic") ? "primary" : "text"} icon={<ItalicOutlined />} onClick={() => editor.chain().focus().toggleItalic().run()} />
-          </Tooltip>
-
-          <Tooltip title="删除线">
-            <Button size="small" type={editor.isActive("strike") ? "primary" : "text"} icon={<StrikethroughOutlined />} onClick={() => editor.chain().focus().toggleStrike().run()} />
-          </Tooltip>
-
-          <Divider type="vertical" />
-
-          {/* Heading Dropdown */}
-          <Dropdown
-            menu={{
-              items: headingItems,
-            }}
-            trigger={["click"]}
-          >
-            <Tooltip title="设置标题级别">
-              <Button size="small" type={getCurrentHeadingLevel() > 0 ? "primary" : "text"} icon={<FontSizeOutlined />}>
-                {getCurrentHeadingLevel() > 0 ? `H${getCurrentHeadingLevel()}` : "H"}
-                <DownOutlined style={{ fontSize: "10px", marginLeft: "2px" }} />
-              </Button>
+      {/* Bubble Menu for text formatting - Only show in edit mode */}
+      {editable && (
+        <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu">
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="bubble-menu-content">
+            <Tooltip title="加粗">
+              <Button size="small" type={editor.isActive("bold") ? "primary" : "text"} icon={<BoldOutlined />} onClick={() => editor.chain().focus().toggleBold().run()} />
             </Tooltip>
-          </Dropdown>
 
-          <Divider type="vertical" />
+            <Tooltip title="斜体">
+              <Button size="small" type={editor.isActive("italic") ? "primary" : "text"} icon={<ItalicOutlined />} onClick={() => editor.chain().focus().toggleItalic().run()} />
+            </Tooltip>
 
-          <Tooltip title="添加链接">
-            <Button size="small" type={editor.isActive("link") ? "primary" : "text"} icon={<LinkOutlined />} onClick={addLink} />
-          </Tooltip>
+            <Tooltip title="删除线">
+              <Button size="small" type={editor.isActive("strike") ? "primary" : "text"} icon={<StrikethroughOutlined />} onClick={() => editor.chain().focus().toggleStrike().run()} />
+            </Tooltip>
 
-          <Tooltip title="插入图片">
-            <Button size="small" icon={<PictureOutlined />} onClick={addImage} />
-          </Tooltip>
+            <Divider type="vertical" />
 
-          <Tooltip title="插入表格">
-            <Button size="small" icon={<TableOutlined />} onClick={addTable} />
-          </Tooltip>
-
-          <Divider type="vertical" />
-
-          <Tooltip title="插入定理">
-            <Button size="small" icon={<ExperimentOutlined />} onClick={addTheorem} />
-          </Tooltip>
-
-          <Tooltip title="增强引用">
-            <Button
-              size="small"
-              type={editor.isActive("enhancedBlockquote") ? "primary" : "text"}
-              icon={<QuestionCircleOutlined />}
-              onClick={() => {
-                try {
-                  if (editor.isActive("enhancedBlockquote")) {
-                    // If already in blockquote, toggle it off
-                    editor.chain().focus().toggleBlockquote().run();
-                  } else {
-                    // If not in blockquote, create one and optionally ask for citation
-                    editor.chain().focus().toggleBlockquote().run();
-
-                    // Optionally prompt for citation info
-                    setTimeout(() => {
-                      const author = window.prompt("作者 (可选):");
-                      const citation = window.prompt("引用来源 (可选):");
-
-                      if (author || citation) {
-                        editor
-                          .chain()
-                          .focus()
-                          .setBlockquoteCitation({ author: author || "", citation: citation || "" })
-                          .run();
-                      }
-                    }, 100);
-                  }
-                } catch (error) {
-                  console.warn("Enhanced blockquote command not available:", error);
-                }
+            {/* Heading Dropdown */}
+            <Dropdown
+              menu={{
+                items: headingItems,
               }}
-            />
-          </Tooltip>
-
-          {/* AI Optimization Buttons - Only show when text is selected */}
-          {selectedText && selectedText.trim().length > 0 && (
-            <>
-              <Divider type="vertical" />
-
-              <Tooltip title="AI优化文本 - 改善表达和逻辑">
-                <Button size="small" icon={<BulbOutlined />} onClick={handleAIOptimize} type="primary" ghost style={{ color: "#1890ff", borderColor: "#1890ff" }} />
+              trigger={["click"]}
+            >
+              <Tooltip title="设置标题级别">
+                <Button size="small" type={getCurrentHeadingLevel() > 0 ? "primary" : "text"} icon={<FontSizeOutlined />}>
+                  {getCurrentHeadingLevel() > 0 ? `H${getCurrentHeadingLevel()}` : "H"}
+                  <DownOutlined style={{ fontSize: "10px", marginLeft: "2px" }} />
+                </Button>
               </Tooltip>
+            </Dropdown>
 
-              <Tooltip title="AI润色文本 - 提升学术写作风格">
-                <Button size="small" icon={<HighlightOutlined />} onClick={handleAIPolish} type="primary" ghost style={{ color: "#52c41a", borderColor: "#52c41a" }} />
-              </Tooltip>
-            </>
-          )}
-        </motion.div>
-      </BubbleMenu>
+            <Divider type="vertical" />
+
+            <Tooltip title="添加链接">
+              <Button size="small" type={editor.isActive("link") ? "primary" : "text"} icon={<LinkOutlined />} onClick={addLink} />
+            </Tooltip>
+
+            <Tooltip title="插入图片">
+              <Button size="small" icon={<PictureOutlined />} onClick={addImage} />
+            </Tooltip>
+
+            <Tooltip title="插入表格">
+              <Button size="small" icon={<TableOutlined />} onClick={addTable} />
+            </Tooltip>
+
+            <Divider type="vertical" />
+
+            <Tooltip title="插入定理">
+              <Button size="small" icon={<ExperimentOutlined />} onClick={addTheorem} />
+            </Tooltip>
+
+            <Tooltip title="增强引用">
+              <Button
+                size="small"
+                type={editor.isActive("enhancedBlockquote") ? "primary" : "text"}
+                icon={<QuestionCircleOutlined />}
+                onClick={() => {
+                  try {
+                    if (editor.isActive("enhancedBlockquote")) {
+                      // If already in blockquote, toggle it off
+                      editor.chain().focus().toggleBlockquote().run();
+                    } else {
+                      // If not in blockquote, create one and optionally ask for citation
+                      editor.chain().focus().toggleBlockquote().run();
+
+                      // Optionally prompt for citation info
+                      setTimeout(() => {
+                        const author = window.prompt("作者 (可选):");
+                        const citation = window.prompt("引用来源 (可选):");
+
+                        if (author || citation) {
+                          editor
+                            .chain()
+                            .focus()
+                            .setBlockquoteCitation({ author: author || "", citation: citation || "" })
+                            .run();
+                        }
+                      }, 100);
+                    }
+                  } catch (error) {
+                    console.warn("Enhanced blockquote command not available:", error);
+                  }
+                }}
+              />
+            </Tooltip>
+
+            {/* AI Optimization Buttons - Only show when text is selected */}
+            {selectedText && selectedText.trim().length > 0 && (
+              <>
+                <Divider type="vertical" />
+
+                <Tooltip title="AI优化文本 - 改善表达和逻辑">
+                  <Button size="small" icon={<BulbOutlined />} onClick={handleAIOptimize} type="primary" ghost style={{ color: "#1890ff", borderColor: "#1890ff" }} />
+                </Tooltip>
+
+                <Tooltip title="AI润色文本 - 提升学术写作风格">
+                  <Button size="small" icon={<HighlightOutlined />} onClick={handleAIPolish} type="primary" ghost style={{ color: "#52c41a", borderColor: "#52c41a" }} />
+                </Tooltip>
+
+                <Tooltip title="AI翻译文本 - 翻译为其他语言">
+                  <Button size="small" icon={<TranslationOutlined />} onClick={handleAITranslate} type="primary" ghost style={{ color: "#722ed1", borderColor: "#722ed1" }} />
+                </Tooltip>
+              </>
+            )}
+          </motion.div>
+        </BubbleMenu>
+      )}
 
       {/* Main Editor */}
-      <div className="editor-wrapper">
+      <div className={`editor-wrapper ${!editable ? "preview-mode" : "edit-mode"}`}>
         <EditorContent editor={editor} className="editor-content" />
+        {!editable && (
+          <div className="preview-overlay">
+            <span className="preview-badge">预览模式</span>
+          </div>
+        )}
       </div>
 
       {/* Editor Status Bar */}
@@ -461,7 +479,13 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
           <span>单词数: {editor?.storage?.characterCount?.words?.() || 0}</span>
         </div>
         <div className="editor-mode">
-          <Button size="small" type={editable ? "primary" : "default"}>
+          <Button
+            size="small"
+            type={editable ? "primary" : "default"}
+            onClick={() => {
+              setEditable(!editable);
+            }}
+          >
             {editable ? "编辑模式" : "预览模式"}
           </Button>
         </div>

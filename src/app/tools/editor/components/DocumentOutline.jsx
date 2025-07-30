@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Tree, Typography, Card, Space, Button, Tooltip, Empty, Modal, Form, Input, Select, Row, Col, Divider, message } from "antd";
-import { UnorderedListOutlined, EyeOutlined, EyeInvisibleOutlined, ExpandOutlined, CompressOutlined, BulbOutlined, CopyOutlined, CloseOutlined, SaveOutlined } from "@ant-design/icons";
+import { Tree, Typography, Card, Space, Button, Tooltip, Empty, Modal, Form, Input, Select, Row, Col, Divider, message, Progress } from "antd";
+import { UnorderedListOutlined, EyeOutlined, EyeInvisibleOutlined, ExpandOutlined, CompressOutlined, BulbOutlined, CopyOutlined, CloseOutlined, SaveOutlined, LoadingOutlined, StopOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useAIAssistant } from "../hooks/useAIAssistant";
 import aiService from "../services/AIService";
@@ -23,12 +23,128 @@ const DocumentOutline = ({ editor, onNodeClick, showWordCount = true, collapsibl
   const { isLoading, outlineData, clearOutline, getServiceStatus } = useAIAssistant();
   const [serviceStatus, setServiceStatus] = useState(null);
 
+  // Streaming states
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState("");
+  const [streamingProgress, setStreamingProgress] = useState(0);
+
   // Check service status
   useEffect(() => {
     setServiceStatus(getServiceStatus());
   }, [getServiceStatus]);
 
-  // 简化的大纲生成处理函数 - 直接插入TipTap JSON
+  // 流式大纲生成处理函数
+  const handleGenerateOutlineStream = async (values) => {
+    const params = {
+      topic: values.topic,
+      keywords: values.keywords?.split(",").map((k) => k.trim()) || [],
+      researchFocus: values.researchFocus,
+      paperType: values.paperType,
+      targetLength: values.targetLength,
+    };
+
+    try {
+      if (!aiService.isConfigured()) {
+        message.warning("请先配置AI服务API密钥");
+        return;
+      }
+
+      setIsStreaming(true);
+      setStreamingContent("");
+      setStreamingProgress(0);
+
+      // Start streaming generation
+      await aiService.generateEnhancedOutline(
+        params,
+        // onChunk callback
+        (chunk, fullContent) => {
+          setStreamingContent(fullContent);
+          // Estimate progress based on content length (rough estimation)
+          const estimatedProgress = Math.min(Math.floor(fullContent.length / 50), 95);
+          setStreamingProgress(estimatedProgress);
+        },
+        // onComplete callback
+        (finalContent) => {
+          setIsStreaming(false);
+          setStreamingProgress(100);
+
+          // Try to insert the final content into editor
+          if (finalContent && editor) {
+            try {
+              let jsonContent;
+              if (typeof finalContent === "string") {
+                // 更强健的JSON清理和解析逻辑
+                let cleanContent = finalContent.trim();
+
+                // 移除可能的markdown包装
+                if (cleanContent.startsWith("```json")) {
+                  cleanContent = cleanContent.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+                } else if (cleanContent.startsWith("```")) {
+                  cleanContent = cleanContent.replace(/^```\s*/, "").replace(/\s*```$/, "");
+                }
+
+                // 处理转义的JSON字符串（如果AI返回了转义的JSON）
+                if (cleanContent.startsWith('"') && cleanContent.endsWith('"')) {
+                  try {
+                    // 尝试解析转义的JSON字符串
+                    cleanContent = JSON.parse(cleanContent);
+                  } catch (e) {
+                    // 如果不是转义的JSON，继续使用原内容
+                    console.log("Not an escaped JSON string, proceeding with original content");
+                  }
+                }
+
+                // 最终JSON解析
+                jsonContent = JSON.parse(cleanContent);
+              } else {
+                jsonContent = finalContent;
+              }
+
+              // 验证是否为有效的TipTap JSON格式
+              if (jsonContent && jsonContent.type === "doc" && jsonContent.content) {
+                // Insert TipTap JSON format
+                editor.commands.insertContent(jsonContent);
+
+                // Close modal and reset form
+                setOutlineModalVisible(false);
+                outlineForm.resetFields();
+                setStreamingContent("");
+
+                message.success("🎉 论文大纲生成完成并已插入编辑器！");
+              } else {
+                throw new Error("生成的内容不是有效的TipTap JSON格式");
+              }
+            } catch (parseError) {
+              message.error(`解析大纲数据失败: ${parseError.message}`);
+            }
+          }
+        },
+        // onError callback
+        (error) => {
+          setIsStreaming(false);
+          setStreamingContent("");
+          setStreamingProgress(0);
+          message.error(`生成大纲时出现错误: ${error.message}`);
+        }
+      );
+    } catch (error) {
+      console.error("Error generating outline stream:", error);
+      setIsStreaming(false);
+      setStreamingContent("");
+      setStreamingProgress(0);
+      message.error(`生成大纲失败: ${error.message}`);
+    }
+  };
+
+  // 取消流式生成
+  const cancelStreaming = () => {
+    setIsStreaming(false);
+    setStreamingContent("");
+    setStreamingProgress(0);
+    message.info("已取消大纲生成");
+  };
+
+  // 简化的大纲生成处理函数 - 直接插入TipTap JSON (保留原有方法作为备用)
   const handleGenerateOutline = async (values) => {
     const params = {
       topic: values.topic,
@@ -463,52 +579,146 @@ const DocumentOutline = ({ editor, onNodeClick, showWordCount = true, collapsibl
       </Card>
 
       {/* Outline Generation Modal */}
-      <Modal title="AI生成论文大纲" open={outlineModalVisible} onCancel={() => setOutlineModalVisible(false)} footer={null} width={600}>
-        <Form form={outlineForm} layout="vertical" onFinish={handleGenerateOutline}>
-          <Form.Item name="topic" label="研究主题" rules={[{ required: true, message: "请输入研究主题" }]}>
-            <Input placeholder="例如：机器学习在医疗诊断中的应用" />
-          </Form.Item>
+      <Modal
+        title={isStreaming ? "🚀 AI正在生成论文大纲..." : "AI智能生成论文大纲"}
+        open={outlineModalVisible}
+        onCancel={() => {
+          if (isStreaming) {
+            cancelStreaming();
+          }
+          setOutlineModalVisible(false);
+        }}
+        footer={null}
+        width={isStreaming ? 800 : 600}
+        maskClosable={!isStreaming}
+        closable={!isStreaming}
+      >
+        {!isStreaming ? (
+          // 表单界面
+          <Form form={outlineForm} layout="vertical" onFinish={handleGenerateOutlineStream}>
+            <Form.Item name="topic" label="研究主题" rules={[{ required: true, message: "请输入研究主题" }]}>
+              <Input placeholder="例如：机器学习在医疗诊断中的应用" />
+            </Form.Item>
 
-          <Form.Item name="keywords" label="关键词">
-            <Input placeholder="用逗号分隔，例如：机器学习,医疗诊断,深度学习" />
-          </Form.Item>
+            <Form.Item name="keywords" label="关键词">
+              <Input placeholder="用逗号分隔，例如：机器学习,医疗诊断,深度学习" />
+            </Form.Item>
 
-          <Form.Item name="researchFocus" label="研究重点">
-            <TextArea rows={2} placeholder="描述研究的具体重点和方向..." />
-          </Form.Item>
+            <Form.Item name="researchFocus" label="研究重点">
+              <TextArea rows={2} placeholder="描述研究的具体重点和方向..." />
+            </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="paperType" label="论文类型" initialValue="research">
-                <Select>
-                  <Option value="research">研究论文</Option>
-                  <Option value="review">综述论文</Option>
-                  <Option value="case">案例研究</Option>
-                  <Option value="theoretical">理论分析</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="targetLength" label="目标长度" initialValue="medium">
-                <Select>
-                  <Option value="short">短篇 (3000-5000字)</Option>
-                  <Option value="medium">中篇 (5000-8000字)</Option>
-                  <Option value="long">长篇 (8000字以上)</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item name="paperType" label="论文类型" initialValue="research">
+                  <Select>
+                    <Option value="research">研究论文</Option>
+                    <Option value="review">综述论文</Option>
+                    <Option value="case">案例研究</Option>
+                    <Option value="theoretical">理论分析</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="targetLength" label="目标长度" initialValue="medium">
+                  <Select>
+                    <Option value="short">短篇 (3000-5000字)</Option>
+                    <Option value="medium">中篇 (5000-8000字)</Option>
+                    <Option value="long">长篇 (8000字以上)</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={isLoading}>
-                生成论文大纲
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" icon={<BulbOutlined />}>
+                  🚀 开始流式生成
+                </Button>
+                <Button onClick={() => setOutlineModalVisible(false)}>取消</Button>
+                <Divider type="vertical" />
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  ✨ 体验实时流式生成，看到大纲逐步展现
+                </Text>
+              </Space>
+            </Form.Item>
+          </Form>
+        ) : (
+          // 流式生成界面
+          <div style={{ padding: "20px 0" }}>
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <LoadingOutlined spin style={{ fontSize: "32px", color: "#1890ff", marginBottom: "16px" }} />
+              <Title level={4} style={{ margin: "0 0 8px 0" }}>
+                正在智能生成论文大纲
+              </Title>
+              <Text type="secondary">请耐心等待，AI正在为您构建完整的学术框架...</Text>
+            </div>
+
+            <Progress
+              percent={streamingProgress}
+              status="active"
+              strokeColor={{
+                "0%": "#108ee9",
+                "100%": "#87d068",
+              }}
+              style={{ marginBottom: "24px" }}
+            />
+
+            {/* 流式内容预览 */}
+            <Card
+              title="📝 实时生成内容预览"
+              size="small"
+              style={{
+                maxHeight: "400px",
+                overflow: "auto",
+                backgroundColor: "#fafafa",
+                border: "1px dashed #d9d9d9",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: 'Monaco, Menlo, "Ubuntu Mono", consolas, "source-code-pro", monospace',
+                  fontSize: "12px",
+                  lineHeight: "1.5",
+                  whiteSpace: "pre-wrap",
+                  color: "#666",
+                }}
+              >
+                {streamingContent || "等待AI开始生成..."}
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: "8px",
+                    height: "1em",
+                    backgroundColor: "#1890ff",
+                    marginLeft: "2px",
+                    animation: "blink 1s infinite",
+                  }}
+                />
+              </div>
+            </Card>
+
+            <div style={{ textAlign: "center", marginTop: "24px" }}>
+              <Button danger icon={<StopOutlined />} onClick={cancelStreaming} style={{ minWidth: "120px" }}>
+                停止生成
               </Button>
-              <Button onClick={() => setOutlineModalVisible(false)}>取消</Button>
-            </Space>
-          </Form.Item>
-        </Form>
+            </div>
+          </div>
+        )}
       </Modal>
+
+      <style jsx>{`
+        @keyframes blink {
+          0%,
+          50% {
+            opacity: 1;
+          }
+          51%,
+          100% {
+            opacity: 0;
+          }
+        }
+      `}</style>
 
       <style jsx>{`
         .document-outline {

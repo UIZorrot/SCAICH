@@ -7,12 +7,76 @@ import searchService from "./SearchService";
 
 class AIService {
   constructor() {
-    // Support for custom API configuration
-    this.apiKey = process.env.REACT_APP_OPENAI_API_KEY || "sk-1UUUQmO8a5SZiAdX8uQgo4rg0AZspMyCxizjhtbaPVOcBm9g";
-    this.baseURL = process.env.REACT_APP_OPENAI_BASE_URL || "https://x666.me/v1";
+    // Default configuration - can be overridden by user
+    this.apiKey = process.env.REACT_APP_OPENAI_API_KEY || "";
+    this.baseURL = process.env.REACT_APP_OPENAI_BASE_URL || "";
     this.model = process.env.REACT_APP_OPENAI_MODEL || "gemini-2.5-pro";
     this.maxTokens = 150000;
     this.temperature = 0.7;
+
+    // Load user configuration from localStorage
+    this.loadUserConfiguration();
+  }
+
+  /**
+   * Load user configuration from localStorage
+   */
+  loadUserConfiguration() {
+    try {
+      const savedConfig = localStorage.getItem("ai_service_config");
+      if (savedConfig) {
+        const config = JSON.parse(savedConfig);
+        if (config.apiKey) this.apiKey = config.apiKey;
+        if (config.baseURL) this.baseURL = config.baseURL;
+        if (config.model) this.model = config.model;
+      }
+    } catch (error) {
+      console.warn("Failed to load AI service configuration:", error);
+    }
+  }
+
+  /**
+   * Save user configuration to localStorage
+   */
+  saveUserConfiguration(config) {
+    try {
+      const configToSave = {
+        apiKey: config.apiKey || this.apiKey,
+        baseURL: config.baseURL || this.baseURL,
+        model: config.model || this.model,
+      };
+      localStorage.setItem("ai_service_config", JSON.stringify(configToSave));
+
+      // Update current instance
+      this.apiKey = configToSave.apiKey;
+      this.baseURL = configToSave.baseURL;
+      this.model = configToSave.model;
+
+      return true;
+    } catch (error) {
+      console.error("Failed to save AI service configuration:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Get current configuration
+   */
+  getCurrentConfiguration() {
+    return {
+      apiKey: this.apiKey,
+      baseURL: this.baseURL,
+      model: this.model,
+      maxTokens: this.maxTokens,
+      temperature: this.temperature,
+    };
+  }
+
+  /**
+   * Check if service is properly configured
+   */
+  isConfigured() {
+    return !!(this.apiKey && this.baseURL);
   }
 
   /**
@@ -41,92 +105,12 @@ class AIService {
   }
 
   /**
-   * Generate academic paper outline based on topic and requirements
-   */
-  async generateOutline(params) {
-    const { topic, keywords, researchFocus, paperType = "research", targetLength = "medium" } = params;
-
-    const prompt = `Generate a detailed academic paper outline for the following:
-
-Topic: ${topic}
-Keywords: ${keywords?.join(", ") || "N/A"}
-Research Focus: ${researchFocus || "General research"}
-Paper Type: ${paperType}
-Target Length: ${targetLength}
-
-Please provide a structured outline with:
-1. Title suggestions (3 options)
-2. Abstract structure
-3. Main sections with subsections
-4. Key points for each section
-5. Suggested methodology (if applicable)
-6. References structure
-
-Format the response as JSON with clear hierarchy.`;
-
-    const data = {
-      model: this.model,
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert academic writing assistant. Generate comprehensive, well-structured outlines for academic papers.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      max_tokens: this.maxTokens,
-      temperature: this.temperature,
-    };
-
-    return await this.makeAPICall("/chat/completions", data);
-  }
-
-  /**
    * Generate enhanced academic paper outline with literature search
    */
-  async generateEnhancedOutline(params) {
-    const { topic, keywords, researchFocus, paperType = "research", targetLength = "medium", includeLiterature = false } = params;
+  async generateEnhancedOutline(params, onChunk = null, onComplete = null, onError = null) {
+    const { topic, keywords, researchFocus, paperType = "research", targetLength = "medium" } = params;
 
     let literatureContext = "";
-    let citations = [];
-
-    if (includeLiterature) {
-      try {
-        // Search for relevant literature
-        const searchResult = await searchService.searchForAI({
-          topic,
-          keywords,
-          limit: 8,
-          includeAbstracts: true,
-        });
-
-        if (searchResult.success && searchResult.results.length > 0) {
-          // Format literature for AI context
-          literatureContext = `
-
-RELEVANT LITERATURE FOUND:
-${searchResult.results
-  .map(
-    (paper, index) => `
-${index + 1}. ${paper.title}
-   Authors: ${paper.authors}
-   Year: ${paper.year}
-   Abstract: ${paper.abstract.substring(0, 200)}...
-   DOI: ${paper.doi}
-`
-  )
-  .join("")}
-
-Please incorporate insights from this literature into the outline and suggest how these papers could be referenced in different sections.`;
-
-          citations = searchService.formatAsCitations(searchResult, "APA");
-        }
-      } catch (error) {
-        console.warn("Literature search failed, generating outline without literature context:", error);
-      }
-    }
 
     const prompt = `# Role
 You are a senior academic research consultant and TipTap JSON specialist, responsible for generating academic paper outlines in precise TipTap editor format.
@@ -234,17 +218,117 @@ Return ONLY the complete TipTap JSON object. No markdown code blocks, explanatio
       ],
       max_tokens: this.maxTokens, // 增加token限制以支持完整内容
       temperature: this.temperature,
+      stream: onChunk ? true : false, // Only stream if callback is provided
     };
 
-    const result = await this.makeAPICall("/chat/completions", data);
+    // If streaming callbacks are provided, use streaming
+    if (onChunk) {
+      try {
+        const response = await fetch(`${this.baseURL}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+          body: JSON.stringify(data),
+        });
 
-    // Attach found citations to the result
-    if (result && citations.length > 0) {
-      result.citations = citations;
-      result.literatureSearched = true;
+        if (!response.ok) {
+          throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let contentBuffer = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+              // Final processing when stream ends
+              if (contentBuffer.trim()) {
+                // 改进的JSON解析逻辑
+                let finalContent = contentBuffer.trim();
+
+                // 处理可能的markdown包装
+                if (finalContent.startsWith("```json")) {
+                  finalContent = finalContent.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+                } else if (finalContent.startsWith("```")) {
+                  finalContent = finalContent.replace(/^```\s*/, "").replace(/\s*```$/, "");
+                }
+
+                // 如果内容是转义的JSON字符串，先解析一层
+                if (finalContent.startsWith('"') && finalContent.endsWith('"') && finalContent.includes('\\"')) {
+                  try {
+                    finalContent = JSON.parse(finalContent);
+                  } catch (e) {
+                    console.log("Content is not an escaped JSON string");
+                  }
+                }
+
+                // 尝试解析为JSON对象
+                try {
+                  const finalJson = JSON.parse(finalContent);
+                  onComplete?.(finalJson);
+                  return finalJson;
+                } catch (parseError) {
+                  console.warn("Failed to parse final JSON content:", parseError);
+                  console.warn("Raw content:", contentBuffer);
+                  // 如果无法解析为JSON，返回原始内容字符串
+                  onComplete?.(finalContent);
+                  return finalContent;
+                }
+              } else {
+                onComplete?.("");
+                return "";
+              }
+            }
+
+            // Decode chunk and add to buffer
+            const chunk = decoder.decode(value, { stream: true });
+            buffer += chunk;
+
+            // Process complete lines (Server-Sent Events format)
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+            for (const line of lines) {
+              if (line.trim() === "") continue;
+              if (line.trim() === "data: [DONE]") continue;
+
+              if (line.startsWith("data: ")) {
+                try {
+                  const jsonData = JSON.parse(line.slice(6));
+                  const content = jsonData.choices?.[0]?.delta?.content;
+
+                  if (content) {
+                    contentBuffer += content;
+                    onChunk?.(content, contentBuffer);
+                  }
+                } catch (e) {
+                  // Skip malformed JSON chunks
+                  console.warn("Skipping malformed chunk:", line);
+                }
+              }
+            }
+          }
+        } catch (streamError) {
+          throw streamError;
+        } finally {
+          reader.releaseLock();
+        }
+      } catch (error) {
+        console.error("AI Service Streaming Error:", error);
+        onError?.(error);
+        throw error;
+      }
+    } else {
+      // Use traditional API call for non-streaming
+      const result = await this.makeAPICall("/chat/completions", data);
+      return result;
     }
-
-    return result;
   }
 
   /**
@@ -428,78 +512,130 @@ Provide the improved version with clear, academic language suitable for scholarl
   async getWritingSuggestions(params) {
     const { content, context, suggestionType = "general" } = params;
 
-    const prompt = `Analyze the following academic text and provide writing suggestions:
+    const suggestions = {
+      general: {
+        instruction: "提供综合性的写作改进建议",
+        examples: ["将'因为'改为'由于'提升正式性", "删除多余的'的'字优化表达", "添加过渡词连接句子"],
+      },
+      grammar: {
+        instruction: "专注于语法、标点和用词错误",
+        examples: ["修正主谓不一致", "统一时态表达", "纠正标点符号用法"],
+      },
+      style: {
+        instruction: "专注于文风和语言表达优化",
+        examples: ["替换口语化表达", "使用更正式的词汇", "调整句式结构"],
+      },
+      clarity: {
+        instruction: "专注于提升表达清晰度和逻辑性",
+        examples: ["拆分复杂长句", "明确指代关系", "增强逻辑连接"],
+      },
+      conciseness: {
+        instruction: "专注于精简表达和去除冗余",
+        examples: ["删除重复词汇", "合并冗余句子", "简化复杂表述"],
+      },
+    };
 
-Content:
-${content}
+    const currentType = suggestions[suggestionType] || suggestions.general;
 
-Context: ${context || "N/A"}
-Suggestion Type: ${suggestionType}
+    // 智能上下文：只在需要时提供简化的上下文
+    let contextInfo = "";
+    if (context && (suggestionType === "clarity" || suggestionType === "style")) {
+      // 提取选中文本前后的简短上下文（最多200字符）
+      const plainContext = this.stripHtmlTags(context);
+      const selectedIndex = plainContext.indexOf(content);
 
-Please provide:
-1. Specific improvement suggestions
-2. Alternative phrasings
-3. Structural recommendations
-4. Academic writing best practices
-5. Potential issues to address
+      if (selectedIndex !== -1) {
+        const start = Math.max(0, selectedIndex - 100);
+        const end = Math.min(plainContext.length, selectedIndex + content.length + 100);
+        const surroundingText = plainContext.slice(start, end);
 
-Format as a structured list with explanations.`;
+        if (surroundingText !== content) {
+          contextInfo = `\n\n上下文参考：\n${surroundingText}`;
+        }
+      }
+    }
+
+    const prompt = `${currentType.instruction}，分析以下文本：
+
+文本内容：
+${content}${contextInfo}
+
+要求：
+- 只提供3-5条具体的改进建议
+- 每条建议不超过20个字
+- 建议应该可直接应用
+- 专注于${suggestionType === "general" ? "综合优化" : currentType.instruction}
+
+示例格式：
+${currentType.examples.map((ex) => `- ${ex}`).join("\n")}
+
+请按照上述格式提供建议：`;
 
     const data = {
       model: this.model,
       messages: [
         {
           role: "system",
-          content: "You are an expert academic writing coach. Provide constructive, actionable feedback for academic writing.",
+          content: `你是专业的中文写作助手，专注于${currentType.instruction}。只提供简短、具体、可操作的建议。`,
         },
         {
           role: "user",
           content: prompt,
         },
       ],
-      max_tokens: this.maxTokens,
-      temperature: 0.5,
+      max_tokens: 300,
+      temperature: 0.3,
     };
 
     return await this.makeAPICall("/chat/completions", data);
   }
 
   /**
-   * Generate citations and references
+   * Translate text to target language
    */
-  async generateCitations(params) {
-    const { topic, citationStyle = "APA", numberOfSources = 10 } = params;
+  async translateText(params) {
+    const { content, targetLanguage = "英语" } = params;
 
-    const prompt = `Generate ${numberOfSources} relevant academic citations for research on: ${topic}
+    const prompt = `请将以下文本翻译成${targetLanguage}：
 
-Citation Style: ${citationStyle}
+原文：
+${content}
 
-Please provide:
-1. Realistic academic sources (journals, books, conferences)
-2. Proper ${citationStyle} formatting
-3. Mix of recent and foundational sources
-4. Diverse source types
-5. Brief annotation for each source
+要求：
+- 直接返回翻译结果
+- 保持原文的语气和风格
+- 对于学术文本，使用正式的表达
+- 不要添加解释或说明
 
-Note: These are example citations for outline purposes. Always verify and use actual sources in real research.`;
+翻译结果：`;
 
     const data = {
       model: this.model,
       messages: [
         {
           role: "system",
-          content: "You are an academic librarian expert in citation formats. Generate properly formatted example citations.",
+          content: `你是专业的翻译助手。提供准确、自然的翻译，保持原文的语气和风格。直接返回翻译结果，不要解释。`,
         },
         {
           role: "user",
           content: prompt,
         },
       ],
-      max_tokens: this.maxTokens,
-      temperature: 0.3,
+      max_tokens: Math.min(this.maxTokens, 800), // 翻译可能需要更多token
+      temperature: 0.1, // 低温度确保翻译准确性
     };
 
     return await this.makeAPICall("/chat/completions", data);
+  }
+
+  /**
+   * Helper method to strip HTML tags for context extraction
+   */
+  stripHtmlTags(html) {
+    return html
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   /**
@@ -631,13 +767,6 @@ Provide the improved version with clear, academic language suitable for scholarl
         papers: [],
       };
     }
-  }
-
-  /**
-   * Check if API key is configured
-   */
-  isConfigured() {
-    return !!this.apiKey;
   }
 
   /**

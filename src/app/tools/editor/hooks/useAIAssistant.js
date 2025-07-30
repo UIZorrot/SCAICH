@@ -42,55 +42,6 @@ export const useAIAssistant = () => {
     setIsLoading(false);
   }, []);
 
-  // Generate outline
-  const generateOutline = useCallback(
-    async (params) => {
-      if (!aiService.isConfigured()) {
-        message.warning("请先配置AI服务API密钥");
-        return null;
-      }
-
-      setIsLoading(true);
-      setLastError(null);
-      abortControllerRef.current = new AbortController();
-
-      try {
-        message.loading("正在生成论文大纲...", 0);
-
-        const response = await aiService.generateOutline(params);
-        const content = response.choices?.[0]?.message?.content;
-
-        if (content) {
-          try {
-            // Try to parse as JSON first
-            const outlineJson = JSON.parse(content);
-            setOutlineData(outlineJson);
-            message.destroy();
-            message.success("大纲生成成功！");
-            return outlineJson;
-          } catch (parseError) {
-            // If not JSON, treat as plain text
-            const textOutline = { content, type: "text" };
-            setOutlineData(textOutline);
-            message.destroy();
-            message.success("大纲生成成功！");
-            return textOutline;
-          }
-        } else {
-          throw new Error("AI服务返回空内容");
-        }
-      } catch (error) {
-        message.destroy();
-        handleError(error, "generateOutline");
-        return null;
-      } finally {
-        setIsLoading(false);
-        abortControllerRef.current = null;
-      }
-    },
-    [handleError]
-  );
-
   // Generate enhanced outline with literature search
   const generateEnhancedOutline = useCallback(
     async (params) => {
@@ -258,41 +209,6 @@ export const useAIAssistant = () => {
     [handleError]
   );
 
-  // Generate citations
-  const generateCitations = useCallback(
-    async (params) => {
-      if (!aiService.isConfigured()) {
-        message.warning("请先配置AI服务API密钥");
-        return null;
-      }
-
-      setIsLoading(true);
-      setLastError(null);
-
-      try {
-        message.loading("正在生成参考文献...", 0);
-
-        const response = await aiService.generateCitations(params);
-        const content = response.choices?.[0]?.message?.content;
-
-        if (content) {
-          message.destroy();
-          message.success("参考文献生成成功！");
-          return content;
-        } else {
-          throw new Error("AI服务返回空内容");
-        }
-      } catch (error) {
-        message.destroy();
-        handleError(error, "generateCitations");
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [handleError]
-  );
-
   // Clear suggestions
   const clearSuggestions = useCallback(() => {
     setSuggestions([]);
@@ -356,12 +272,10 @@ export const useAIAssistant = () => {
     searchResults,
 
     // Actions
-    generateOutline,
     generateEnhancedOutline,
     generateSectionContent,
     improveContent,
     getWritingSuggestions,
-    generateCitations,
     searchLiterature,
     cancelOperation,
     clearSuggestions,

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Layout, Button, Space, Typography, Card, Row, Col, Drawer, message, Modal } from "antd";
+import { Layout, Button, Space, Typography, Card, Row, Col, Drawer, message, Modal, Select } from "antd";
 import { EditOutlined, FileTextOutlined, UnorderedListOutlined, BulbOutlined, FullscreenOutlined, FullscreenExitOutlined, MenuOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import TipTapEditor from "./components/TipTapEditor";
@@ -253,6 +253,111 @@ const AcademicEditor = ({ onBackToTools }) => {
     [editorInstance]
   );
 
+  // AI translation handler
+  const handleAITranslate = useCallback(
+    async (text) => {
+      if (!text || text.trim().length === 0) {
+        message.warning("请先选择要翻译的文本");
+        return;
+      }
+
+      // Language options
+      const languages = [
+        { label: "🇺🇸 英语 (English)", value: "英语" },
+        { label: "🇯🇵 日语 (日本語)", value: "日语" },
+        { label: "🇰🇷 韩语 (한국어)", value: "韩语" },
+        { label: "🇫🇷 法语 (Français)", value: "法语" },
+        { label: "🇩🇪 德语 (Deutsch)", value: "德语" },
+        { label: "🇪🇸 西班牙语 (Español)", value: "西班牙语" },
+        { label: "🇷🇺 俄语 (Русский)", value: "俄语" },
+        { label: "🇮🇹 意大利语 (Italiano)", value: "意大利语" },
+      ];
+
+      let selectedLanguage = "英语"; // default
+
+      Modal.confirm({
+        title: "选择翻译语言",
+        content: (
+          <div style={{ marginTop: "16px" }}>
+            <Select
+              defaultValue="英语"
+              style={{ width: "100%" }}
+              placeholder="选择目标语言"
+              onChange={(value) => {
+                selectedLanguage = value;
+              }}
+              options={languages}
+            />
+          </div>
+        ),
+        okText: "开始翻译",
+        cancelText: "取消",
+        width: 400,
+        onOk: async () => {
+          try {
+            message.loading("正在翻译文本...", 0);
+
+            // Import AI service singleton instance
+            const aiService = (await import("./services/AIService")).default;
+
+            const response = await aiService.translateText({
+              content: text,
+              targetLanguage: selectedLanguage,
+            });
+
+            const translatedText = response.choices?.[0]?.message?.content;
+            if (translatedText) {
+              message.destroy();
+              // Show translation result in a modal for user to choose
+              Modal.confirm({
+                title: `翻译结果 (${selectedLanguage})`,
+                content: (
+                  <div>
+                    <p>
+                      <strong>原文：</strong>
+                    </p>
+                    <div style={{ background: "#f5f5f5", padding: "8px", borderRadius: "4px", marginBottom: "16px", maxHeight: "150px", overflow: "auto" }}>{text}</div>
+                    <p>
+                      <strong>翻译结果：</strong>
+                    </p>
+                    <div style={{ background: "#e6f7ff", padding: "8px", borderRadius: "4px", maxHeight: "150px", overflow: "auto" }}>{translatedText}</div>
+                  </div>
+                ),
+                okText: "替换原文",
+                cancelText: "取消",
+                width: 700,
+                onOk: () => {
+                  // Replace selected text with translated version
+                  if (editorInstance) {
+                    const { from, to } = editorInstance.state.selection;
+                    if (from !== to) {
+                      // Replace selected text
+                      editorInstance.chain().focus().deleteRange({ from, to }).insertContent(translatedText).run();
+                    } else {
+                      // Insert at cursor position
+                      editorInstance.chain().focus().insertContent(translatedText).run();
+                    }
+                    message.success(`文本已翻译为${selectedLanguage}`);
+                  } else {
+                    message.error("编辑器未准备就绪");
+                  }
+                },
+              });
+            } else {
+              message.destroy();
+              message.error("AI 翻译服务返回空内容，请重试");
+            }
+          } catch (error) {
+            message.destroy();
+            console.error("AI translation error:", error);
+            message.error("文本翻译失败：" + (error.message || "未知错误"));
+          }
+        },
+      });
+    },
+    [editorInstance]
+  );
+
   // Toggle fullscreen mode
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen(!isFullscreen);
@@ -429,6 +534,7 @@ const AcademicEditor = ({ onBackToTools }) => {
                   onTextSelection={setSelectedText}
                   onAIOptimize={handleAIOptimize}
                   onAIPolish={handleAIPolish}
+                  onAITranslate={handleAITranslate}
                   onEditorReady={setEditorInstance}
                   placeholder="开始写作您的学术论文..."
                   editable={true}
