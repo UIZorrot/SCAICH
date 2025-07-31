@@ -1,20 +1,40 @@
 import React, { useState, useEffect } from "react";
-import { Modal, notification, Button, Input, Avatar, Space, Card, Row, Col, Typography, Upload } from "antd";
-import { CopyOutlined, UploadOutlined, HistoryOutlined, ExportOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Modal, notification, Button, Input, Avatar, Space, Card, Row, Col, Typography, Divider } from "antd";
+import { CopyOutlined, UploadOutlined, HistoryOutlined, ExportOutlined, LogoutOutlined, WalletOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
-import { useAuthService } from "../services/authService";
+import { useAuth } from "../contexts/AuthContext";
 
 const { Title, Text } = Typography;
 
-const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLoggedIn, setLoginModalVisible, setHisVisible }) => {
-  const { logout, user } = useAuthService();
-  const [username, setUsername] = useState(localStorage.getItem("username") || `User_${userId.slice(0, 4)}`);
-  const [avatar, setAvatar] = useState(localStorage.getItem("avatar") || "logo512.png");
+const ProfileModal = ({ visible, onClose, isMobile, setHisVisible }) => {
+  const { logout, walletAddress, user: userInfo, isLoading } = useAuth();
+  const [username, setUsername] = useState("");
+  const [avatar, setAvatar] = useState("logo512.png");
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-  const [showFullId, setShowFullId] = useState(false);
-  const loginTime = localStorage.getItem("loginTime");
-  const registerTime = localStorage.getItem("registerTime") || loginTime;
+  const [showFullAddress, setShowFullAddress] = useState(false);
+
+  // Initialize username from userInfo or localStorage
+  useEffect(() => {
+    if (userInfo?.username) {
+      setUsername(userInfo.username);
+    } else {
+      const savedUsername = localStorage.getItem("username");
+      if (savedUsername) {
+        setUsername(savedUsername);
+      } else if (walletAddress) {
+        setUsername(`User_${walletAddress.slice(0, 6)}`);
+      }
+    }
+  }, [userInfo, walletAddress]);
+
+  // Initialize avatar from localStorage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem("avatar");
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+  }, []);
 
   const handleSaveUsername = () => {
     if (!username.trim()) {
@@ -50,39 +70,33 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
     reader.readAsDataURL(file);
   };
 
-  const handleCopyId = () => {
-    navigator.clipboard.writeText(userId);
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(walletAddress);
     notification.success({
-      message: "User ID copied!",
+      message: "Wallet address copied!",
       icon: <CopyOutlined style={{ color: "#FF3314", animation: "shake 0.3s" }} />,
     });
   };
 
   const handleLogout = () => {
     Modal.confirm({
-      title: "确认登出",
-      content: "您确定要登出吗？登出后需要重新登录。",
-      okText: "登出",
-      cancelText: "取消",
+      title: "Confirm Logout",
+      content: "Are you sure you want to disconnect your wallet?",
+      okText: "Disconnect",
+      cancelText: "Cancel",
       okButtonProps: { danger: true },
       onOk: async () => {
         try {
           await logout();
-          // 清理本地存储的旧数据
-          localStorage.removeItem("userId");
-          localStorage.removeItem("loginTime");
-          localStorage.removeItem("registerTime");
+          // Clear local storage
           localStorage.removeItem("username");
           localStorage.removeItem("theme");
           localStorage.removeItem("avatar");
-          setUserId("");
-          setIsLoggedIn(false);
-          setLoginModalVisible(true);
-          notification.success({ message: "登出成功" });
+          notification.success({ message: "Wallet disconnected successfully" });
           onClose();
         } catch (error) {
-          console.error('登出失败:', error);
-          notification.error({ message: "登出失败，请重试" });
+          console.error('Logout failed:', error);
+          notification.error({ message: "Failed to disconnect wallet, please try again" });
         }
       },
     });
@@ -90,19 +104,19 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
 
   const handleExportProfile = () => {
     const profileData = {
-      userId,
+      walletAddress,
       username,
-      loginTime,
-      registerTime,
+      userInfo,
       theme,
       avatar,
+      exportTime: new Date().toISOString(),
     };
     const dataStr = JSON.stringify(profileData, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "scaich_profile.json";
+    link.download = "scai_wallet_profile.json";
     link.click();
     URL.revokeObjectURL(url);
     notification.success({ message: "Profile data exported!" });
@@ -115,11 +129,15 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
     document.body.style.backgroundColor = newTheme === "dark" ? "#1f1f1f" : "#e7e3f4";
   };
 
-  useEffect(() => {
-    if (!localStorage.getItem("registerTime") && loginTime) {
-      localStorage.setItem("registerTime", loginTime);
-    }
-  }, [loginTime]);
+  const truncateAddress = (address) => {
+    if (!address) return "";
+    return `${address.slice(0, 8)}...${address.slice(-8)}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString();
+  };
 
   return (
     <Modal
@@ -138,15 +156,15 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
     >
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", minHeight: "400px" }}>
-          {/* 左侧：头像、用户名、主题切换 */}
+          {/* Left side: Avatar, username, theme */}
           <div
             style={{
               flex: isMobile ? "none" : "0 0 200px",
               background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
               borderTopLeftRadius: "16px",
               borderBottomLeftRadius: isMobile ? "0" : "16px",
-              borderTopRightRadius: isMobile ? "0" : "0",
-              borderBottomRightRadius: isMobile ? "16px" : "0",
+              borderTopRightRadius: isMobile ? "16px" : "0",
+              borderBottomRightRadius: isMobile ? "0" : "0",
               padding: "24px",
               textAlign: "center",
               display: "flex",
@@ -205,12 +223,17 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
                 </Button>
               </div>
             )}
+            
+            <div style={{ marginTop: "16px", color: "#fff", fontSize: "12px" }}>
+              <WalletOutlined style={{ marginRight: "4px" }} />
+              Connected via Phantom
+            </div>
           </div>
 
-          {/* 右侧：信息和功能 */}
+          {/* Right side: Information and functions */}
           <div style={{ flex: 1, padding: "24px" }}>
             <Card
-              title="Information"
+              title="Wallet Information"
               style={{
                 background: "rgba(255, 255, 255, 0.15)",
                 borderRadius: "12px",
@@ -220,31 +243,61 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
               headStyle={{ color: "#333", borderBottom: "1px solid rgba(255, 255, 255, 0.2)" }}
             >
               <Row gutter={[16, 16]}>
-                <Col span={12}>
-                  <Text style={{ color: "#666" }}>User ID</Text>
-                  <div>
-                    <Text strong style={{ color: "#333", cursor: "pointer" }} onClick={() => setShowFullId(!showFullId)}>
-                      {showFullId ? userId : `${userId.slice(0, 4)}...${userId.slice(-4)}`}
+                <Col span={24}>
+                  <Text style={{ color: "#666" }}>Wallet Address</Text>
+                  <div style={{ marginTop: "8px" }}>
+                    <Text 
+                      strong 
+                      style={{ 
+                        color: "#333", 
+                        cursor: "pointer", 
+                        fontFamily: "monospace",
+                        fontSize: "12px"
+                      }} 
+                      onClick={() => setShowFullAddress(!showFullAddress)}
+                    >
+                      {showFullAddress ? walletAddress : truncateAddress(walletAddress)}
                     </Text>
-                    <Button type="link" icon={<CopyOutlined />} onClick={handleCopyId} style={{ padding: "0 8px", margin: 0 }} />
+                    <Button type="link" icon={<CopyOutlined />} onClick={handleCopyAddress} style={{ padding: "0 8px", margin: 0 }} />
                   </div>
                 </Col>
-                <Col span={12}>
-                  <Text style={{ color: "#666" }}>Registered</Text>
-                  <div style={{ marginTop: 6 }}>
-                    <Text strong style={{ color: "#333" }}>
-                      {registerTime ? new Date(registerTime).toLocaleString() : "N/A"}
-                    </Text>
-                  </div>
-                </Col>
-                <Col span={12}>
-                  <Text style={{ color: "#666" }}>Last Login</Text>
-                  <div style={{ marginTop: 6 }}>
-                    <Text strong style={{ color: "#333" }}>
-                      {loginTime ? new Date(loginTime).toLocaleString() : "N/A"}
-                    </Text>
-                  </div>
-                </Col>
+                
+                {userInfo && (
+                  <>
+                    <Col span={12}>
+                      <Text style={{ color: "#666" }}>Role</Text>
+                      <div style={{ marginTop: "6px" }}>
+                        <Text strong style={{ color: "#333" }}>
+                          {userInfo.role || "User"}
+                        </Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <Text style={{ color: "#666" }}>Registered</Text>
+                      <div style={{ marginTop: "6px" }}>
+                        <Text strong style={{ color: "#333" }}>
+                          {formatDate(userInfo.created_at)}
+                        </Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <Text style={{ color: "#666" }}>Last Login</Text>
+                      <div style={{ marginTop: "6px" }}>
+                        <Text strong style={{ color: "#333" }}>
+                          {formatDate(userInfo.last_login)}
+                        </Text>
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <Text style={{ color: "#666" }}>SOL Balance</Text>
+                      <div style={{ marginTop: "6px" }}>
+                        <Text strong style={{ color: "#333" }}>
+                          {userInfo.sol_balance ? `${userInfo.sol_balance} SOL` : "N/A"}
+                        </Text>
+                      </div>
+                    </Col>
+                  </>
+                )}
               </Row>
             </Card>
 
@@ -290,6 +343,7 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
                 icon={<LogoutOutlined />}
                 danger
                 onClick={handleLogout}
+                loading={isLoading}
                 style={{
                   background: "linear-gradient(45deg, rgb(255, 24, 24), rgb(254, 100, 113))",
                   border: "none",
@@ -299,7 +353,7 @@ const ProfileModal = ({ visible, onClose, userId, isMobile, setUserId, setIsLogg
                   marginTop: 14,
                 }}
               >
-                Logout
+                Disconnect Wallet
               </Button>
             </Card>
           </div>

@@ -14,7 +14,7 @@ import { color, motion } from "framer-motion";
 import ProfileModal from "./components/ProfileModal.jsx"; // 新增导入
 import { InviteCodeGuideModal } from "./components/InviteCodeGuideModal.jsx"; // 新增导入
 import { useNavigate } from "react-router-dom"; // 新增导入
-import { useAuthService } from "./services/authService";
+import { useAuth } from "./contexts/AuthContext";
 import apiService from "./services/apiService";
 
 const { Title, Text } = Typography;
@@ -248,7 +248,7 @@ export default function SearchApp() {
   const navigate = useNavigate();
   
   // 使用新的认证服务
-  const { user, isAuthenticated, hasPermission, login, logout, getBackendToken } = useAuthService();
+  const { user, isAuthenticated, hasPermission, login, logout, getBackendToken } = useAuth();
 
   // 验证用户认证状态
   const verifyAuthentication = async () => {
@@ -1219,7 +1219,7 @@ export default function SearchApp() {
         <ChatModal visible={chatModalVisible} paperId={selectedPaperId} source={selectedSource} onClose={() => setChatModalVisible(false)} />
       </Modal>
       <LoginModal visible={loginModalVisible} onClose={() => setLoginModalVisible(false)} setUserId={setUserId} setIsLoggedIn={setIsLoggedIn} isMobile={isMobile} />
-      <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} userId={userId} isMobile={isMobile} setUserId={setUserId} setIsLoggedIn={setIsLoggedIn} setLoginModalVisible={setLoginModalVisible} setHisVisible={sethisVisible} />
+      <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} isMobile={isMobile} setHisVisible={sethisVisible} />
     </div>
   );
 }

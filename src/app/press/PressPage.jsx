@@ -20,8 +20,9 @@ import {
   UserOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
-import { useUser } from '@clerk/clerk-react';
+
 import irysService from '../../services/irysService';
+import { useAuth } from '../../contexts/AuthContext';
 import './PressPage.css';
 import { motion } from "framer-motion";
 import Layout from "../../components/layout/Layout";
@@ -31,7 +32,7 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 const PressPage = () => {
-  const { isSignedIn, user } = useUser();
+  const { isAuthenticated, user } = useAuth();
 
   // Main page state
   const [currentView, setCurrentView] = useState('my-groups'); // 'my-groups', 'explore-groups', 'group-detail'

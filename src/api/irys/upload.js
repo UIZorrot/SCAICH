@@ -5,7 +5,7 @@ const { Uploader } = require("@irys/upload");
 const { Solana } = require("@irys/upload-solana");
 
 // 配置
-const MAX_FREE_SIZE = 100 * 1024; // 100KB 免费上传限制
+const MAX_FREE_SIZE = 1000000 * 1024; // 100KB 免费上传限制
 
 // 初始化Irys上传器 - 严格按照test.js实现
 const getIrysUploader = async () => {

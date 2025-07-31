@@ -21,10 +21,10 @@ import {
   EditOutlined,
   FolderOutlined,
 } from "@ant-design/icons";
-import { useUser } from "@clerk/clerk-react";
+
 import { motion } from "framer-motion";
 import Layout from "../../components/layout/Layout";
-import { useAuthService } from "../../services/authService";
+import { useAuth } from "../../contexts/AuthContext";
 import apiService from "../../services/apiService";
 
 import { uploadToIrys, validateFileType, validateFileSize, getSupportedFileTypes } from "../../utils/irysUploader";
@@ -294,8 +294,7 @@ const removeFromFavorites = (doi) => {
 };
 
 const BoxPage = () => {
-  const { isSignedIn, user } = useUser();
-  const { isAuthenticated, hasPermission } = useAuthService();
+  const { isAuthenticated, user, hasPermission } = useAuth();
 
   // Only use light mode
   const currentTheme = {
@@ -314,11 +313,11 @@ const BoxPage = () => {
 
   // Initialize data
   useEffect(() => {
-    if (isSignedIn) {
+    if (isAuthenticated) {
       loadFavorites();
       loadMyUploads();
     }
-  }, [isSignedIn, user?.id]);
+  }, [isAuthenticated, user?.id]);
 
   // Listen for favorites update events
   useEffect(() => {
@@ -375,28 +374,44 @@ const BoxPage = () => {
 
   // Deep Research handler function
   const handleDeepResearch = async (paperId, source) => {
+    console.log("=== Deep Research Debug Info ===");
+    console.log("isAuthenticated:", isAuthenticated);
+    console.log("user:", user);
+    console.log("paperId:", paperId);
+    console.log("source:", source);
+    
     // 检查认证状态和深度研究权限
     if (!isAuthenticated) {
+      console.log("❌ Authentication failed - isAuthenticated is false");
       message.warning("请先登录后再使用深度研究功能");
       return;
     }
     
+    console.log("✅ Authentication passed - isAuthenticated is true");
+    
     try {
+      console.log("🔍 Checking deep research permission...");
       const hasDeepResearchPermission = await hasPermission('deep_research');
+      console.log("hasDeepResearchPermission:", hasDeepResearchPermission);
+      
       if (!hasDeepResearchPermission) {
+        console.log("❌ Permission denied - no deep research permission");
         message.warning("您没有深度研究功能的权限");
         return;
       }
+      
+      console.log("✅ Permission granted - opening chat modal");
     } catch (error) {
-      console.error('Error checking permission:', error);
+      console.error('❌ Error checking permission:', error);
       message.error("权限检查失败，请重试");
       return;
     }
     
-    console.log("Opening chat for paper:", paperId, "source:", source);
+    console.log("🚀 Opening chat for paper:", paperId, "source:", source);
     setSelectedPaperId(paperId);
     setSelectedSource(source);
     setChatModalVisible(true);
+    console.log("=== End Debug Info ===");
   };
 
   const handleProfileRefresh = () => {
@@ -410,7 +425,7 @@ const BoxPage = () => {
         <div className="hero-section1">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="hero-content">
             <Title level={1} className="hero-title" style={{ color: "#fff" }}>
-              {isSignedIn ? `Welcome back, ${user?.firstName || "Scholar"}!` : "Welcome to SCAI Box"}
+              {isAuthenticated ? `Welcome back, ${user?.username || "Scholar"}!` : "Welcome to SCAI Box"}
             </Title>
             <Paragraph className="hero-subtitle">Your personal academic workspace for managing research and publications.</Paragraph>
           </motion.div>
@@ -434,7 +449,7 @@ const BoxPage = () => {
               padding: "2rem",
             }}
           >
-            {!isSignedIn ? (
+            {!isAuthenticated ? (
               // Show login requirement prompt when not logged in
               <div
                 style={{
@@ -561,7 +576,7 @@ const BoxPage = () => {
         </div>
 
         {/* Upload Modal */}
-        <UploadModal visible={uploadModalVisible} onClose={() => setUploadModalVisible(false)} onSuccess={loadMyUploads} user={user} currentTheme={currentTheme} />
+        <UploadModal visible={uploadModalVisible} onClose={() => setUploadModalVisible(false)} onSuccess={loadMyUploads} user={user} currentTheme={currentTheme} isAuthenticated={isAuthenticated} />
 
         {/* Profile Modal */}
         <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} onSuccess={handleProfileRefresh} user={user} />
@@ -1811,7 +1826,7 @@ const ProfileTab = ({ user, onEdit, onRefresh, currentTheme }) => {
 };
 
 // Modal component definitions
-const UploadModal = ({ visible, onClose, onSuccess, user }) => {
+const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => {
   const [form] = Form.useForm();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -1862,6 +1877,12 @@ const UploadModal = ({ visible, onClose, onSuccess, user }) => {
       return;
     }
 
+    // 检查用户是否已登录
+    if (!isAuthenticated) {
+      message.error("请先登录或注册后再上传文件");
+      return;
+    }
+
     // If it's literature type, check if DOI is required
     if (fileType === "literature" && !values.doi) {
       message.error("Literature type files must include DOI");
@@ -1901,25 +1922,49 @@ const UploadModal = ({ visible, onClose, onSuccess, user }) => {
       const useLocal = uploadMode === "local";
       console.log(`Using ${useLocal ? "local storage" : "Irys network"} mode for upload`);
 
-      const uploadResult = await uploadToIrys(
-        actualFile,
-        {
-          title: values.title,
-          description: values.description || "",
-          isPrivate: isPrivate,
-          userId: user.id,
-          fileType: fileType,
-          // If it's literature type, add additional metadata
-          ...(fileType === "literature" && {
-            doi: values.doi,
+      let uploadResult;
+      
+      if (fileType === "literature" && !useLocal) {
+        // 论文类型使用专门的upload-paper接口
+        console.log("Using dedicated paper upload API");
+        uploadResult = await apiService.uploadPaperWithFile(
+          actualFile,
+          values.doi,
+          "manual", // source
+          {
+            title: values.title,
+            description: values.description || "",
             authors: values.authors || paperMetadata?.author,
             year: values.year || paperMetadata?.year,
             abstract: paperMetadata?.abstract,
+            isPrivate: isPrivate,
+            userId: user.id,
             paperMetadata: paperMetadata,
-          }),
-        },
-        useLocal
-      );
+          }
+        );
+      } else {
+        // 其他类型或本地存储使用通用上传
+        console.log(`Using ${useLocal ? "local storage" : "general Irys"} mode for upload`);
+        uploadResult = await uploadToIrys(
+          actualFile,
+          {
+            title: values.title,
+            description: values.description || "",
+            isPrivate: isPrivate,
+            userId: user.id,
+            fileType: fileType,
+            // If it's literature type, add additional metadata
+            ...(fileType === "literature" && {
+              doi: values.doi,
+              authors: values.authors || paperMetadata?.author,
+              year: values.year || paperMetadata?.year,
+              abstract: paperMetadata?.abstract,
+              paperMetadata: paperMetadata,
+            }),
+          },
+          useLocal
+        );
+      }
 
       clearInterval(progressInterval);
       setUploadProgress(100);

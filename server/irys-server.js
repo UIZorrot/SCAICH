@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // 配置
-const MAX_FREE_SIZE = 100 * 1024; // 100KB 免费上传限制
+const MAX_FREE_SIZE = 1000000 * 1024; // 100KB 免费上传限制
 
 // 中间件
 app.use(cors());

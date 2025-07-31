@@ -10,10 +10,10 @@ import { UpdateModal } from "../../components/updatelog.jsx";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import ChatModal from "../../components/chatpage.jsx";
 import { motion } from "framer-motion";
-import ProfileModal from "../../components/ProfileModal.jsx";
+
 import { InviteCodeGuideModal } from "../../components/InviteCodeGuideModal.jsx";
 import { useNavigate } from "react-router-dom";
-import { useAuthService } from "../../services/authService";
+import { useAuth } from "../../contexts/AuthContext";
 import apiService from "../../services/apiService";
 import PermissionGuard from "../../components/PermissionGuard";
 import ErrorBoundary from "../../components/ErrorBoundary";
@@ -55,7 +55,16 @@ function SearchPage() {
   const navigate = useNavigate();
   
   // 使用新的认证服务
-  const { isAuthenticated, hasPermission } = useAuthService();
+  const { isAuthenticated, hasPermission, user } = useAuth();
+
+  // 监听认证状态变化
+  useEffect(() => {
+    console.log("🔄 [SearchPage] Auth status changed:", {
+      isAuthenticated,
+      user: user ? 'exists' : 'null',
+      timestamp: new Date().toISOString()
+    });
+  }, [isAuthenticated, user]);
 
   // 检查是否为重复历史记录
   const isDuplicateHistory = (newQuery) => {
@@ -508,32 +517,48 @@ function SearchPage() {
 
   // 深度研究功能
   const handleReadFullText = async (paperId, source) => {
+    console.log("=== Deep Search Debug Info (SearchPage) ===");
+    console.log("isAuthenticated:", isAuthenticated);
+    console.log("user:", user);
+    console.log("paperId:", paperId);
+    console.log("source:", source);
+    
     // 检查认证状态
     if (!isAuthenticated) {
+      console.log("❌ Authentication failed - isAuthenticated is false");
       notification.warning({ message: "请先登录后再使用深度研究功能" });
       return;
     }
     
+    console.log("✅ Authentication passed - isAuthenticated is true");
+    
     try {
+      console.log("🔍 Checking deep research permission...");
       // 检查深度研究权限
       const hasDeepResearchPermission = await hasPermission('deep_research');
+      console.log("hasDeepResearchPermission:", hasDeepResearchPermission);
+      
       if (!hasDeepResearchPermission) {
+        console.log("❌ Permission denied - no deep research permission");
         notification.warning({ 
           message: "权限不足", 
           description: "您需要升级账户才能使用深度研究功能" 
         });
         return;
       }
+      
+      console.log("✅ Permission granted - opening chat modal");
     } catch (error) {
-      console.error('Error checking permission:', error);
+      console.error('❌ Error checking permission:', error);
       notification.error({ message: "权限检查失败，请重试" });
       return;
     }
     
-    console.log("Opening chat for paper:", paperId, "source:", source);
+    console.log("🚀 Opening chat for paper:", paperId, "source:", source);
     setSelectedPaperId(paperId);
     setSelectedSource(source);
     setChatModalVisible(true);
+    console.log("=== End Debug Info (SearchPage) ===");
   };
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);

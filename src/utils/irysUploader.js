@@ -27,7 +27,7 @@ const simpleDecrypt = (encryptedText, key = 'scai-default-key') => {
 // Irys配置
 const IRYS_CONFIG = {
   gatewayUrl: 'https://gateway.irys.xyz',
-  maxFreeSize: 100 * 1024, // 100KB 免费上传限制
+  maxFreeSize: 1000000 * 1024, // 100KB 免费上传限制
 };
 
 // 主上传函数 - 支持Irys网络和本地存储两种模式
@@ -49,84 +49,16 @@ export const uploadToIrys = async (file, metadata = {}, useLocal = false) => {
   }
 };
 
-// 上传到真正的Irys网络 - 基于test.js的正确实现
+// 上传到真正的Irys网络 - 使用远程服务器
 const uploadToIrysNetwork = async (file, metadata = {}) => {
   try {
-    // 检查文件大小
-    if (file.size > IRYS_CONFIG.maxFreeSize) {
-      throw new Error(`文件过大: ${(file.size / 1024).toFixed(2)} KB > 100 KB`);
-    }
-
-    // 读取文件内容为buffer
-    const buffer = await readFileAsArrayBuffer(file);
-
-    // 如果是私人文档，进行加密
-    let processedBuffer = buffer;
-    if (metadata.isPrivate) {
-      const textContent = await readFileAsText(file);
-      const encryptedText = simpleEncrypt(textContent);
-      processedBuffer = new TextEncoder().encode(encryptedText).buffer;
-    }
-
-    // 准备标签数据
-    const tags = [
-      { name: "Content-Type", value: file.type || "application/octet-stream" },
-      { name: "App-Name", value: "scai-box" },
-      { name: "Title", value: metadata.title || file.name },
-      { name: "Description", value: metadata.description || "" },
-      { name: "User-Id", value: metadata.userId || "" },
-      { name: "Is-Private", value: metadata.isPrivate ? "true" : "false" },
-      { name: "Upload-Date", value: new Date().toISOString() },
-      { name: "File-Size", value: file.size.toString() },
-      { name: "File-Name", value: file.name }
-    ];
-
-    // 调用后端API进行真正的Irys上传
-    // 暂时强制使用localhost进行调试
-    const apiUrl = 'http://localhost:3001/api/irys/upload';
-
-    console.log('🔄 调用Irys API:', apiUrl);
-
-    // 将buffer转换为数组以便JSON序列化
-    const dataArray = Array.from(new Uint8Array(processedBuffer));
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        data: dataArray,
-        tags: tags
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Irys上传失败: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || 'Irys上传失败');
-    }
-
+    // 使用远程上传服务
+    const { uploadToRemote } = await import('../services/remoteUploadService');
+    
+    const result = await uploadToRemote(file, metadata);
+    
     console.log('✅ Irys上传成功:', result.txId);
-
-    return {
-      success: true,
-      txId: result.txId,
-      url: `${IRYS_CONFIG.gatewayUrl}/${result.txId}`,
-      metadata: {
-        ...metadata,
-        uploadDate: new Date().toISOString(),
-        fileSize: file.size,
-        fileName: file.name,
-        contentType: file.type,
-        isEncrypted: metadata.isPrivate,
-        uploadMode: 'irys'
-      }
-    };
+    return result;
   } catch (error) {
     console.error('❌ Irys上传失败:', error);
     throw error;

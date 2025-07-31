@@ -6,6 +6,7 @@ import { Wallet } from "./wallet";
 import { WalletOutlined } from "@ant-design/icons";
 import { useAccount, useDisconnect } from "wagmi"; // For BSC
 import { useWallet } from "@solana/wallet-adapter-react"; // For Solana
+import { useAuth } from "../contexts/AuthContext";
 
 // Images for BSC and Solana
 const bscImage = "/bnblogo.png";
@@ -17,7 +18,6 @@ export const WalletSelector = ({ Connected }) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // Network selection modal
   const [isDisconnectModalVisible, setIsDisconnectModalVisible] = useState(false); // Disconnect confirmation modal
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [selectedNetwork, setSelectedNetwork] = useState(null); // Track the selected network
   const connectButtonRef = useRef(null); // Ref for ConnectButton (BSC)
   const walletRef = useRef(null); // Ref for Wallet (Solana)
 
@@ -28,38 +28,48 @@ export const WalletSelector = ({ Connected }) => {
   // Solana Wallet Adapter
   const { publicKey: solanaPublicKey, connected: isSolanaConnected, disconnect: disconnectSolana } = useWallet();
 
+  // Auth service
+  const { loginWithWallet, logout: authLogout } = useAuth();
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // // Notify parent of successful connection
-  // useEffect(() => {
-  //   if (isBscConnected && selectedNetwork === "bsc") {
-  //     if (Connected) {
-  //       if (onNetworkSelected) onNetworkSelected("bsc"); // 传递给父组件
-  //     }
-  //     setSelectedNetwork(null); // Reset selection after successful connection
-  //   }
-  //   if (isSolanaConnected && selectedNetwork === "solana") {
-  //     if (Connected) {
-  //       if (onNetworkSelected) onNetworkSelected("solana"); // 传递给父组件("solana");
-  //     }
-  //     setSelectedNetwork(null); // Reset selection after successful connection
-  //   }
-  // }, [isBscConnected, isSolanaConnected, selectedNetwork, Connected]);
+  // Update wallet instance for auth service
+  useEffect(() => {
+    const wallet = isBscConnected ? { publicKey: bscAddress, isBsc: true } : 
+                   isSolanaConnected ? { publicKey: solanaPublicKey?.toString(), isSolana: true } : 
+                   null;
+    setWallet(wallet);
+  }, [isBscConnected, isSolanaConnected, bscAddress, solanaPublicKey, setWallet]);
+
+  // Handle wallet connection and login
+  useEffect(() => {
+    const handleWalletLogin = async () => {
+      try {
+        await loginWithWallet();
+        message.success("Wallet connected and logged in successfully!");
+      } catch (error) {
+        console.error("Login with wallet failed:", error);
+        message.error(error.message || "Failed to login with wallet");
+      }
+    };
+
+    if (isBscConnected || isSolanaConnected) {
+      handleWalletLogin();
+    }
+  }, [isBscConnected, isSolanaConnected, loginWithWallet]);
 
   // Show network selection modal
   const showModal = () => {
     setIsModalVisible(true);
-    setSelectedNetwork(null);
   };
 
   // Close network selection modal
   const handleCancel = () => {
     setIsModalVisible(false);
-    setSelectedNetwork(null);
   };
 
   // Show disconnect confirmation modal
@@ -83,7 +93,6 @@ export const WalletSelector = ({ Connected }) => {
 
   // Select BSC wallet and trigger ConnectButton
   const handleSelectBsc = () => {
-    setSelectedNetwork("bsc");
     setIsModalVisible(false);
     setTimeout(() => {
       if (connectButtonRef.current) {
@@ -99,7 +108,6 @@ export const WalletSelector = ({ Connected }) => {
 
   // Select Solana wallet and trigger Wallet
   const handleSelectSolana = () => {
-    setSelectedNetwork("solana");
     setIsModalVisible(false);
     setTimeout(() => {
       if (walletRef.current) {

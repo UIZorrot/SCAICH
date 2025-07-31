@@ -732,7 +732,7 @@ class InputValidator {
     return doiRegex.test(doi);
   }
 
-  static validateFile(file, maxSize = 100 * 1024 * 1024) { // 100MB
+  static validateFile(file, maxSize = 1000000 * 1024 * 1024) { // 100MB
     const allowedTypes = [
       'application/pdf',
       'text/plain',

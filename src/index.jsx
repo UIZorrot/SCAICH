@@ -14,6 +14,7 @@ import PressPage from "./app/press/PressPage";
 import ToolsPage from "./app/tools/ToolsPage";
 import IrysViewer from "./app/irys/IrysViewer";
 import { BackgroundProvider } from "./contexts/BackgroundContext";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // Solana 相关导入
 import { useMemo } from "react";
@@ -31,8 +32,7 @@ import { bscTestnet } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { createConfig, http } from "wagmi";
 
-// Clerk 相关导入
-import { ClerkProvider } from "@clerk/clerk-react";
+
 
 // Solana 钱包提供者
 const SolanaWalletProvider = ({ children }) => {
@@ -49,12 +49,7 @@ const SolanaWalletProvider = ({ children }) => {
   );
 };
 
-// Import your Publishable Key
-const PUBLISHABLE_KEY = process.env.REACT_APP_PUBLISHABLE_KEY;
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Add your Clerk Publishable Key to the .env file");
-}
 
 // BNB Testnet 配置
 const bnbConfig = createConfig({
@@ -95,9 +90,9 @@ const UnifiedWalletProvider = () => {
       <WagmiProvider config={bnbConfig}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
-            {/* <SolanaWalletProvider> */}
+            <SolanaWalletProvider>
+            <AuthProvider>
             <BackgroundProvider>
-              <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
                 <Routes>
                   {/* New unified app routes */}
                   <Route path="/app/search" element={<SearchPage />} />
@@ -116,9 +111,9 @@ const UnifiedWalletProvider = () => {
                   <Route path="/" element={<SearchPage />} />
                   <Route path="*" element={<SearchPage />} />
                 </Routes>
-              </ClerkProvider>
             </BackgroundProvider>
-            {/* </SolanaWalletProvider> */}
+            </AuthProvider>
+            </SolanaWalletProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>

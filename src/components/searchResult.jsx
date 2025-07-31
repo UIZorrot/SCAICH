@@ -180,11 +180,13 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
   };
 
   const handleFullPaperClick = (doi, source) => {
-    if (pro) {
-      onReadFullText(doi, source);
-    } else {
-      setModalVisible(true);
-    }
+    // 未来再考虑pro
+     onReadFullText(doi, source);
+    // if (pro) {
+    //   onReadFullText(doi, source);
+    // } else {
+    //   setModalVisible(true);
+    // }
   };
 
 
@@ -316,8 +318,9 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
           dataSource={displayedResults}
           renderItem={(result, index) => {
             const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
-            const buttonText = result.scinet ? "Fulltext Sci-Net" : result.is_oa || result.source === "scihub" || result.source === "arixv" ? "View Fulltext" : "View Source";
-            const buttonColor = result.scinet ? "#52c41a" : result.is_oa || result.source === "scihub" || result.source === "arixv" ? "#52c41a" : "#1890ff";
+            const hasIrys = result.irys_available === true;
+            const buttonText = result.scinet ? "Fulltext Sci-Net" : hasIrys || result.is_oa || result.source === "scihub" || result.source === "arixv" ? "View Fulltext" : "View Source";
+            const buttonColor = result.scinet ? "#52c41a" : hasIrys || result.is_oa || result.source === "scihub" || result.source === "arixv" ? "#52c41a" : "#1890ff";
             const buttonUrl = result.scinet ? `https://sci-net.xyz/${cleanDoi}` : result.url || `https://doi.org/${cleanDoi}`;
 
             return (
@@ -332,7 +335,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
               >
                 <Title
                   onClick={() => {
-                    handleDoiOpen(result);
+                    handleFulltextOpen(result);
                   }}
                   level={5}
                   style={{
@@ -406,7 +409,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                         borderColor: "#000",
                         background: "transparent",
                       }}
-                      onClick={() => handleDoiOpen(result)}
+                      onClick={() => handleFulltextOpen(result)}
                     >
                       View Source
                     </Button>
@@ -424,7 +427,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                         if (result.scinet) {
                           window.open(buttonUrl, "_blank");
                         } else {
-                          handleDoiOpen(result);
+                          handleFulltextOpen(result);
                         }
                       }}
                     >
@@ -461,7 +464,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                     BibTeX
                   </Button>
 
-                  {(result.source === "scihub" || result.source === "arxiv" || buttonText === "View Fulltext") && (
+                  {(result.source === "scihub" || result.source === "arxiv" || buttonText === "View Fulltext" || result.irys_available === true) && (
                     <Button
                       type="primary"
                       icon={<PlayCircleOutlined color="#fff" style={{ color: "#fff" }} />}

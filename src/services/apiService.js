@@ -1,5 +1,6 @@
 // API服务 - 统一管理所有后端API调用
 import { apiCall, uploadFile } from './authService';
+import authService from './authService';
 
 class APIService {
   constructor() {
@@ -64,7 +65,7 @@ class APIService {
 
   // ==================== Irys全文管理接口 ====================
   
-  // 论文上传
+  // 论文上传（JSON格式，用于已有论文的元数据上传）
   async uploadPaper(doi, source, metadata = {}) {
     return await apiCall('/api/irys/fulltext/upload-paper', {
       method: 'POST',
@@ -74,6 +75,64 @@ class APIService {
         metadata
       })
     });
+  }
+
+  // 论文文件上传（带文件的完整上传）
+  async uploadPaperWithFile(file, doi, source, metadata = {}) {
+    try {
+      // 获取JWT token
+      let token = await authService.getBackendToken();
+      
+      // 如果token是'wallet_connected'，说明用户需要登录或注册
+      if (token === 'wallet_connected') {
+        throw new Error('请先登录或注册后再上传文件');
+      }
+      
+      if (!token || token === 'undefined' || token === 'null') {
+        throw new Error('无法获取有效的认证token');
+      }
+
+      const formData = new FormData();
+    formData.append('file', file); // PDF文件
+    formData.append('doi', doi || ''); // DOI 可以为空字符串
+    formData.append('title', metadata.title || 'Untitled Paper'); // 确保有标题
+    formData.append('authors', Array.isArray(metadata.authors) ? metadata.authors.join(', ') : (metadata.authors || metadata.author || 'Unknown Author'));
+    formData.append('year', metadata.year ? metadata.year.toString() : new Date().getFullYear().toString());
+    formData.append('source', source || 'manual'); // 添加 source 字段，确保不为空
+
+      const response = await fetch(`${this.baseURL}/api/irys/fulltext/upload-paper-v2`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // 不要设置Content-Type，让浏览器自动设置multipart/form-data
+        }
+      });
+
+      if (!response.ok) {
+        let errorMessage = `上传失败: ${response.status}`;
+        
+        if (response.status === 401) {
+          errorMessage = '身份验证失败，请重新登录';
+        } else if (response.status === 403) {
+          errorMessage = '权限不足，请升级账户';
+        } else {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+          } catch {
+            // 如果无法解析错误响应，使用默认消息
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
   }
 
   // 批量论文上传
@@ -111,7 +170,7 @@ class APIService {
   // 文件下载
   async downloadFile(txId) {
     // 返回blob用于下载
-    const token = await window.authService?.getBackendToken();
+    const token = await authService.getBackendToken();
     const response = await fetch(`${this.baseURL}/api/irys/proxy/download/${txId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -147,7 +206,7 @@ class APIService {
 
   // 批量下载执行
   async executeBatchDownload(batchId) {
-    const token = await window.authService?.getBackendToken();
+    const token = await authService.getBackendToken();
     const response = await fetch(`${this.baseURL}/api/irys/proxy/batch-download/${batchId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -194,12 +253,57 @@ class APIService {
 
   // 获取论文信息（DOI查询）
   async getPaperInfo(doi) {
-    // 使用本地API代理
-    const response = await fetch(`/api/paper-info?doi=${encodeURIComponent(doi)}`);
-    if (!response.ok) {
-      throw new Error(`Get paper info failed: ${response.status}`);
+    // 纯前端实现，直接调用OpenAlex API
+    try {
+      const response = await fetch(`https://api.openalex.org/works/doi:${doi}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return { error: 'Paper not found' };
+        }
+        throw new Error(`Get paper info failed: ${response.status}`);
+      }
+
+      const paper = await response.json();
+
+      // 处理摘要
+      const restoreAbstract = (abstractInvertedIndex) => {
+        if (!abstractInvertedIndex) return "Abstract Not Available";
+
+        const words = [];
+        for (const [word, positions] of Object.entries(abstractInvertedIndex)) {
+          for (const pos of positions) {
+            words[pos] = word;
+          }
+        }
+        return words.filter(Boolean).join(' ');
+      };
+
+      // 处理作者信息
+      const authors = paper.authorships?.map(authorship =>
+        authorship.author?.display_name || "Unknown"
+      ) || [];
+
+      // 格式化返回数据
+      const paperInfo = {
+        source: "openalex",
+        title: paper.title || "Unknown",
+        doi: doi,
+        abstract: restoreAbstract(paper.abstract_inverted_index),
+        referencecount: paper.cited_by_count || 0,
+        author: authors.join(", ") || "Unknown",
+        year: paper.publication_year || "Unknown",
+        url: `https://www.doi.org/${doi}`,
+        location: paper.locations?.map(loc => loc.source?.display_name).join(", ") || "Not Available",
+        scihub_url: `https://www.doi.org/${doi}`,
+        is_oa: paper.open_access?.is_oa || false
+      };
+
+      return paperInfo;
+    } catch (error) {
+      console.error('DOI query error:', error);
+      return { error: error.message || 'Failed to fetch paper info' };
     }
-    return await response.json();
   }
 
   // ==================== 错误处理辅助函数 ====================

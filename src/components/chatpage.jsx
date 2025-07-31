@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Input, Button, Typography, Spin, List, Modal, notification } from "antd";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Input, Button, Typography, Spin, List, Modal } from "antd";
 import io from "socket.io-client";
 import { SendOutlined } from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
-import { useAuthService } from "../services/authService";
+import { useAuth } from "../contexts/AuthContext";
 
 const { Paragraph } = Typography;
 
@@ -25,37 +25,51 @@ function ChatModal({ visible, paperId, source, onClose }) {
   const socketRef = useRef(null); // 使用 ref 存储 socket 实例
   
   // 使用认证服务
-  const { isAuthenticated, getBackendToken } = useAuthService();
+  const { isAuthenticated, getBackendToken } = useAuth();
 
-  useEffect(() => {
-    if (!visible) {
-      // 如果 Modal 不可见，清理状态但不创建新连接
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        setSocket(null);
-        setSessionId(null);
-        setMessages([
-          {
-            role: "system",
-            content: "Initialize Session and Download Fulltext",
-          },
-        ]);
-        setLoading(true);
-        setError(null);
-        console.log("WebSocket cleanup due to visibility change");
-      }
-      return;
-    }
-
-    // 避免重复创建 socket
+  // 清理所有WebSocket相关状态和连接的函数
+  const cleanupWebSocket = () => {
+    console.log("🧹 Cleaning up WebSocket connection and state");
     if (socketRef.current) {
-      console.log("Socket already exists, skipping creation");
+      const socketId = socketRef.current.id;
+      console.log(`🔌 Disconnecting WebSocket ${socketId}`);
+      
+      // 移除所有事件监听器
+      socketRef.current.removeAllListeners();
+      
+      // 强制断开连接
+      if (socketRef.current.connected) {
+        socketRef.current.disconnect(true); // 强制断开
+      }
+      
+      // 清空引用
+      socketRef.current = null;
+      console.log(`✅ WebSocket ${socketId} cleaned up`);
+    }
+    
+    // 重置所有状态
+    setSocket(null);
+    setSessionId(null);
+    setMessages([
+      {
+        role: "system",
+        content: "Initialize Session and Download Fulltext",
+      },
+    ]);
+    setLoading(true);
+    setError(null);
+  };
+
+  // 创建WebSocket连接的函数
+  const createWebSocketConnection = useCallback(async () => {
+    // 防止重复连接
+    if (socketRef.current && socketRef.current.connected) {
+      console.log("⚠️ WebSocket already connected, skipping new connection");
       return;
     }
-
-    setLoading(true);
-
+    
+    console.log("🔌 Creating new WebSocket connection");
+    
     // 验证和清理参数
     const validSources = ["arxiv", "scihub"];
     const cleanSource = validSources.includes(source) ? source : "scihub";
@@ -67,107 +81,103 @@ function ChatModal({ visible, paperId, source, onClose }) {
       return;
     }
 
-    console.log("Connecting to WebSocket with:", { id: cleanPaperId, source: cleanSource });
+    if (!isAuthenticated) {
+      setError("请先登录后再使用深度研究功能");
+      setLoading(false);
+      return;
+    }
 
-    // 获取认证token用于WebSocket连接
-    const connectWithAuth = async () => {
-      try {
-        if (!isAuthenticated) {
-          setError("请先登录后再使用深度研究功能");
-          setLoading(false);
-          return;
-        }
-        
-        const token = await getBackendToken();
-        if (!token) {
-          setError("认证失败，请重新登录");
-          setLoading(false);
-          return;
-        }
-        
-        const newSocket = io(url, {
-          query: { id: cleanPaperId, source: cleanSource },
-          auth: { token }, // 添加认证token
-          transports: ["websocket"], // 强制使用 WebSocket，避免 polling 重连
-          reconnectionAttempts: 3, // 限制重连次数
-          reconnectionDelay: 1000,
-        });
-        
-        socketRef.current = newSocket;
-        setSocket(newSocket);
-        
-        // 设置WebSocket事件监听器
-         setupSocketListeners(newSocket);
-       } catch (error) {
-         console.error("Failed to connect with authentication:", error);
-         setError("连接失败，请检查网络或重新登录");
-         setLoading(false);
-       }
-     };
-     
-     // 设置WebSocket事件监听器的函数
-     const setupSocketListeners = (socket) => {
-       socket.on("connect", () => {
-         console.log("WebSocket connected, SID:", socket.id);
-       });
-
-       socket.on("session_id", (data) => {
-         console.log("Session ID received:", data.session_id);
-         setSessionId(data.session_id);
-         setMessages((prev) => [...prev, { role: "system", content: "Agent connected" }]);
-         setLoading(false);
-       });
-
-       socket.on("response", (data) => {
-         console.log("Received response chunk:", data.chunk);
-         setMessages((prev) => {
-           const lastMessage = prev[prev.length - 1];
-           if (lastMessage && lastMessage.role === "assistant") {
-             return [...prev.slice(0, -1), { ...lastMessage, content: lastMessage.content + data.chunk }];
-           }
-           return [...prev, { role: "assistant", content: data.chunk }];
-         });
-         setLoading(false);
-       });
-
-       socket.on("error", (data) => {
-         console.error("WebSocket error:", data.message);
-         setError(data.message);
-         setLoading(false);
-       });
-
-       socket.on("disconnect", () => {
-         console.log("WebSocket disconnected");
-       });
-
-       socket.on("connect_error", (err) => {
-         console.error("WebSocket connect error:", err.message);
-         setError("连接失败，请稍后重试");
-         setLoading(false);
-       });
-     };
-     
-     connectWithAuth();
-
-    return () => {
-      // 清理函数只在组件卸载时执行
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        setSocket(null);
-        setSessionId(null);
-        setMessages([
-          {
-            role: "system",
-            content: "Initialize Session and Download Fulltext",
-          },
-        ]);
-        setLoading(true);
-        setError(null);
-        console.log("WebSocket cleanup on unmount");
+    try {
+      const token = await getBackendToken();
+      if (!token) {
+        setError("认证失败，请重新登录");
+        setLoading(false);
+        return;
       }
+
+      console.log("Connecting to WebSocket with:", { id: cleanPaperId, source: cleanSource });
+      
+      const newSocket = io(url, {
+        query: { id: cleanPaperId, source: cleanSource },
+        auth: { token },
+        transports: ["websocket"],
+        reconnectionAttempts: 0, // 禁用自动重连，避免多个连接
+        forceNew: true, // 强制创建新连接
+        timeout: 10000, // 设置连接超时
+      });
+
+      socketRef.current = newSocket;
+      setSocket(newSocket);
+
+      // 设置WebSocket事件监听器
+      setupSocketListeners(newSocket);
+    } catch (error) {
+      console.error("Failed to connect with authentication:", error);
+      setError("连接失败，请检查网络或重新登录");
+      setLoading(false);
+    }
+  }, [isAuthenticated, getBackendToken, paperId, source]);
+
+  // 设置WebSocket事件监听器的函数
+  const setupSocketListeners = (socket) => {
+    socket.on("connect", () => {
+      console.log("✅ WebSocket connected, SID:", socket.id);
+    });
+
+    socket.on("session_id", (data) => {
+      console.log("📋 Session ID received:", data.session_id);
+      setSessionId(data.session_id);
+      setMessages((prev) => [...prev, { role: "system", content: "Agent connected" }]);
+      setLoading(false);
+    });
+
+    socket.on("response", (data) => {
+      console.log("📨 Received response chunk:", data.chunk);
+      setMessages((prev) => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage && lastMessage.role === "assistant") {
+          return [...prev.slice(0, -1), { ...lastMessage, content: lastMessage.content + data.chunk }];
+        }
+        return [...prev, { role: "assistant", content: data.chunk }];
+      });
+      setLoading(false);
+    });
+
+    socket.on("error", (data) => {
+      console.error("❌ WebSocket error:", data.message);
+      setError(data.message);
+      setLoading(false);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("🔌 WebSocket disconnected, reason:", reason);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ WebSocket connect error:", err.message);
+      setError("连接失败，请稍后重试");
+      setLoading(false);
+    });
+  };
+
+  // 处理Modal可见性变化
+  useEffect(() => {
+    if (visible && paperId) {
+      // Modal打开且有paperId时，清理旧连接并创建新连接
+      cleanupWebSocket();
+      setLoading(true);
+      createWebSocketConnection();
+    } else if (!visible) {
+      // Modal关闭时，立即清理所有连接和状态
+      cleanupWebSocket();
+    }
+
+    // 清理函数：组件卸载或依赖项变化时执行
+    return () => {
+      cleanupWebSocket();
     };
-  }, [visible, paperId, source]); // 依赖项不变，但逻辑优化
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, paperId, source]); // 故意移除 createWebSocketConnection 依赖，避免重复连接
 
   const sendQuery = () => {
     // 检查认证状态
