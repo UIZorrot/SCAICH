@@ -191,19 +191,77 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
 
 
 
-  // 智能全文打开：直接尝试代理，不进行预检查
+  // 智能全文打开：立即打开新标签，后台检查API，失败时重定向到DOI页面
   const handleFulltextOpen = async (result) => {
     const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
     const encodedDoi = encodeURIComponent(cleanDoi);
 
-    // 构建代理URL
+    // 构建代理URL和DOI URL
     const proxyUrl = `https://api.scai.sh/api/fulltext/proxy/${encodedDoi}`;
+    const doiUrl = `https://doi.org/${cleanDoi}`;
 
     console.log(`Attempting to open fulltext for DOI: ${cleanDoi}`);
     console.log(`Proxy URL: ${proxyUrl}`);
 
-    // 直接打开代理URL，让后端处理重定向逻辑
-    window.open(proxyUrl, '_blank', 'noopener,noreferrer');
+    // 立即打开新标签页，先尝试代理URL
+    const newTab = window.open(proxyUrl, '_blank', 'noopener,noreferrer');
+
+    // 在后台检查代理API是否会返回错误
+    try {
+      const response = await fetch(proxyUrl, {
+        redirect: 'manual' // 不自动跟随重定向
+      });
+
+      // 如果是重定向响应（3xx）或成功的PDF/HTML响应，代理成功，无需处理
+      if (response.status >= 300 && response.status < 400) {
+        console.log('Proxy redirect successful');
+        return;
+      }
+
+      if (response.status === 200) {
+        const contentType = response.headers.get('content-type');
+        
+        // 如果返回的是JSON，可能是错误响应
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          // 检查是否包含错误信息
+          if (responseData.error || responseData.message) {
+            console.log('Proxy API returned error response:', responseData);
+            message.warning('Paper not found in proxy, redirecting to DOI page');
+            // 重定向已打开的标签页到DOI URL
+            if (newTab && !newTab.closed) {
+              newTab.location.href = doiUrl;
+            }
+            return;
+          }
+        }
+        
+        // 如果返回的是PDF或HTML，说明代理成功
+        if (contentType && (contentType.includes('pdf') || contentType.includes('html'))) {
+          console.log('Proxy returned valid content');
+          return;
+        }
+      }
+
+      // 如果状态码表明有错误，重定向到DOI页面
+      if (response.status >= 400) {
+        console.log('Proxy API returned error status:', response.status);
+        message.warning('Paper not found in proxy, redirecting to DOI page');
+        // 重定向已打开的标签页到DOI URL
+        if (newTab && !newTab.closed) {
+          newTab.location.href = doiUrl;
+        }
+        return;
+      }
+
+    } catch (error) {
+      console.log('Error checking proxy API, redirecting to DOI URL:', error);
+      message.warning('Unable to access proxy, redirecting to DOI page');
+      // 重定向已打开的标签页到DOI URL
+      if (newTab && !newTab.closed) {
+        newTab.location.href = doiUrl;
+      }
+    }
   };
 
   // DOI模式打开：直接打开DOI官方页面
