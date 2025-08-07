@@ -32,240 +32,7 @@ import ChatModal from "../../components/chatpage";
 import "./BoxPage.css";
 
 // Generate scholar profile HTML template
-const generateProfileHTML = (profileData, user) => {
-  const displayName = profileData.displayName || `${user.firstName} ${user.lastName}`;
-  const email = user.emailAddresses?.[0]?.emailAddress || "";
 
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${displayName} - Scholar Profile</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 3rem 2rem;
-            text-align: center;
-        }
-
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            border: 4px solid rgba(255,255,255,0.3);
-        }
-
-        .name {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .position {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 0.25rem;
-        }
-
-        .institution {
-            font-size: 1.1rem;
-            opacity: 0.8;
-            margin-bottom: 0.5rem;
-        }
-
-        .email {
-            font-size: 1rem;
-            opacity: 0.8;
-        }
-
-        .content {
-            padding: 2rem;
-        }
-
-        .section {
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .section-content {
-            font-size: 1rem;
-            line-height: 1.8;
-            color: #555;
-        }
-
-        .links {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .link {
-            color: #667eea;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border: 2px solid #667eea;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-        }
-
-        .link:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .contributions {
-            list-style: none;
-        }
-
-        .contributions li {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f0f0f0;
-            position: relative;
-            padding-left: 1.5rem;
-        }
-
-        .contributions li:before {
-            content: "▶";
-            color: #667eea;
-            position: absolute;
-            left: 0;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            background: #f8f9fa;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            .header {
-                padding: 2rem 1rem;
-            }
-
-            .name {
-                font-size: 2rem;
-            }
-
-            .content {
-                padding: 1.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="avatar">
-                ${profileData.avatarUrl || user.imageUrl ? `<img src="${profileData.avatarUrl || user.imageUrl}" alt="${displayName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : "👤"}
-            </div>
-            <h1 class="name">${displayName}</h1>
-            ${profileData.position ? `<div class="position">${profileData.position}</div>` : ""}
-            ${profileData.institution ? `<div class="institution">${profileData.institution}</div>` : ""}
-            <div class="email">${email}</div>
-        </div>
-
-        <div class="content">
-            ${profileData.researchFields
-      ? `
-            <div class="section">
-                <h2 class="section-title">Research Fields</h2>
-                <div class="section-content">${profileData.researchFields}</div>
-            </div>
-            `
-      : ""
-    }
-
-            ${profileData.bio
-      ? `
-            <div class="section">
-                <h2 class="section-title">Biography</h2>
-                <div class="section-content">${profileData.bio}</div>
-            </div>
-            `
-      : ""
-    }
-
-            ${profileData.contributions && profileData.contributions.length > 0
-      ? `
-            <div class="section">
-                <h2 class="section-title">Main Work & Contributions</h2>
-                <ul class="contributions">
-                    ${profileData.contributions.map((contribution) => `<li>${contribution}</li>`).join("")}
-                </ul>
-            </div>
-            `
-      : ""
-    }
-
-            ${profileData.website || profileData.orcid
-      ? `
-            <div class="section">
-                <h2 class="section-title">Related Links</h2>
-                <div class="links">
-                    ${profileData.website ? `<a href="${profileData.website}" target="_blank" class="link">Personal Website</a>` : ""}
-                    ${profileData.orcid ? `<a href="https://orcid.org/${profileData.orcid}" target="_blank" class="link">ORCID</a>` : ""}
-                </div>
-            </div>
-            `
-      : ""
-    }
-        </div>
-
-        <div class="footer">
-            <p>This page is generated by SCAI Box | Updated: ${new Date().toLocaleDateString("en-US")}</p>
-        </div>
-    </div>
-</body>
-</html>
-  `.trim();
-};
 
 const { Title, Text, Paragraph } = Typography;
 // const { TabPane } = Tabs; // Deprecated, using items instead
@@ -305,11 +72,9 @@ const BoxPage = () => {
   const [favorites, setFavorites] = useState([]);
   const [myUploads, setMyUploads] = useState([]);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
-  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [selectedPaperId, setSelectedPaperId] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
-  const [profileRefreshTrigger, setProfileRefreshTrigger] = useState(0);
 
   // Initialize data
   useEffect(() => {
@@ -414,18 +179,17 @@ const BoxPage = () => {
     console.log("=== End Debug Info ===");
   };
 
-  const handleProfileRefresh = () => {
-    setProfileRefreshTrigger((prev) => prev + 1);
-  };
+
 
   return (
+    // , ${user?.username || "Scholar"}
     <Layout>
       <div className="box-page light-theme">
         {/* Hero Section */}
         <div className="hero-section1">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="hero-content">
             <Title level={1} className="hero-title" style={{ color: "#fff" }}>
-              {isAuthenticated ? `Welcome back, ${user?.username || "Scholar"}!` : "Welcome to SCAI Box"}
+              {isAuthenticated ? `Welcome back!` : "Welcome to SCAI Box"}
             </Title>
             <Paragraph className="hero-subtitle">Your personal academic workspace for managing research and publications.</Paragraph>
           </motion.div>
@@ -551,23 +315,6 @@ const BoxPage = () => {
                         currentTheme={currentTheme} 
                       />
                     )
-                  },
-                  {
-                    key: 'profile',
-                    label: (
-                      <span>
-                        <UserOutlined style={{ marginRight: "5px" }} />
-                        Scholar Profile
-                      </span>
-                    ),
-                    children: (
-                      <ProfileTab 
-                        user={user} 
-                        onEdit={() => setProfileModalVisible(true)} 
-                        onRefresh={profileRefreshTrigger} 
-                        currentTheme={currentTheme} 
-                      />
-                    )
                   }
                 ]}
               />
@@ -578,8 +325,7 @@ const BoxPage = () => {
         {/* Upload Modal */}
         <UploadModal visible={uploadModalVisible} onClose={() => setUploadModalVisible(false)} onSuccess={loadMyUploads} user={user} currentTheme={currentTheme} isAuthenticated={isAuthenticated} />
 
-        {/* Profile Modal */}
-        <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} onSuccess={handleProfileRefresh} user={user} />
+
 
         {/* ChatModal for Deep Research */}
         {selectedPaperId && (
@@ -1635,195 +1381,7 @@ const UploadsTab = ({ uploads, onUpload, currentTheme, onRemoveUpload }) => {
   );
 };
 
-const ProfileTab = ({ user, onEdit, onRefresh, currentTheme }) => {
-  const [profileData, setProfileData] = useState(null);
-  const [profilePageUrl, setProfilePageUrl] = useState(null);
-  const [uploading, setUploading] = useState(false);
 
-  const loadProfileData = useCallback(() => {
-    if (user?.id) {
-      const savedProfile = localStorage.getItem(`scai_profile_${user.id}`);
-      if (savedProfile) {
-        setProfileData(JSON.parse(savedProfile));
-      }
-
-      // Check if scholar profile has been uploaded
-      const savedPageUrl = localStorage.getItem(`scai_profile_page_${user.id}`);
-      if (savedPageUrl) {
-        setProfilePageUrl(savedPageUrl);
-      }
-    }
-  }, [user?.id]);
-
-  useEffect(() => {
-    loadProfileData();
-  }, [loadProfileData]);
-
-  // 监听刷新触发器
-  useEffect(() => {
-    if (onRefresh) {
-      loadProfileData();
-    }
-  }, [onRefresh, loadProfileData]);
-
-  const handleUploadProfile = async () => {
-    if (!profileData) {
-      message.warning("Please full out your scholar profile first");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      // Generate HTML template
-      const htmlContent = generateProfileHTML(profileData, user);
-
-      // Create HTML file
-      const htmlBlob = new Blob([htmlContent], { type: "text/html" });
-      const htmlFile = new File([htmlBlob], `${user.firstName}_${user.lastName}_profile.html`, { type: "text/html" });
-
-      // Upload to Irys
-      const result = await uploadToIrys(htmlFile, {
-        title: `${profileData.displayName || `${user.firstName} ${user.lastName}`} - Scholar Profile`,
-        description: "Scholar Personal Profile",
-        userId: user.id,
-        isPrivate: false,
-        uploadMode: "irys",
-      });
-
-      if (result.success) {
-        const pageUrl = result.url;
-        setProfilePageUrl(pageUrl);
-        localStorage.setItem(`scai_profile_page_${user.id}`, pageUrl);
-        message.success("Scholar profile uploaded successfully!");
-      } else {
-        throw new Error(result.error || "Upload failed");
-      }
-    } catch (error) {
-      console.error("Profile upload error:", error);
-      message.error("Upload failed: " + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleViewProfile = () => {
-    if (profilePageUrl) {
-      window.open(profilePageUrl, "_blank");
-    }
-  };
-
-  return (
-    <div className="modern-card" style={{ padding: "2rem" }}>
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <Avatar size={100} src={profileData?.avatarUrl || user?.imageUrl} icon={!(profileData?.avatarUrl || user?.imageUrl) && <UserOutlined />} className="profile-avatar" style={{ marginBottom: "1rem" }} />
-        <Title level={2} style={{ color: currentTheme.isDark ? "#fff" : "#333" }}>
-          {profileData?.displayName || `${user?.firstName} ${user?.lastName}`}
-        </Title>
-        {profileData?.position && <Text style={{ color: currentTheme.isDark ? "#ccc" : "#666", display: "block", marginBottom: "0.5rem" }}>{profileData.position}</Text>}
-        {profileData?.institution && <Text style={{ color: currentTheme.isDark ? "#ccc" : "#666", display: "block", marginBottom: "0.5rem" }}>{profileData.institution}</Text>}
-        <Text style={{ color: currentTheme.isDark ? "#ccc" : "#666" }}>{user?.emailAddresses?.[0]?.emailAddress}</Text>
-      </div>
-
-      <Divider />
-
-      {profileData?.researchFields && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <Title level={5} style={{ color: currentTheme.isDark ? "#fff" : "#333" }}>
-            Research Fields
-          </Title>
-          <Paragraph style={{ color: currentTheme.isDark ? "#ccc" : "#666" }}>{profileData.researchFields}</Paragraph>
-        </div>
-      )}
-
-      {profileData?.bio && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <Title level={5} style={{ color: currentTheme.isDark ? "#fff" : "#333" }}>
-            Biography
-          </Title>
-          <Paragraph style={{ color: currentTheme.isDark ? "#ccc" : "#666" }}>{profileData.bio}</Paragraph>
-        </div>
-      )}
-
-      {profileData?.contributions && profileData.contributions.length > 0 && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <Title level={5} style={{ color: currentTheme.isDark ? "#fff" : "#333" }}>
-            Main Work & Contributions
-          </Title>
-          <div style={{ paddingLeft: "1rem" }}>
-            {profileData.contributions.map((contribution, index) => (
-              <div
-                key={index}
-                style={{
-                  marginBottom: "0.75rem",
-                  position: "relative",
-                  paddingLeft: "1.5rem",
-                }}
-              >
-                <span
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    color: "#1890ff",
-                    fontWeight: "bold",
-                  }}
-                >
-                  ▶
-                </span>
-                <Text style={{ color: currentTheme.isDark ? "#ccc" : "#666" }}>{contribution}</Text>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(profileData?.website || profileData?.orcid) && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <Title level={5} style={{ color: currentTheme.isDark ? "#fff" : "#333" }}>
-            Links
-          </Title>
-          {profileData?.website && (
-            <div style={{ marginBottom: "0.5rem" }}>
-              <Text style={{ color: currentTheme.isDark ? "#ccc" : "#666" }}>
-                Personal Website:{" "}
-                <a href={profileData.website} target="_blank" rel="noopener noreferrer">
-                  {profileData.website}
-                </a>
-              </Text>
-            </div>
-          )}
-          {profileData?.orcid && (
-            <div>
-              <Text style={{ color: currentTheme.isDark ? "#ccc" : "#666" }}>
-                ORCID:{" "}
-                <a href={`https://orcid.org/${profileData.orcid}`} target="_blank" rel="noopener noreferrer">
-                  {profileData.orcid}
-                </a>
-              </Text>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div style={{ textAlign: "center", display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-        <Button type="primary" icon={<EditOutlined />} onClick={onEdit} className="modern-btn modern-btn-primary" size="large">
-          {profileData ? "Edit Profile" : "Complete Profile"}
-        </Button>
-
-        {profileData && (
-          <Button type="default" icon={<CloudUploadOutlined />} onClick={handleUploadProfile} loading={uploading} className="modern-btn modern-btn-secondary" size="large">
-            {profilePageUrl ? "Update Profile" : "Upload Profile"}
-          </Button>
-        )}
-
-        {profilePageUrl && (
-          <Button type="default" icon={<EyeOutlined />} onClick={handleViewProfile} className="modern-btn modern-btn-secondary" size="large">
-            Visit Profile
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // Modal component definitions
 const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => {
@@ -1899,10 +1457,11 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
       // Create FormData
       const formData = new FormData();
       formData.append("file", file.originFileObj);
+      formData.append("fileName", file.originFileObj.name); // 添加文件名字段
       formData.append("title", values.title);
       formData.append("description", values.description || "");
       formData.append("isPrivate", isPrivate);
-      formData.append("userId", user.id);
+      formData.append("userId", user.user_id);
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -1938,7 +1497,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
             year: values.year || paperMetadata?.year,
             abstract: paperMetadata?.abstract,
             isPrivate: isPrivate,
-            userId: user.id,
+            userId: user.user_id,
             paperMetadata: paperMetadata,
           }
         );
@@ -1951,7 +1510,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
             title: values.title,
             description: values.description || "",
             isPrivate: isPrivate,
-            userId: user.id,
+            userId: user.user_id,
             fileType: fileType,
             // If it's literature type, add additional metadata
             ...(fileType === "literature" && {
@@ -1985,13 +1544,13 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
         fileId: uploadResult.data.fileId,
         fileName: file.name,
         fileSize: file.size,
-        userId: user.id,
+        userId: user.user_id,
         uploadMode: uploadMode, // Add upload mode identifier
       };
 
-      const existingUploads = JSON.parse(localStorage.getItem(`scai_uploads_${user.id}`) || "[]");
+      const existingUploads = JSON.parse(localStorage.getItem(`scai_uploads_${user.user_id}`) || "[]");
       existingUploads.push(uploadRecord);
-      localStorage.setItem(`scai_uploads_${user.id}`, JSON.stringify(existingUploads));
+      localStorage.setItem(`scai_uploads_${user.user_id}`, JSON.stringify(existingUploads));
 
       message.success("Document uploaded successfully!");
       form.resetFields();
@@ -2283,134 +1842,6 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
   );
 };
 
-const ProfileModal = ({ visible, onClose, onSuccess, user }) => {
-  const [form] = Form.useForm();
-  const [saving, setSaving] = useState(false);
-  const [contributions, setContributions] = useState([""]);
 
-  const handleSave = async (values) => {
-    setSaving(true);
-    try {
-      // Filter empty contribution items
-      const filteredContributions = contributions.filter((item) => item.trim() !== "");
-
-      // Save scholar information to localStorage
-      const profileData = {
-        ...values,
-        contributions: filteredContributions,
-        userId: user.id,
-        updatedAt: new Date().toISOString(),
-      };
-
-      localStorage.setItem(`scai_profile_${user.id}`, JSON.stringify(profileData));
-      message.success("Scholar profile saved successfully");
-      onClose();
-      // Notify parent component to refresh data
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      message.error("Save failed, please try again");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const addContribution = () => {
-    setContributions([...contributions, ""]);
-  };
-
-  const removeContribution = (index) => {
-    const newContributions = contributions.filter((_, i) => i !== index);
-    setContributions(newContributions);
-  };
-
-  const updateContribution = (index, value) => {
-    const newContributions = [...contributions];
-    newContributions[index] = value;
-    setContributions(newContributions);
-  };
-
-  // Load existing profile
-  useEffect(() => {
-    if (visible && user?.id) {
-      const existingProfile = localStorage.getItem(`scai_profile_${user.id}`);
-      if (existingProfile) {
-        const profileData = JSON.parse(existingProfile);
-        form.setFieldsValue(profileData);
-        // Load contributions list
-        if (profileData.contributions && profileData.contributions.length > 0) {
-          setContributions(profileData.contributions);
-        } else {
-          setContributions([""]);
-        }
-      } else {
-        setContributions([""]);
-      }
-    }
-  }, [visible, user, form]);
-
-  return (
-    <Modal title="Edit Scholar Profile" open={visible} onCancel={onClose} footer={null} width={900} style={{ top: 20 }}>
-      <Form form={form} layout="vertical" onFinish={handleSave} disabled={saving}>
-        <Form.Item name="displayName" label="Display Name" rules={[{ required: true, message: "Please enter display name" }]}>
-          <Input placeholder="Enter your academic display name" />
-        </Form.Item>
-
-        <Form.Item name="avatarUrl" label="Avatar Link" extra="Please provide image URL link, square images recommended">
-          <Input placeholder="https://example.com/avatar.jpg" />
-        </Form.Item>
-
-        <Form.Item name="institution" label="Institution">
-          <Input placeholder="University/Research Institute name" />
-        </Form.Item>
-
-        <Form.Item name="position" label="Position/Degree">
-          <Input placeholder="Professor/PhD Student/Researcher etc." />
-        </Form.Item>
-
-        <Form.Item name="researchFields" label="Research Fields">
-          <Input.TextArea placeholder="Please enter your research fields, separated by commas" rows={3} />
-        </Form.Item>
-
-        <Form.Item name="bio" label="Biography">
-          <Input.TextArea placeholder="Introduce yourself and your research interests" rows={4} />
-        </Form.Item>
-
-        <Form.Item label="Main Work & Contributions" extra="List your main academic achievements, research contributions or important work">
-          <div style={{ marginBottom: "1rem" }}>
-            {contributions.map((contribution, index) => (
-              <div key={index} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                <Input.TextArea value={contribution} onChange={(e) => updateContribution(index, e.target.value)} placeholder={`Contribution ${index + 1}: e.g.: Published high-impact papers, received important awards, led major projects, etc.`} rows={2} style={{ flex: 1 }} />
-                {contributions.length > 1 && <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeContribution(index)} style={{ alignSelf: "flex-start", marginTop: "0.25rem" }} />}
-              </div>
-            ))}
-            <Button type="dashed" onClick={addContribution} icon={<PlusOutlined />} style={{ width: "100%" }}>
-              Add Contributions
-            </Button>
-          </div>
-        </Form.Item>
-
-        <Form.Item name="website" label="Other Links">
-          <Input placeholder="https://yourwebsite.com" />
-        </Form.Item>
-
-        <Form.Item name="orcid" label="ORCID ID">
-          <Input placeholder="0000-0000-0000-0000" />
-        </Form.Item>
-
-        <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
-          <Button onClick={onClose} style={{ marginRight: 8 }}>
-            Cancel
-          </Button>
-          <Button type="primary" htmlType="submit" loading={saving}>
-            {saving ? "Saving..." : "Saved"}
-          </Button>
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-};
 
 export default BoxPage;

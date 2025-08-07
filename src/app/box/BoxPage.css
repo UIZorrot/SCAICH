@@ -359,15 +359,6 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
 }
 
-.dark-theme .tx-id {
-  background: rgba(64, 169, 255, 0.2) !important;
-  color: #40a9ff !important;
-  border: 1px solid rgba(64, 169, 255, 0.3) !important;
-  padding: 0.25rem 0.5rem !important;
-  border-radius: 0.375rem !important;
-  font-size: 0.75rem !important;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
-}
 
 /* Floating Upload Button */
 .floating-upload {
@@ -682,14 +673,6 @@
   opacity: 1;
 }
 
-.dark-theme .modern-card {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .modern-card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-}
 
 /* 空状态样式 */
 .empty-state {

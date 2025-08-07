@@ -8,7 +8,7 @@ class AuthService {
     this.baseURL = 'https://api.scai.sh';
     this.tokenCache = null;
     this.userCache = null;
-    this.connection = new Connection('https://white-bitter-rain.solana-mainnet.quiknode.pro/4d5cb8fdd5d59fb6555e3d89ebf1ca05b3dbaea4');
+    this.connection = new Connection('https://go.getblock.io/1ef14a8a5ed84f7bb94e66b6f5617e02');
   }
 
   // 获取钱包连接

@@ -70,7 +70,7 @@ const PressPage = () => {
       return;
     }
 
-    const profileData = localStorage.getItem(`scai_profile_${user.id}`);
+    const profileData = localStorage.getItem(`scai_profile_${user.user_id}`);
 
     if (profileData) {
       const profile = JSON.parse(profileData);
@@ -102,7 +102,7 @@ const PressPage = () => {
           { name: 'App-Name', value: 'scai-press' },
           { name: 'Content-Type', value: 'application/json' },
           { name: 'Data-Type', value: 'group' },
-          { name: 'Creator', value: user.id }
+          { name: 'Creator', value: user.user_id }
         ]
       });
 
@@ -233,9 +233,9 @@ const PressPage = () => {
         name: values.name,
         description: values.description,
         type: values.type, // 'public' or 'private'
-        creator: user.id,
+        creator: user.user_id,
         creatorProfile: scholarProfile,
-        members: [user.id], // Creator is automatically a member
+        members: [user.user_id], // Creator is automatically a member
         createdAt: Date.now(),
         avatar: values.avatar || '',
         tags: values.tags || [],
@@ -245,7 +245,7 @@ const PressPage = () => {
 
       // Generate hash for private groups
       if (values.type === 'private') {
-        const hashInput = `${groupId}_${user.id}_${Date.now()}`;
+        const hashInput = `${groupId}_${user.user_id}_${Date.now()}`;
         const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashInput));
         const hashArray = Array.from(new Uint8Array(hash));
         const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -259,7 +259,7 @@ const PressPage = () => {
         { name: 'Content-Type', value: 'application/json' },
         { name: 'Data-Type', value: 'group' },
         { name: 'Group-Type', value: values.type },
-        { name: 'Creator', value: user.id },
+        { name: 'Creator', value: user.user_id },
         { name: 'Group-Name', value: values.name },
         { name: 'Created-At', value: Date.now().toString() }
       ];
@@ -352,7 +352,7 @@ const PressPage = () => {
         return;
       }
 
-      if (targetGroup.members.includes(user.id)) {
+      if (targetGroup.members.includes(user.user_id)) {
         message.warning('You are already a member of this group');
         return;
       }
@@ -360,7 +360,7 @@ const PressPage = () => {
       // Add user to group members
       const updatedGroupData = {
         ...targetGroup,
-        members: [...targetGroup.members, user.id],
+        members: [...targetGroup.members, user.user_id],
         memberCount: targetGroup.memberCount + 1
       };
 
@@ -401,7 +401,7 @@ const PressPage = () => {
     }
 
     // Check if user is a member of the group
-    if (!selectedGroup.members.includes(user.id)) {
+    if (!selectedGroup.members.includes(user.user_id)) {
       message.error('You are not a member of this group');
       return;
     }
@@ -412,7 +412,7 @@ const PressPage = () => {
         title: values.title,
         content: values.content,
         groupId: selectedGroup.id,
-        author: user.id,
+        author: user.user_id,
         authorProfile: scholarProfile,
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -427,7 +427,7 @@ const PressPage = () => {
         { name: 'Data-Type', value: 'document' },
         { name: 'Group-Id', value: selectedGroup.id },
         { name: 'Document-Title', value: values.title },
-        { name: 'Author', value: user.id },
+        { name: 'Author', value: user.user_id },
         { name: 'Created-At', value: Date.now().toString() },
         { name: 'Updated-At', value: Date.now().toString() }
       ];
@@ -462,7 +462,7 @@ const PressPage = () => {
     }
 
     // Check if user is the author or a group member
-    if (selectedDocument.author !== user.id && !selectedGroup.members.includes(user.id)) {
+    if (selectedDocument.author !== user.user_id && !selectedGroup.members.includes(user.user_id)) {
       message.error('You do not have permission to edit this document');
       return;
     }
@@ -477,7 +477,7 @@ const PressPage = () => {
         { name: 'Group-Id', value: selectedGroup.id },
         { name: 'Document-Title', value: values.title },
         { name: 'Author', value: selectedDocument.author },
-        { name: 'Editor', value: user.id },
+        { name: 'Editor', value: user.user_id },
         { name: 'Created-At', value: selectedDocument.createdAt.toString() },
         { name: 'Updated-At', value: Date.now().toString() },
         { name: 'Previous-Version', value: selectedDocument.txId }
@@ -878,7 +878,7 @@ const PressPage = () => {
       return;
     }
 
-    if (group.members.includes(user.id)) {
+    if (group.members.includes(user.user_id)) {
       message.warning('You are already a member of this group');
       return;
     }
@@ -887,7 +887,7 @@ const PressPage = () => {
       // Add user to group members
       const updatedGroupData = {
         ...group,
-        members: [...group.members, user.id],
+        members: [...group.members, user.user_id],
         memberCount: group.memberCount + 1
       };
 

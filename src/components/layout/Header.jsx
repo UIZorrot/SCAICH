@@ -18,6 +18,7 @@ const Header = () => {
   const navigation = [
     { name: "Search", href: "/app/search", key: "search" },
     { name: "Box", href: "/app/box", key: "box" },
+    { name: "Settings", href: "/app/settings", key: "settings" },
     { name: "Press (Building)", href: "/app/press", key: "press" },
     { name: "Community", href: "https://t.me/+AMy9MvWuVqhlNDY1", external: true },
   ];
@@ -49,6 +50,8 @@ const Header = () => {
       setActiveSection("search");
     } else if (path.includes("/app/box")) {
       setActiveSection("box");
+    } else if (path.includes("/app/settings")) {
+      setActiveSection("settings");
     } else if (path.includes("/app/press")) {
       setActiveSection("press");
     } else if (path.includes("/app/tools")) {

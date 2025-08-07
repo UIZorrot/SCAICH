@@ -27,6 +27,7 @@ class RemoteUploadService {
       // 创建FormData
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('fileName', file.name); // 直接添加文件名字段
       
       // 添加元数据
       const metadataJson = {

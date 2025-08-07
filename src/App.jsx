@@ -284,9 +284,9 @@ export default function SearchApp() {
     } else {
       setIsLoggedIn(true);
       // 同步用户信息
-      if (user?.id) {
-        setUserId(user.id);
-        localStorage.setItem("userId", user.id);
+      if (user?.user_id) {
+        setUserId(user.user_id);
+        localStorage.setItem("userId", user.user_id);
       }
     }
   }, [isAuthenticated, user]);

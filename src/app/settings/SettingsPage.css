@@ -1,0 +1,196 @@
+
+/* Tools Page Styles */
+.setting-page {
+  min-height: 70vh;
+  padding: 5rem;
+  transition: all 0.3s ease;
+}
+
+/* Scholar Container */
+.scholar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.scholar-tabs {
+  background: #f8fafc00;
+  min-height: 60vh;
+  padding: 2rem 0;
+}
+
+
+
+/* Form Styles */
+.ant-form-item-label > label {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.ant-input,
+.ant-input-password,
+.ant-select-selector,
+.ant-input-number {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.ant-input:focus,
+.ant-input-password:focus,
+.ant-select-focused .ant-select-selector,
+.ant-input-number:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ant-input:hover,
+.ant-input-password:hover,
+.ant-select:hover .ant-select-selector,
+.ant-input-number:hover {
+  border-color: #667eea;
+}
+
+/* Progress Bar */
+.ant-progress-bg {
+  background: #52c41a;
+}
+
+/* Tags */
+.ant-tag {
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-weight: 500;
+  border: none;
+}
+
+/* Alerts */
+.ant-alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.ant-alert-warning {
+  background: #fff7e6;
+  border-left: 4px solid #faad14;
+}
+
+/* Template Selection */
+.template-selection .ant-select-selector {
+  border: 2px solid #e2e8f0;
+}
+
+.template-selection .ant-select-focused .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Avatar Styles */
+.ant-avatar {
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #64748b;
+}
+
+.empty-state .empty-icon {
+  font-size: 4rem;
+  color: #cbd5e0;
+  margin-bottom: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 50vh;
+    padding: 2rem 1rem;
+  }
+  
+  .hero-content h1 {
+    font-size: 2rem !important;
+  }
+  
+  .scholar-container {
+    padding: 1rem;
+  }
+  
+  .modern-tabs .ant-tabs-tab {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  
+  .modern-card .ant-card-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-content h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  .scholar-container {
+    padding: 0.5rem;
+  }
+  
+  .modern-tabs .ant-tabs-tab {
+    margin-right: 4px;
+    padding: 10px 12px;
+  }
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.8s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}

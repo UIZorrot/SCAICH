@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{displayName}} - Personal Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Charter', 'Georgia', 'Times New Roman', serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background: #fefefe;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23ffffff" opacity="0.3"/><circle cx="80" cy="40" r="1" fill="%23ffffff" opacity="0.4"/><circle cx="40" cy="80" r="1.5" fill="%23ffffff" opacity="0.2"/></svg>') repeat;
+        }
+
+        .blog-title {
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #ffffff;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border: 3px solid rgba(255,255,255,0.8);
+            color: #7f8c8d;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .blog-title h1 {
+            font-size: 2.8rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            letter-spacing: -1px;
+        }
+
+        .blog-subtitle {
+            font-size: 1.2rem;
+            color: #5a6c7d;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .blog-description {
+            font-size: 1rem;
+            color: #7f8c8d;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            background: #34495e;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 0 2rem;
+        }
+
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .content {
+            padding: 3rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 400;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 2px;
+            background: #3498db;
+        }
+
+        .intro {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #34495e;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+
+        .posts-grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .post-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid #ecf0f1;
+            transition: all 0.3s ease;
+        }
+
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .post-date {
+            font-style: italic;
+        }
+
+        .post-category {
+            background: #3498db;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .post-excerpt {
+            color: #5a6c7d;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: #ecf0f1;
+            color: #34495e;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+
+        .tag:hover {
+            background: #bdc3c7;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .category-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .category-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-count {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .about-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 3rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .social-link {
+            color: #34495e;
+            text-decoration: none;
+            padding: 0.75rem;
+            border: 2px solid #34495e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: #34495e;
+            color: white;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: #ecf0f1;
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-link {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: #ecf0f1;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 3rem 1rem 2rem;
+            }
+
+            .content {
+                padding: 2rem 1rem;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .categories {
+                grid-template-columns: 1fr;
+            }
+
+            .social-links {
+                flex-wrap: wrap;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="blog-title">
+                <div class="avatar">
+                    {{#if avatarUrl}}
+                    <img src="{{avatarUrl}}" alt="{{displayName}}">
+                    {{else}}
+                    {{displayName.0}}
+                    {{/if}}
+                </div>
+                <h1>{{blogTitle}}</h1>
+                <div class="blog-subtitle">{{tagline}}</div>
+                <div class="blog-description">{{description}}</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <div class="nav-content">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#posts" class="nav-link">Posts</a>
+                <a href="#categories" class="nav-link">Categories</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+        </nav>
+
+        <div class="content">
+            {{#if intro}}
+            <div class="intro">{{intro}}</div>
+            {{/if}}
+
+            {{#if categories}}
+            <div class="section">
+                <h2 class="section-title">Categories</h2>
+                <div class="categories">
+                    {{#each categories}}
+                    <div class="category-card">
+                        <div class="category-title">{{this.name}}</div>
+                        <div class="category-count">{{this.count}} posts</div>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+            {{/if}}
+
+            {{#if recentPosts}}
+            <div class="section">
+                <h2 class="section-title">Recent Posts</h2>
+                <div class="posts-grid">
+                    {{#each recentPosts}}
+                    <article class="post-card">
+                        <div class="post-meta">
+                            <span class="post-date">{{this.date}}</span>
+                            <span class="post-category">{{this.category}}</span>
+                        </div>
+                        <h3 class="post-title">{{this.title}}</h3>
+                        <div class="post-excerpt">{{this.excerpt}}</div>
+                        <div class="post-tags">
+                            {{#each this.tags}}
+                            <a href="#" class="tag">{{this}}</a>
+                            {{/each}}
+                        </div>
+                    </article>
+                    {{/each}}
+                </div>
+            </div>
+            {{/if}}
+
+            <div class="section">
+                <h2 class="section-title">About Me</h2>
+                <div class="about-section">
+                    <p>{{aboutMe}}</p>
+                    <div class="social-links">
+                        {{#if twitter}}<a href="{{twitter}}" target="_blank" class="social-link">T</a>{{/if}}
+                        {{#if github}}<a href="{{github}}" target="_blank" class="social-link">G</a>{{/if}}
+                        {{#if linkedin}}<a href="{{linkedin}}" target="_blank" class="social-link">L</a>{{/if}}
+                        {{#if email}}<a href="mailto:{{email}}" class="social-link">@</a>{{/if}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-links">
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Service</a>
+                <a href="#" class="footer-link">RSS Feed</a>
+            </div>
+            <p>&copy; {{currentYear}} {{displayName}}. Powered by SCAI Box.</p>
+        </div>
+    </div>
+</body>
+</html>

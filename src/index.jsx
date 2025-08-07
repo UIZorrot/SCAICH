@@ -12,6 +12,8 @@ import SearchPage from "./app/search/SearchPage";
 import BoxPage from "./app/box/BoxPage";
 import PressPage from "./app/press/PressPage";
 import ToolsPage from "./app/tools/ToolsPage";
+import SettingsPage from "./app/settings/SettingsPage";
+import ProfilePage from "./app/profile/ProfilePage";
 import IrysViewer from "./app/irys/IrysViewer";
 import { BackgroundProvider } from "./contexts/BackgroundContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -31,13 +33,13 @@ import { WagmiProvider } from "wagmi";
 import { bscTestnet } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { createConfig, http } from "wagmi";
-
+import { clusterApiUrl } from '@solana/web3.js';
 
 
 // Solana 钱包提供者
 const SolanaWalletProvider = ({ children }) => {
   const network = WalletAdapterNetwork.Mainnet;
-  const endpoint = useMemo(() => "https://white-bitter-rain.solana-mainnet.quiknode.pro/4d5cb8fdd5d59fb6555e3d89ebf1ca05b3dbaea4", [network]);
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], [network]);
 
   return (
@@ -97,8 +99,12 @@ const UnifiedWalletProvider = () => {
                   {/* New unified app routes */}
                   <Route path="/app/search" element={<SearchPage />} />
                   <Route path="/app/box" element={<BoxPage />} />
+                  <Route path="/app/settings" element={<SettingsPage />} />
                   <Route path="/app/press" element={<PressPage />} />
                   <Route path="/app/tools" element={<ToolsPage />} />
+
+                  {/* Profile page route */}
+                  <Route path="/profile/:userId" element={<ProfilePage />} />
 
                   {/* Irys document viewer */}
                   <Route path="/irys/:txId" element={<IrysViewer />} />

@@ -41,6 +41,7 @@ class APIService {
   async uploadFileToIrys(file, metadata = {}) {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('fileName', file.name); // 添加必需的文件名字段
     if (Object.keys(metadata).length > 0) {
       formData.append('metadata', JSON.stringify(metadata));
     }
@@ -94,6 +95,7 @@ class APIService {
 
       const formData = new FormData();
     formData.append('file', file); // PDF文件
+    formData.append('fileName', file.name); // 添加文件名字段
     formData.append('doi', doi || ''); // DOI 可以为空字符串
     formData.append('title', metadata.title || 'Untitled Paper'); // 确保有标题
     formData.append('authors', Array.isArray(metadata.authors) ? metadata.authors.join(', ') : (metadata.authors || metadata.author || 'Unknown Author'));
