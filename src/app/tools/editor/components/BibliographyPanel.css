@@ -1,0 +1,202 @@
+/* Bibliography Panel Styles */
+.bibliography-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.bibliography-panel .ant-card-body {
+  padding: 12px;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.bibliography-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Actions Section */
+.bibliography-actions {
+  flex-shrink: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Bibliography List */
+.bibliography-list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.bibliography-list .ant-list-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+  align-items: flex-start;
+}
+
+.bibliography-list .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.bibliography-item {
+  cursor: default;
+}
+
+.citation-content {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.citation-number {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #1890ff;
+  min-width: 20px;
+  text-align: right;
+  margin-top: 2px;
+}
+
+.citation-text {
+  flex: 1;
+  margin-bottom: 0 !important;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #595959;
+}
+
+.citation-text .ant-typography-expand {
+  color: #1890ff;
+  font-size: 11px;
+}
+
+/* Empty State */
+.bibliography-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 16px;
+  color: #bfbfbf;
+}
+
+/* Statistics */
+.bibliography-stats {
+  flex-shrink: 0;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+/* Scrollbar Styling */
+.bibliography-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bibliography-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bibliography-list::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.bibliography-list::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bibliography-panel .ant-card-body {
+    padding: 8px;
+  }
+
+  .bibliography-actions {
+    padding-bottom: 6px;
+  }
+
+  .bibliography-actions .ant-space {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .citation-text {
+    font-size: 11px;
+  }
+
+  .bibliography-empty {
+    padding: 24px 12px;
+  }
+}
+
+/* Dark Mode Support */
+.dark .bibliography-panel {
+  background: #1f1f1f;
+  border-color: #303030;
+}
+
+.dark .bibliography-panel .ant-card-body {
+  background: #1f1f1f;
+}
+
+.dark .bibliography-actions {
+  border-bottom-color: #303030;
+}
+
+.dark .bibliography-list .ant-list-item {
+  border-bottom-color: #303030;
+}
+
+.dark .citation-text {
+  color: #d9d9d9;
+}
+
+.dark .bibliography-stats {
+  border-top-color: #303030;
+}
+
+.dark .bibliography-empty {
+  color: #595959;
+}
+
+/* Animation for loading state */
+.bibliography-panel .ant-spin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hover effects for actions */
+.bibliography-actions .ant-btn:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+.bibliography-actions .ant-btn:active {
+  transform: translateY(0);
+}
+
+/* Custom badge styling */
+.bibliography-panel .ant-card-head-title .ant-badge {
+  margin-left: 8px;
+}
+
+/* Format selector styling */
+.bibliography-panel .ant-select-selector {
+  border-radius: 4px;
+}
+
+.bibliography-panel .ant-select-focused .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}

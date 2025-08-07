@@ -1,5 +1,8 @@
 import { Extension } from "@tiptap/core";
 import Suggestion from "@tiptap/suggestion";
+import { PluginKey } from "prosemirror-state";
+
+const pluginKey = new PluginKey("slashCommands");
 
 export const SlashCommands = Extension.create({
   name: "slashCommands",
@@ -20,6 +23,7 @@ export const SlashCommands = Extension.create({
       Suggestion({
         editor: this.editor,
         ...this.options.suggestion,
+        pluginKey, // 使用 PluginKey 实例
       }),
     ];
   },
@@ -115,6 +119,16 @@ export const slashCommandItems = [
     icon: "➖",
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHorizontalRule().run();
+    },
+  },
+  {
+    title: "引用文献",
+    description: "搜索并插入学术文献引用",
+    searchTerms: ["citation", "reference", "引用", "文献", "参考"],
+    icon: "📚",
+    command: ({ editor, range }) => {
+      // 删除斜杠命令文本并插入引用触发符
+      editor.chain().focus().deleteRange(range).insertContent("[").run();
     },
   },
 ];

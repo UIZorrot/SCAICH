@@ -383,3 +383,108 @@ export const EnhancedBlockquote = Node.create({
     };
   },
 });
+
+// Citation Node - 论文引用节点
+export const CitationNode = Node.create({
+  name: "citation",
+
+  group: "inline",
+  inline: true,
+  atom: true,
+
+  addAttributes() {
+    return {
+      citationId: {
+        default: null,
+      },
+      displayText: {
+        default: "",
+      },
+      // 存储引用的基本信息，用于快速显示和导出
+      title: {
+        default: "",
+      },
+      author: {
+        default: "",
+      },
+      year: {
+        default: "",
+      },
+      doi: {
+        default: "",
+      },
+      // 存储完整的引用数据 (JSON 字符串)
+      fullData: {
+        default: "",
+      },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'span[data-type="citation"]',
+        getAttrs: (dom) => ({
+          citationId: dom.getAttribute("data-citation-id"),
+          displayText: dom.textContent,
+          title: dom.getAttribute("data-title") || "",
+          author: dom.getAttribute("data-author") || "",
+          year: dom.getAttribute("data-year") || "",
+          doi: dom.getAttribute("data-doi") || "",
+          fullData: dom.getAttribute("data-full-data") || "",
+        }),
+      },
+    ];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "span",
+      mergeAttributes(HTMLAttributes, {
+        "data-type": "citation",
+        "data-citation-id": HTMLAttributes.citationId,
+        "data-title": HTMLAttributes.title,
+        "data-author": HTMLAttributes.author,
+        "data-year": HTMLAttributes.year,
+        "data-doi": HTMLAttributes.doi,
+        "data-full-data": HTMLAttributes.fullData,
+        class: "citation-node",
+        title: `${HTMLAttributes.title} (${HTMLAttributes.year})`, // 悬停提示
+      }),
+      HTMLAttributes.displayText || `(${HTMLAttributes.author}, ${HTMLAttributes.year})`,
+    ];
+  },
+
+  addCommands() {
+    return {
+      setCitation:
+        (attributes) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: attributes,
+          });
+        },
+      // 批量插入引用
+      insertMultipleCitations:
+        (citationsArray) =>
+        ({ commands }) => {
+          const content = citationsArray.map((citation) => ({
+            type: this.name,
+            attrs: citation,
+          }));
+          return commands.insertContent(content);
+        },
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      "Mod-Shift-c": () => {
+        // 可以在这里添加快捷键逻辑，比如打开引用搜索对话框
+        console.log("Citation shortcut pressed");
+        return true;
+      },
+    };
+  },
+});

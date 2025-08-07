@@ -14,14 +14,14 @@ class SearchService {
    * Search for academic papers using the SCAI API
    */
   async searchPapers(params) {
-    const { query, limit = 10, openAccessOnly = false } = params;
+    const { query, limit = 10 } = params;
 
     if (!query || query.trim() === "") {
       throw new Error("Search query cannot be empty");
     }
 
     try {
-      const response = await fetch(`${this.baseURL}/search?query=${encodeURIComponent(query)}&limit=${limit}&oa=${openAccessOnly}`, {
+      const response = await fetch(`${this.baseURL}/search?query=${encodeURIComponent(query)}&limit=${limit}&oa=false&ai=false`, {
         method: "GET",
         mode: "cors",
         headers: {
@@ -39,7 +39,6 @@ class SearchService {
       return {
         success: true,
         results: data.results || [],
-        summary: data.summary || "",
         total: data.results?.length || 0,
       };
     } catch (error) {
@@ -48,7 +47,6 @@ class SearchService {
         success: false,
         error: error.message,
         results: [],
-        summary: "",
         total: 0,
       };
     }

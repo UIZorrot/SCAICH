@@ -26,9 +26,10 @@ import "katex/dist/katex.min.css";
 import "./TipTapEditor.css";
 
 // Import custom academic nodes
-import { FigureWithCaption, TheoremBlock, EnhancedBlockquote } from "../extensions/AcademicNodes";
+import { FigureWithCaption, TheoremBlock, EnhancedBlockquote, CitationNode } from "../extensions/AcademicNodes";
 import { SlashCommands, slashCommandItems } from "../extensions/SlashCommands";
 import { renderSlashCommands } from "../extensions/SlashCommandsRenderer";
+import CitationSuggestion from "../extensions/CitationSuggestion";
 import MathExtension from "@aarkue/tiptap-math-extension";
 
 // Import EditorToolbar
@@ -69,8 +70,9 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
         },
-        // Disable default codeBlock to use our custom one
         codeBlock: false,
+        link: false,
+        underline: false,
       }),
       // Add CodeBlock with custom configuration and NodeView
       CodeBlock.configure({
@@ -87,11 +89,12 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
         placeholder,
       }),
       Typography,
-      Underline,
+      Underline.configure({
+        HTMLAttributes: {
+          class: "editor-underline",
+        },
+      }),
       CharacterCount,
-      // 第三方数学扩展 - 支持 $...$ 和 $$...$$ 自动转换
-      // 暂时使用简单配置，不使用自定义 NodeView
-      // configureMathExtension(),
       MathExtension.configure({
         evaluation: false,
         delimiters: "dollar",
@@ -126,6 +129,9 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
         },
       }),
       EnhancedBlockquote,
+      // Citation system
+      CitationNode,
+      CitationSuggestion,
       // Slash commands
       SlashCommands.configure({
         suggestion: {

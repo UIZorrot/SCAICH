@@ -7,6 +7,7 @@ import DocumentManager from "./components/DocumentManager";
 import DocumentOutline from "./components/DocumentOutline";
 import AISuggestionsPanel from "./components/AISuggestionsPanel";
 import FloatingToolPanel from "./components/FloatingToolPanel";
+import BibliographyPanel from "./components/BibliographyPanel";
 import "./components/AISuggestionsPanel.css";
 import "./AcademicEditor.css";
 
@@ -18,7 +19,7 @@ const AcademicEditor = ({ onBackToTools }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerVisible, setMobileDrawerVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState("documents"); // 'documents', 'outline', or 'ai'
+  const [activeTab, setActiveTab] = useState("documents"); // 'documents', 'outline', 'ai', or 'bibliography'
   const [selectedText, setSelectedText] = useState("");
   const [editorInstance, setEditorInstance] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -400,6 +401,9 @@ const AcademicEditor = ({ onBackToTools }) => {
         <Button type={activeTab === "ai" ? "primary" : "text"} icon={<BulbOutlined />} onClick={() => setActiveTab("ai")} block disabled={!currentDocument}>
           AI 助手
         </Button>
+        <Button type={activeTab === "bibliography" ? "primary" : "text"} icon={<FileTextOutlined />} onClick={() => setActiveTab("bibliography")} block disabled={!currentDocument}>
+          参考文献
+        </Button>
       </div>
 
       {/* DocumentManager should always be rendered to maintain ref */}
@@ -468,6 +472,11 @@ const AcademicEditor = ({ onBackToTools }) => {
               />
             </motion.div>
           )}
+          {activeTab === "bibliography" && (
+            <motion.div key="bibliography" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+              <BibliographyPanel editor={editorInstance} isVisible={true} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>
@@ -502,7 +511,7 @@ const AcademicEditor = ({ onBackToTools }) => {
           {/* Sidebar for Desktop */}
           {!isMobile && (
             <Sider
-              width="20%"
+              width="30%"
               collapsed={sidebarCollapsed || isFullscreen}
               collapsedWidth={0}
               className="editor-sider"
@@ -566,6 +575,7 @@ const AcademicEditor = ({ onBackToTools }) => {
                           <li>数学公式支持 (KaTeX)</li>
                           <li>图表与标题管理</li>
                           <li>定理、引理等学术块</li>
+                          <li>智能文献引用系统</li>
                           <li>文档大纲导航</li>
                           <li>自动保存功能</li>
                         </ul>
