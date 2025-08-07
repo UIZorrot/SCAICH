@@ -24,6 +24,7 @@ import { BoldOutlined, ItalicOutlined, StrikethroughOutlined, LinkOutlined, Pict
 import { motion } from "framer-motion";
 import "katex/dist/katex.min.css";
 import "./TipTapEditor.css";
+import "./PaperStructureNodes.css";
 
 // Import custom academic nodes
 import { FigureWithCaption, TheoremBlock, EnhancedBlockquote, CitationNode } from "../extensions/AcademicNodes";
@@ -31,6 +32,10 @@ import { SlashCommands, slashCommandItems } from "../extensions/SlashCommands";
 import { renderSlashCommands } from "../extensions/SlashCommandsRenderer";
 import CitationSuggestion from "../extensions/CitationSuggestion";
 import MathExtension from "@aarkue/tiptap-math-extension";
+
+// Import paper structure nodes
+import { PaperTitle, AuthorInfo } from "../extensions/PaperStructureNodes";
+import { Abstract, Keywords, Affiliation } from "../extensions/PaperStructureNodesExtended";
 
 // Import EditorToolbar
 import EditorToolbar from "./EditorToolbar";
@@ -132,6 +137,12 @@ const TipTapEditor = ({ initialContent, onChange, onSelectionUpdate, onTextSelec
       // Citation system
       CitationNode,
       CitationSuggestion,
+      // Paper structure nodes
+      PaperTitle,
+      AuthorInfo,
+      Abstract,
+      Keywords,
+      Affiliation,
       // Slash commands
       SlashCommands.configure({
         suggestion: {

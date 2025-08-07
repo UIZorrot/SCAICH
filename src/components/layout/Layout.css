@@ -6,7 +6,7 @@
   position: relative;
   overflow-x: hidden;
   /* 确保容器能够扩展以适应内容 */
-  background: #40B5F7;
+  background: #40b5f7;
 }
 
 .layout-background {
@@ -18,7 +18,7 @@
   min-height: 100vh;
   z-index: 1;
   transition: background-color 0.3s ease;
-  background: #40B5F7
+  background: #40b5f7;
 }
 
 .layout-background-img {
@@ -47,6 +47,7 @@
   min-height: calc(100vh - 13vh);
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .main-content {
@@ -72,13 +73,11 @@
 
 /* Ensure content doesn't get hidden behind header */
 .layout-main::before {
-  content: '';
+  content: "";
   display: block;
   height: 20px;
   /* Additional spacing */
 }
-
-
 
 /* Content area styling */
 /* .main-content {
@@ -101,7 +100,6 @@
 .light-theme {
   color: #333;
 }
-
 
 @media (max-width: 768px) {
   .layout-main {

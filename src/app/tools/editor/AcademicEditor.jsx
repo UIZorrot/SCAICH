@@ -17,7 +17,6 @@ const { Title } = Typography;
 const AcademicEditor = ({ onBackToTools }) => {
   const [currentDocument, setCurrentDocument] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerVisible, setMobileDrawerVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("documents"); // 'documents', 'outline', 'ai', or 'bibliography'
   const [selectedText, setSelectedText] = useState("");
@@ -362,9 +361,6 @@ const AcademicEditor = ({ onBackToTools }) => {
   // Toggle fullscreen mode
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen(!isFullscreen);
-    if (!isFullscreen) {
-      setSidebarCollapsed(true);
-    }
   }, [isFullscreen]);
 
   // Quick create document function
@@ -484,7 +480,7 @@ const AcademicEditor = ({ onBackToTools }) => {
 
   return (
     <div className={`academic-editor ${isFullscreen ? "fullscreen" : ""}`}>
-      <Layout style={{ height: isFullscreen ? "100vh" : "80vh" }}>
+      <Layout style={{ height: isFullscreen ? "86vh" : "85vh" }}>
         {/* Header */}
         <Header className="editor-header">
           <Row justify="space-between" align="middle">
@@ -509,11 +505,10 @@ const AcademicEditor = ({ onBackToTools }) => {
 
         <Layout>
           {/* Sidebar for Desktop */}
-          {!isMobile && (
+          {!isMobile && !isFullscreen && (
             <Sider
-              width="30%"
-              collapsed={sidebarCollapsed || isFullscreen}
-              collapsedWidth={0}
+              width="25%"
+              collapsed={false}
               className="editor-sider"
               style={{
                 background: "white",
@@ -588,14 +583,6 @@ const AcademicEditor = ({ onBackToTools }) => {
           </Content>
         </Layout>
       </Layout>
-
-      {/* 右侧悬浮工具面板 */}
-      <FloatingToolPanel
-        editor={editorInstance}
-        onInsertCitation={(paper) => {
-          console.log("Citation inserted:", paper);
-        }}
-      />
     </div>
   );
 };

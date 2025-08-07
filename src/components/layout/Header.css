@@ -17,7 +17,6 @@
   background: blur(32px);
 }
 
-
 .header-nav {
   padding: 0 16px;
   margin: 0 auto;
@@ -70,7 +69,7 @@
 }
 
 .logo-container:hover .logo-text {
-  color: #FF3314;
+  color: #ff3314;
 }
 
 .desktop-nav-center {
@@ -106,7 +105,7 @@
 }
 
 .nav-link:hover {
-  color: #FF3314;
+  color: #ff3314;
 }
 
 .light-theme .nav-link:hover {
@@ -132,20 +131,19 @@
 }
 
 .login-btn {
-  background-color: #FF3314;
+  background-color: #ff3314;
   color: #fff;
   border-radius: 10px;
   padding: 10px 15px;
   font-size: 14px;
   font-weight: 500;
-  line-height: 20;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .login-btn:hover {
-  background-color: #fff!important;
+  background-color: #fff !important;
   color: #000 !important;
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3) !important;
@@ -275,7 +273,7 @@
 
 .mobile-drawer .ant-drawer-close:hover {
   background: rgba(255, 77, 79, 0.1);
-  color: #FF3314;
+  color: #ff3314;
 }
 
 .mobile-nav-links {
@@ -299,14 +297,14 @@
 
 .mobile-nav-link:hover {
   background-color: rgba(255, 77, 79, 0.1) !important;
-  color: #FF3314 !important;
+  color: #ff3314 !important;
   border-color: rgba(255, 77, 79, 0.2);
   transform: translateX(4px);
 }
 
 .mobile-nav-link.active {
   background-color: rgba(255, 77, 79, 0.15) !important;
-  color: #FF3314 !important;
+  color: #ff3314 !important;
   font-weight: 600;
   border-color: rgba(255, 77, 79, 0.3);
 }

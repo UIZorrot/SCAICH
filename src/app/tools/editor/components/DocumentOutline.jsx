@@ -4,6 +4,7 @@ import { UnorderedListOutlined, EyeOutlined, EyeInvisibleOutlined, ExpandOutline
 import { motion } from "framer-motion";
 import { useAIAssistant } from "../hooks/useAIAssistant";
 import aiService from "../services/AIService";
+import PaperStructureIntegration from "../services/PaperStructureIntegration";
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
@@ -33,7 +34,7 @@ const DocumentOutline = ({ editor, onNodeClick, showWordCount = true, collapsibl
     setServiceStatus(getServiceStatus());
   }, [getServiceStatus]);
 
-  // 流式大纲生成处理函数
+  // 智能流式大纲生成处理函数
   const handleGenerateOutlineStream = async (values) => {
     const params = {
       topic: values.topic,
@@ -47,6 +48,23 @@ const DocumentOutline = ({ editor, onNodeClick, showWordCount = true, collapsibl
       if (!aiService.isConfigured()) {
         message.warning("请先配置AI服务API密钥");
         return;
+      }
+
+      // 检查是否有现有结构
+      const hasStructure = PaperStructureIntegration.hasStructureNodes(editor);
+      if (hasStructure) {
+        const shouldProceed = await new Promise((resolve) => {
+          Modal.confirm({
+            title: "检测到论文结构节点",
+            content: "编辑器中已有论文结构节点，AI大纲将在结构节点后插入。是否继续？",
+            okText: "继续生成",
+            cancelText: "取消",
+            onOk: () => resolve(true),
+            onCancel: () => resolve(false),
+          });
+        });
+
+        if (!shouldProceed) return;
       }
 
       setIsStreaming(true);

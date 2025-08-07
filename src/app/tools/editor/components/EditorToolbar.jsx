@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Button, Tooltip, Divider, Dropdown, Space, Modal, Form, Input, Select, InputNumber, Checkbox } from "antd";
+import { Button, Tooltip, Divider, Dropdown, Space, Modal, Form, Input, Select, InputNumber, Checkbox, message } from "antd";
 import {
   UndoOutlined,
   RedoOutlined,
@@ -21,15 +21,28 @@ import {
   AlignCenterOutlined,
   AlignRightOutlined,
   CodeOutlined,
+  FileTextOutlined,
+  UserOutlined,
+  BookOutlined,
+  TagsOutlined,
+  BankOutlined,
+  FileAddOutlined,
+  TeamOutlined,
+  TrophyOutlined,
+  RocketOutlined,
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import "./EditorToolbar.css";
+import PaperTemplateService from "../services/PaperTemplateService";
+import PaperStructureIntegration from "../services/PaperStructureIntegration";
+import NewPaperWizard from "./PaperWorkflowGuide";
 
 const EditorToolbar = ({ editor }) => {
   const [equationModalVisible, setEquationModalVisible] = useState(false);
   const [theoremModalVisible, setTheoremModalVisible] = useState(false);
   const [tableModalVisible, setTableModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [workflowGuideVisible, setWorkflowGuideVisible] = useState(false);
   const [equationForm] = Form.useForm();
   const [theoremForm] = Form.useForm();
   const [tableForm] = Form.useForm();
@@ -185,6 +198,25 @@ const EditorToolbar = ({ editor }) => {
     });
   }, [editor, imageForm]);
 
+  // 智能模板选择处理函数
+  const handleTemplateSelect = useCallback(
+    async (templateType) => {
+      try {
+        const success = await PaperStructureIntegration.smartApplyTemplate(editor, templateType, {
+          preserveStructure: true,
+        });
+
+        if (success) {
+          message.success("论文模板已成功应用");
+        }
+      } catch (error) {
+        console.error("应用模板失败:", error);
+        message.error("应用模板失败，请重试");
+      }
+    },
+    [editor]
+  );
+
   if (!editor) {
     return null;
   }
@@ -199,9 +231,42 @@ const EditorToolbar = ({ editor }) => {
     { key: "6", label: "六级标题", onClick: () => setHeading(6) },
   ];
 
+  // 模板选项
+  const templateItems = PaperTemplateService.getAvailableTemplates().map((template) => ({
+    key: template.key,
+    label: (
+      <Space>
+        <span>{template.name}</span>
+        <span style={{ color: "#666", fontSize: "12px" }}>{template.description}</span>
+      </Space>
+    ),
+    onClick: () => handleTemplateSelect(template.key),
+  }));
+
   return (
     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="editor-toolbar">
       <div className="toolbar-section">
+        {/* New Paper Wizard */}
+        <Tooltip title="新建论文向导">
+          <Button size="small" type="primary" onClick={() => setWorkflowGuideVisible(true)}>
+            <RocketOutlined />
+            新建向导
+          </Button>
+        </Tooltip>
+
+        {/* Template Selection */}
+        <Dropdown menu={{ items: templateItems }} trigger={["click"]} placement="bottomLeft">
+          <Tooltip title="选择论文模板">
+            <Button size="small" type="default">
+              <FileAddOutlined />
+              模板
+              <DownOutlined style={{ fontSize: "10px", marginLeft: "4px" }} />
+            </Button>
+          </Tooltip>
+        </Dropdown>
+
+        <Divider type="vertical" />
+
         {/* History Operations */}
         <Space.Compact>
           <Tooltip title="撤销">
@@ -279,6 +344,27 @@ const EditorToolbar = ({ editor }) => {
         <Space.Compact>
           <Tooltip title="插入定理">
             <Button size="small" icon={<ExperimentOutlined />} onClick={addTheorem} />
+          </Tooltip>
+        </Space.Compact>
+
+        <Divider type="vertical" />
+
+        {/* Paper Structure Elements */}
+        <Space.Compact>
+          <Tooltip title="插入论文标题">
+            <Button size="small" icon={<FileTextOutlined />} onClick={() => editor.commands.setPaperTitle()} type={editor.isActive("paperTitle") ? "primary" : "default"} />
+          </Tooltip>
+          <Tooltip title="插入作者信息">
+            <Button size="small" icon={<UserOutlined />} onClick={() => editor.commands.setAuthorInfo()} type={editor.isActive("authorInfo") ? "primary" : "default"} />
+          </Tooltip>
+          <Tooltip title="插入摘要">
+            <Button size="small" icon={<BookOutlined />} onClick={() => editor.commands.setAbstract()} type={editor.isActive("abstract") ? "primary" : "default"} />
+          </Tooltip>
+          <Tooltip title="插入关键词">
+            <Button size="small" icon={<TagsOutlined />} onClick={() => editor.commands.setKeywords()} type={editor.isActive("keywords") ? "primary" : "default"} />
+          </Tooltip>
+          <Tooltip title="插入机构信息">
+            <Button size="small" icon={<BankOutlined />} onClick={() => editor.commands.setAffiliation()} type={editor.isActive("affiliation") ? "primary" : "default"} />
           </Tooltip>
         </Space.Compact>
       </div>
@@ -380,6 +466,17 @@ const EditorToolbar = ({ editor }) => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* New Paper Wizard */}
+      <NewPaperWizard
+        visible={workflowGuideVisible}
+        onClose={() => setWorkflowGuideVisible(false)}
+        editor={editor}
+        onComplete={(outlineParams) => {
+          // 向导完成后的处理
+          console.log("工作流程完成，大纲参数:", outlineParams);
+        }}
+      />
     </motion.div>
   );
 };
