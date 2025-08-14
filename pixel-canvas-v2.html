@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>去中心化像素画布 | 自迭代涂鸦</title>
+    <style>
+        :root {
+            --bg-dark: #0a1419;
+            --bg-secondary-dark: #0f1b21;
+            --text-primary-dark: #ffffff;
+            --text-secondary-dark: #a0c4cc;
+            --accent-dark: #22d3ee;
+            --accent-hover-dark: #06b6d4;
+            --border-dark: rgba(34, 211, 238, 0.2);
+            --shadow-dark: rgba(0, 0, 0, 0.3);
+            --gradient-start: #0891b2;
+            --gradient-mid: #22d3ee;
+            --gradient-end: #67e8f9;
+            --success: #10B981;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f1b21 100%);
+            color: var(--text-primary-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: linear-gradient(135deg, var(--bg-secondary-dark) 0%, #1a2e35 100%);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow:
+                0 8px 32px var(--shadow-dark),
+                0 0 40px rgba(34, 211, 238, 0.1);
+            border: 1px solid var(--border-dark);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 0 0 15px 0;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.3);
+        }
+
+        #counter {
+            font-size: 4em;
+            margin: 15px 0;
+            font-weight: bold;
+            color: var(--text-primary-dark);
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(34, 211, 238, 0.1);
+            border-left: 4px solid var(--accent-dark);
+            color: var(--text-primary-dark);
+            font-size: 14px;
+            min-height: 24px;
+            word-wrap: break-word;
+            transition: all 0.3s ease;
+        }
+
+        .status.success {
+            border-left-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .button:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary-dark);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .canvas-container {
+            margin: 25px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .pixel-canvas {
+            display: grid;
+            grid-template-columns: repeat(100, 5px);
+            grid-template-rows: repeat(100, 5px);
+            gap: 0px;
+            background: linear-gradient(135deg, #0a1419 0%, #1a2e35 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid var(--accent-dark);
+            box-shadow:
+                0 0 30px rgba(34, 211, 238, 0.4),
+                inset 0 0 30px rgba(34, 211, 238, 0.1);
+            max-width: 550px;
+            max-height: 550px;
+        }
+
+        .pixel {
+            width: 5px;
+            height: 5px;
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 1px;
+            position: relative;
+        }
+
+        .pixel:hover {
+            transform: scale(1.4);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+            border-radius: 2px;
+        }
+
+        .pixel.pending {
+            animation: glow 1.5s infinite;
+            box-shadow: 0 0 8px var(--accent-dark);
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 8px var(--accent-dark);
+                opacity: 1;
+            }
+
+            50% {
+                box-shadow: 0 0 15px var(--accent-dark);
+                opacity: 0.8;
+            }
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(34, 211, 238, 0.05);
+            border-radius: 15px;
+            border: 1px solid var(--border-dark);
+            box-shadow: inset 0 0 20px rgba(34, 211, 238, 0.1);
+        }
+
+        .color-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-option:hover {
+            transform: scale(1.15);
+            border-color: var(--accent-dark);
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.4);
+        }
+
+        .color-option.selected {
+            border-color: var(--text-primary-dark);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            transform: scale(1.1);
+        }
+
+        .canvas-info {
+            display: flex;
+            gap: 25px;
+            font-size: 14px;
+            color: var(--text-secondary-dark);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .canvas-info span {
+            background: rgba(34, 211, 238, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border-dark);
+        }
+
+        .operation-history {
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: rgba(34, 211, 238, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--border-dark);
+        }
+
+        .operation-item {
+            font-size: 12px;
+            color: var(--text-secondary-dark);
+            margin: 3px 0;
+            padding: 5px;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 6px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .button-group .button {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        #uploadResult {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(34, 211, 238, 0.05);
+            border-radius: 12px;
+            display: none;
+            color: var(--text-primary-dark);
+            text-align: left;
+            border: 1px solid var(--border-dark);
+        }
+
+        #uploadResult h3 {
+            margin: 0 0 15px 0;
+            color: var(--success);
+        }
+
+        #uploadResult a {
+            color: var(--accent-dark);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .warning {
+            color: #facc15;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>去中心化像素画布</h1>
+        <p id="counter">0</p>
+        <div class="status" id="status">准备就绪</div>
+
+        <div class="canvas-container">
+            <!-- 颜色选择器 -->
+            <div class="color-palette" id="colorPalette">
+                <!-- 颜色选项将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 画布信息 -->
+            <div class="canvas-info">
+                <span>画布大小: 100x100</span>
+                <span>当前版本: <span id="versionDisplay">0</span></span>
+                <span>选中颜色: <span id="selectedColorDisplay">#FFFFFF</span></span>
+                <span>待提交: <span id="pendingDisplay">0</span> 个像素</span>
+            </div>
+
+            <!-- 像素画布 -->
+            <div class="pixel-canvas" id="pixelCanvas">
+                <!-- 像素将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 操作历史 -->
+            <div class="operation-history" id="operationHistory">
+                <strong>最近操作:</strong>
+                <div id="historyList"></div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="button" id="actionButton">🔗 连接钱包</button>
+            <button class="button" id="submitButton" disabled>📤 提交像素 (0)</button>
+        </div>
+        <div id="uploadResult"></div>
+    </div>
+    <script src="https://uploader.irys.xyz/Cip4wmuMv1K3bmcL4vYoZuV2aQQnnzViqwHm6PCei3QX/bundle.js"></script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script>
+        // CANVAS_DATA_PLACEHOLDER
+
+        class PixelCanvasApp {
+            constructor() {
+                // 关键配置区：根ID，即项目第一版HTML页面的交易ID
+                this.ROOT_TRANSACTION_ID = "";
+
+                // 画布配置
+                this.CANVAS_SIZE = 100;
+                this.DEFAULT_COLORS = [
+                    '#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF',
+                    '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080',
+                    '#FFC0CB', '#A52A2A', '#808080', '#90EE90', '#FFB6C1'
+                ];
+
+                // Irys配置
+                this.RPC_ENDPOINT = 'https://mainnet.helius-rpc.com/?api-key=3ba5d042-cc72-4f2b-b26e-8db8d298aa10';
+                this.irys = null;
+                this.wallet = null;
+
+                // 应用状态
+                this.isDevMode = this.ROOT_TRANSACTION_ID === "";
+                this.selectedColor = '#FFFFFF';
+                this.canvasData = this.initializeCanvas();
+                this.operationHistory = [];
+                this.pendingOperations = [];
+
+                // 从localStorage恢复状态
+                this.loadLocalState();
+
+                // 加载嵌入的画布数据
+                this.loadEmbeddedData();
+
+                this.initElements();
+                this.initEventListeners();
+                this.initCanvas();
+                this.updateUI();
+
+                // 检查钱包可用性
+                this.checkWalletAvailability();
+            }
+
+            initElements() {
+                this.elements = {
+                    status: document.getElementById('status'),
+                    actionButton: document.getElementById('actionButton'),
+                    submitButton: document.getElementById('submitButton'),
+                    counter: document.getElementById('counter'),
+                    uploadResult: document.getElementById('uploadResult'),
+                    colorPalette: document.getElementById('colorPalette'),
+                    pixelCanvas: document.getElementById('pixelCanvas'),
+                    versionDisplay: document.getElementById('versionDisplay'),
+                    selectedColorDisplay: document.getElementById('selectedColorDisplay'),
+                    pendingDisplay: document.getElementById('pendingDisplay'),
+                    operationHistory: document.getElementById('operationHistory'),
+                    historyList: document.getElementById('historyList'),
+                };
+            }
+
+            initializeCanvas() {
+                // 创建100x100的画布数据
+                const canvas = [];
+                for (let y = 0; y < this.CANVAS_SIZE; y++) {
+                    canvas[y] = [];
+                    for (let x = 0; x < this.CANVAS_SIZE; x++) {
+                        canvas[y][x] = '#FFFFFF'; // 默认白色
+                    }
+                }
+                return canvas;
+            }
+
+            loadLocalState() {
+                // 从localStorage加载待处理的操作
+                const saved = localStorage.getItem('pixelCanvas_pendingOps');
+                if (saved) {
+                    try {
+                        this.pendingOperations = JSON.parse(saved);
+                    } catch (e) {
+                        console.warn('无法解析本地缓存的操作:', e);
+                        this.pendingOperations = [];
+                    }
+                }
+            }
+
+            saveLocalState() {
+                // 保存待处理的操作到localStorage
+                localStorage.setItem('pixelCanvas_pendingOps', JSON.stringify(this.pendingOperations));
+            }
+
+            loadEmbeddedData() {
+                // 加载页面中嵌入的画布数据
+                if (typeof EMBEDDED_CANVAS_DATA !== 'undefined') {
+                    try {
+                        if (EMBEDDED_CANVAS_DATA.canvasData) {
+                            this.canvasData = EMBEDDED_CANVAS_DATA.canvasData;
+                        }
+                        if (EMBEDDED_CANVAS_DATA.operationHistory) {
+                            this.operationHistory = EMBEDDED_CANVAS_DATA.operationHistory;
+                        }
+                        console.log('成功加载嵌入的画布数据');
+                    } catch (e) {
+                        console.warn('加载嵌入数据失败:', e);
+                    }
+                }
+            }
+
+            initEventListeners() {
+                this.elements.actionButton.addEventListener('click', () => this.handleWalletAction());
+                this.elements.submitButton.addEventListener('click', () => this.handleSubmit());
+            }
+
+            initCanvas() {
+                this.createColorPalette();
+                this.createPixelGrid();
+                this.updateCanvasDisplay();
+            }
+
+            createColorPalette() {
+                this.elements.colorPalette.innerHTML = '';
+                this.DEFAULT_COLORS.forEach(color => {
+                    const colorDiv = document.createElement('div');
+                    colorDiv.className = 'color-option';
+                    colorDiv.style.backgroundColor = color;
+                    colorDiv.title = color;
+
+                    if (color === this.selectedColor) {
+                        colorDiv.classList.add('selected');
+                    }
+
+                    colorDiv.addEventListener('click', () => {
+                        this.selectColor(color);
+                    });
+
+                    this.elements.colorPalette.appendChild(colorDiv);
+                });
+            }
+
+            createPixelGrid() {
+                this.elements.pixelCanvas.innerHTML = '';
+
+                for (let y = 0; y < this.CANVAS_SIZE; y++) {
+                    for (let x = 0; x < this.CANVAS_SIZE; x++) {
+                        const pixel = document.createElement('div');
+                        pixel.className = 'pixel';
+                        pixel.dataset.x = x;
+                        pixel.dataset.y = y;
+                        pixel.style.backgroundColor = this.canvasData[y][x];
+
+                        pixel.addEventListener('click', () => {
+                            this.placePixel(x, y);
+                        });
+
+                        this.elements.pixelCanvas.appendChild(pixel);
+                    }
+                }
+            }
+
+            selectColor(color) {
+                this.selectedColor = color;
+                this.elements.selectedColorDisplay.textContent = color;
+
+                // 更新颜色选择器UI
+                this.elements.colorPalette.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.style.backgroundColor === color || option.title === color) {
+                        option.classList.add('selected');
+                    }
+                });
+            }
+
+            placePixel(x, y) {
+                // 检查是否与当前颜色相同
+                if (this.canvasData[y][x] === this.selectedColor) {
+                    this.elements.status.textContent = '该像素已经是选中的颜色';
+                    return;
+                }
+
+                // 检查是否已经在待提交列表中
+                const existingIndex = this.pendingOperations.findIndex(op => op.x === x && op.y === y);
+
+                if (existingIndex !== -1) {
+                    // 更新现有操作
+                    this.pendingOperations[existingIndex].color = this.selectedColor;
+                    this.pendingOperations[existingIndex].timestamp = Date.now();
+                } else {
+                    // 创建新操作记录
+                    const operation = {
+                        id: this.generateUUID(),
+                        timestamp: Date.now(),
+                        x: x,
+                        y: y,
+                        color: this.selectedColor,
+                        oldColor: this.canvasData[y][x]
+                    };
+                    this.pendingOperations.push(operation);
+                }
+
+                // 立即更新本地画布显示
+                this.canvasData[y][x] = this.selectedColor;
+                this.updatePixelDisplay(x, y);
+
+                // 标记为待提交
+                const pixel = this.elements.pixelCanvas.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                if (pixel) {
+                    pixel.classList.add('pending');
+                }
+
+                // 保存状态并更新UI
+                this.saveLocalState();
+                this.updatePendingDisplay();
+
+                this.elements.status.textContent = `像素已标记，共 ${this.pendingOperations.length} 个待提交`;
+            }
+
+            updateUI() {
+                if (this.irys) {
+                    this.elements.actionButton.textContent = this.isDevMode ? '🚀 部署画布' : '✅ 钱包已连接';
+                } else {
+                    this.elements.actionButton.textContent = "🔗 连接钱包";
+                }
+
+                if (this.isDevMode) {
+                    this.elements.status.textContent = "部署模式: 连接钱包后可开始创作并部署画布。";
+                } else {
+                    const currentCount = this.elements.counter.textContent;
+                    this.elements.status.textContent = `在线模式: 版本 ${currentCount}。开始涂鸦吧！`;
+                }
+
+                // 更新版本显示
+                this.elements.versionDisplay.textContent = this.elements.counter.textContent;
+                this.updatePendingDisplay();
+            }
+
+            updateCanvasDisplay() {
+                // 更新整个画布显示
+                const pixels = this.elements.pixelCanvas.querySelectorAll('.pixel');
+                pixels.forEach(pixel => {
+                    const x = parseInt(pixel.dataset.x);
+                    const y = parseInt(pixel.dataset.y);
+                    pixel.style.backgroundColor = this.canvasData[y][x];
+                });
+            }
+
+            updatePixelDisplay(x, y) {
+                // 更新单个像素显示
+                const pixel = this.elements.pixelCanvas.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                if (pixel) {
+                    pixel.style.backgroundColor = this.canvasData[y][x];
+                }
+            }
+
+            updatePendingDisplay() {
+                const count = this.pendingOperations.length;
+                this.elements.pendingDisplay.textContent = count;
+                this.elements.submitButton.textContent = `📤 提交像素 (${count})`;
+                this.elements.submitButton.disabled = count === 0;
+            }
+
+            addToHistory(operation) {
+                this.operationHistory.unshift(operation);
+                // 只保留最近20条记录
+                if (this.operationHistory.length > 20) {
+                    this.operationHistory = this.operationHistory.slice(0, 20);
+                }
+                this.updateHistoryDisplay();
+            }
+
+            updateHistoryDisplay() {
+                this.elements.historyList.innerHTML = '';
+                this.operationHistory.slice(0, 10).forEach(op => {
+                    const item = document.createElement('div');
+                    item.className = 'operation-item';
+                    const time = new Date(op.timestamp).toLocaleTimeString();
+                    item.textContent = `${time} - 在 (${op.x},${op.y}) 放置了 ${op.color}`;
+                    this.elements.historyList.appendChild(item);
+                });
+            }
+
+            generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            async checkWalletAvailability() {
+                // 延迟检查，给钱包扩展时间加载
+                setTimeout(() => {
+                    const hasPhantom = !!window.phantom?.solana;
+                    const hasSolana = !!window.solana;
+                    console.log('钱包可用性检查:', { hasPhantom, hasSolana });
+
+                    if (!hasPhantom && !hasSolana) {
+                        this.elements.status.textContent = '⚠️ 未检测到钱包扩展。请安装 Phantom 钱包并刷新页面。';
+                        this.elements.status.style.color = '#facc15';
+                    } else {
+                        this.elements.status.textContent = '✅ 钱包扩展已检测到，可以开始连接。';
+                        this.elements.status.style.color = '#10B981';
+                    }
+                }, 1000);
+            }
+
+            async handleWalletAction() {
+                try {
+                    this.elements.actionButton.disabled = true;
+
+                    if (!this.irys) {
+                        // 连接钱包逻辑（简化版演示）
+                        this.elements.status.textContent = '演示模式：钱包连接功能需要在支持的环境中使用';
+                        // 模拟连接成功
+                        setTimeout(() => {
+                            this.irys = { connected: true }; // 模拟连接
+                            this.updateUI();
+                            this.elements.status.textContent = '✅ 演示模式已激活，可以开始涂鸦！';
+                        }, 1000);
+                    }
+
+                } catch (error) {
+                    console.error("钱包操作失败:", error);
+                    this.elements.status.textContent = `错误: ${error.message}`;
+                } finally {
+                    this.elements.actionButton.disabled = false;
+                }
+            }
+
+            async handleSubmit() {
+                if (this.pendingOperations.length === 0) {
+                    this.elements.status.textContent = '没有待提交的像素';
+                    return;
+                }
+
+                try {
+                    this.elements.submitButton.disabled = true;
+                    this.elements.status.textContent = `正在提交 ${this.pendingOperations.length} 个像素...`;
+
+                    // 模拟上传过程
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // 添加到历史记录
+                    this.pendingOperations.forEach(op => {
+                        this.addToHistory(op);
+                    });
+
+                    // 清除待提交状态
+                    this.elements.pixelCanvas.querySelectorAll('.pixel.pending').forEach(pixel => {
+                        pixel.classList.remove('pending');
+                    });
+
+                    // 清空待提交列表
+                    this.pendingOperations = [];
+                    this.saveLocalState();
+                    this.updatePendingDisplay();
+
+                    this.elements.status.textContent = '✅ 像素提交成功！';
+                    this.elements.status.classList.add('success');
+
+                    setTimeout(() => {
+                        this.elements.status.classList.remove('success');
+                        this.elements.status.textContent = '准备就绪';
+                    }, 3000);
+
+                } catch (error) {
+                    console.error("提交失败:", error);
+                    this.elements.status.textContent = `提交失败: ${error.message}`;
+                } finally {
+                    this.elements.submitButton.disabled = false;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new PixelCanvasApp();
+        });
+    </script>
+</body>
+
+</html>
