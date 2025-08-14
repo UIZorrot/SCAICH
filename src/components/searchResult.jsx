@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Switch, List, Space, Typography, Button, message, Modal } from "antd";
-import { FileTextOutlined, PlayCircleOutlined, LinkOutlined, DownOutlined, HeartOutlined, HeartFilled, BookOutlined } from "@ant-design/icons";
+import { FileTextOutlined, PlayCircleOutlined, LinkOutlined, DownOutlined, HeartOutlined, HeartFilled, BookOutlined, CloudUploadOutlined } from "@ant-design/icons";
 import articlesMerged from "../articles_merged.json";
 import { useBackground } from "../contexts/BackgroundContext";
+import { hasUserFulltext } from "../utils/fulltextManager";
+import UploadFulltextModal from "./UploadFulltextModal";
 
 const { Title, Text } = Typography;
 
@@ -90,6 +92,9 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
   const [bibtexModalVisible, setBibtexModalVisible] = useState(false);
   const [currentBibtex, setCurrentBibtex] = useState("");
   const [currentPaperTitle, setCurrentPaperTitle] = useState("");
+  const [uploadFulltextModalVisible, setUploadFulltextModalVisible] = useState(false);
+  const [selectedPaperForUpload, setSelectedPaperForUpload] = useState(null);
+  const [userFulltexts, setUserFulltexts] = useState(new Set());
   const { currentTheme } = useBackground();
 
   useEffect(() => {
@@ -114,12 +119,42 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
     setFavoritedPapers(favoritedDois);
   }, []);
 
-  // 监听results变化，更新收藏状态
+  // 监听results变化，更新收藏状态和用户fulltext状态
   useEffect(() => {
     const favorites = getFavorites();
     const favoritedDois = new Set(favorites.map((fav) => fav.doi));
     setFavoritedPapers(favoritedDois);
+
+    // 更新用户fulltext状态
+    const userFulltextDois = new Set();
+    results.forEach(result => {
+      if (hasUserFulltext(result.doi)) {
+        userFulltextDois.add(result.doi);
+      }
+    });
+    setUserFulltexts(userFulltextDois);
   }, [results]);
+
+  // 监听fulltext更新事件
+  useEffect(() => {
+    const handleFulltextUpdate = (event) => {
+      const { doi } = event.detail;
+      setUserFulltexts(prev => {
+        const newSet = new Set(prev);
+        if (hasUserFulltext(doi)) {
+          newSet.add(doi);
+        } else {
+          newSet.delete(doi);
+        }
+        return newSet;
+      });
+    };
+
+    window.addEventListener('fulltextUpdated', handleFulltextUpdate);
+    return () => {
+      window.removeEventListener('fulltextUpdated', handleFulltextUpdate);
+    };
+  }, []);
 
   function highlight(res) {
     if (!res || !query) return res || "";
@@ -181,7 +216,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
 
   const handleFullPaperClick = (doi, source) => {
     // 未来再考虑pro
-     onReadFullText(doi, source);
+    onReadFullText(doi, source);
     // if (pro) {
     //   onReadFullText(doi, source);
     // } else {
@@ -220,7 +255,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
 
       if (response.status === 200) {
         const contentType = response.headers.get('content-type');
-        
+
         // 如果返回的是JSON，可能是错误响应
         if (contentType && contentType.includes('application/json')) {
           const responseData = await response.json();
@@ -235,7 +270,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
             return;
           }
         }
-        
+
         // 如果返回的是PDF或HTML，说明代理成功
         if (contentType && (contentType.includes('pdf') || contentType.includes('html'))) {
           console.log('Proxy returned valid content');
@@ -358,6 +393,37 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
       setSortField(field);
       setSortDirection(direction);
     }
+  };
+
+  // 處理上傳fulltext
+  const handleUploadFulltext = (result) => {
+    setSelectedPaperForUpload({
+      doi: result.doi,
+      title: result.title,
+      author: result.author,
+      year: result.year
+    });
+    setUploadFulltextModalVisible(true);
+  };
+
+  // Upload success callback
+  const handleUploadSuccess = (doi, fulltextData) => {
+    setUserFulltexts(prev => new Set(prev).add(doi));
+    message.success('Fulltext uploaded successfully! You can now use the Deep Research feature!');
+  };
+
+  // 檢查是否有fulltext（包括用戶上傳的）
+  const hasFulltextAvailable = (result) => {
+    // 原有的fulltext檢測邏輯
+    const hasOriginalFulltext = result.source === "scihub" ||
+      result.source === "arxiv" ||
+      result.is_oa ||
+      result.irys_available === true;
+
+    // 檢查用戶上傳的fulltext
+    const hasUserUploadedFulltext = userFulltexts.has(result.doi);
+
+    return hasOriginalFulltext || hasUserUploadedFulltext;
   };
 
   return (
@@ -522,7 +588,8 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                     BibTeX
                   </Button>
 
-                  {(result.source === "scihub" || result.source === "arxiv" || buttonText === "View Fulltext" || result.irys_available === true) && (
+                  {/* Deep Research按鈕 - 使用新的fulltext檢測邏輯 */}
+                  {hasFulltextAvailable(result) && (
                     <Button
                       type="primary"
                       icon={<PlayCircleOutlined color="#fff" style={{ color: "#fff" }} />}
@@ -534,6 +601,22 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                       onClick={() => handleFullPaperClick(result.doi, result.source)}
                     >
                       Deep Research
+                    </Button>
+                  )}
+
+                  {/* Upload Fulltext按鈕 - 當沒有fulltext時顯示 */}
+                  {!hasFulltextAvailable(result) && (
+                    <Button
+                      type="default"
+                      icon={<CloudUploadOutlined />}
+                      style={{
+                        borderColor: "#52c41a",
+                        color: "#52c41a",
+                        background: "transparent",
+                      }}
+                      onClick={() => handleUploadFulltext(result)}
+                    >
+                      Upload Fulltext
                     </Button>
                   )}
                   {result.title && matchedArticles[result.title.toLowerCase()] && (
@@ -636,6 +719,17 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
           <Typography.Text type="secondary">Citation format provided by CrossRef API</Typography.Text>
         </div>
       </Modal>
+
+      {/* Upload Fulltext Modal */}
+      <UploadFulltextModal
+        visible={uploadFulltextModalVisible}
+        onClose={() => {
+          setUploadFulltextModalVisible(false);
+          setSelectedPaperForUpload(null);
+        }}
+        paperInfo={selectedPaperForUpload}
+        onSuccess={handleUploadSuccess}
+      />
     </>
   );
 }

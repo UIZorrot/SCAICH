@@ -292,7 +292,7 @@
                 // ==================================================================
 
                 // 画布配置
-                this.CANVAS_SIZE = 50;
+                this.CANVAS_SIZE = 100;
                 this.DEFAULT_COLORS = [
                     '#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF',
                     '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080',
@@ -330,12 +330,14 @@
                 this.elements = {
                     status: document.getElementById('status'),
                     actionButton: document.getElementById('actionButton'),
+                    submitButton: document.getElementById('submitButton'),
                     counter: document.getElementById('counter'),
                     uploadResult: document.getElementById('uploadResult'),
                     colorPalette: document.getElementById('colorPalette'),
                     pixelCanvas: document.getElementById('pixelCanvas'),
                     versionDisplay: document.getElementById('versionDisplay'),
                     selectedColorDisplay: document.getElementById('selectedColorDisplay'),
+                    pendingDisplay: document.getElementById('pendingDisplay'),
                     operationHistory: document.getElementById('operationHistory'),
                     historyList: document.getElementById('historyList'),
                 };
@@ -390,6 +392,7 @@
 
             initEventListeners() {
                 this.elements.actionButton.addEventListener('click', () => this.handleAction());
+                this.elements.submitButton.addEventListener('click', () => this.handleSubmit());
             }
 
             initCanvas() {
@@ -452,11 +455,6 @@
             }
 
             placePixel(x, y) {
-                if (!this.irys) {
-                    this.elements.status.textContent = '请先连接钱包';
-                    return;
-                }
-
                 // 检查是否与当前颜色相同
                 if (this.canvasData[y][x] === this.selectedColor) {
                     this.elements.status.textContent = '该像素已经是选中的颜色';
@@ -467,7 +465,7 @@
                 const operation = {
                     id: this.generateUUID(),
                     timestamp: Date.now(),
-                    walletAddress: this.wallet?.publicKey?.toString() || 'unknown',
+                    walletAddress: 'demo-user',
                     x: x,
                     y: y,
                     color: this.selectedColor,
@@ -478,16 +476,21 @@
                 this.canvasData[y][x] = this.selectedColor;
                 this.updatePixelDisplay(x, y);
 
+                // 添加像素的pending样式
+                const pixel = this.elements.pixelCanvas.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                if (pixel) {
+                    pixel.classList.add('pending');
+                }
+
                 // 添加到待处理操作
                 this.pendingOperations.push(operation);
                 this.saveLocalState();
 
-                // 更新历史显示
+                // 更新UI显示
+                this.updatePendingDisplay();
                 this.addToHistory(operation);
 
-                // 触发上传
-                this.elements.status.textContent = '准备上传新版本...';
-                setTimeout(() => this.uploadNewVersion(), 500);
+                this.elements.status.textContent = `像素已放置！待提交: ${this.pendingOperations.length} 个`;
             }
 
             updateUI() {
@@ -553,6 +556,56 @@
                     const v = c == 'x' ? r : (r & 0x3 | 0x8);
                     return v.toString(16);
                 });
+            }
+
+            updatePendingDisplay() {
+                const count = this.pendingOperations.length;
+                this.elements.pendingDisplay.textContent = count;
+                this.elements.submitButton.textContent = `提交像素 (${count})`;
+                this.elements.submitButton.disabled = count === 0;
+            }
+
+            async handleSubmit() {
+                if (this.pendingOperations.length === 0) {
+                    this.elements.status.textContent = '没有待提交的像素';
+                    return;
+                }
+
+                try {
+                    this.elements.submitButton.disabled = true;
+                    this.elements.status.textContent = `正在提交 ${this.pendingOperations.length} 个像素...`;
+
+                    // 模拟提交过程
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // 清除pending样式
+                    this.pendingOperations.forEach(op => {
+                        const pixel = this.elements.pixelCanvas.querySelector(`[data-x="${op.x}"][data-y="${op.y}"]`);
+                        if (pixel) {
+                            pixel.classList.remove('pending');
+                        }
+                    });
+
+                    // 清空待处理操作
+                    const submittedCount = this.pendingOperations.length;
+                    this.pendingOperations = [];
+                    this.saveLocalState();
+                    this.updatePendingDisplay();
+
+                    this.elements.status.textContent = `成功提交 ${submittedCount} 个像素！`;
+                    this.elements.status.classList.add("success");
+
+                    // 更新版本号
+                    const currentVersion = parseInt(this.elements.counter.textContent);
+                    this.elements.counter.textContent = currentVersion + 1;
+                    this.elements.versionDisplay.textContent = currentVersion + 1;
+
+                } catch (error) {
+                    console.error("提交失败:", error);
+                    this.elements.status.textContent = `提交失败: ${error.message}`;
+                } finally {
+                    this.elements.submitButton.disabled = false;
+                }
             }
 
             async checkWalletAvailability() {

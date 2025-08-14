@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Tabs, 
-  Form, 
-  Input, 
-  Button, 
-  Select, 
-  Switch, 
-  Modal, 
-  message, 
-  Typography, 
-  Avatar, 
-  Divider, 
-  Space, 
-  Progress, 
-  Tag, 
+import {
+  Card,
+  Tabs,
+  Form,
+  Input,
+  Button,
+  Select,
+  Switch,
+  Modal,
+  message,
+  Typography,
+  Avatar,
+  Divider,
+  Space,
+  Progress,
+  Tag,
   Alert,
   Popconfirm,
   Row,
@@ -62,7 +62,7 @@ const { Option } = Select;
 
 // Template Options
 const TEMPLATE_OPTIONS = [
-  { value: 'scholar', label: 'Scholar Homepage', description: 'For academic researchers to showcase research achievements' },
+  { value: 'scholar', label: 'Scholar Homepage', description: 'For Science researchers to showcase research achievements' },
   { value: 'tech', label: 'Tech Homepage', description: 'For developers to showcase technical projects and skills' },
   { value: 'resume', label: 'Professional Resume', description: 'For job seekers to showcase work experience and abilities' },
   { value: 'blog', label: 'Blog Homepage', description: 'For content creators to showcase articles and insights' }
@@ -81,21 +81,21 @@ const generateTemplateHTML = async (templateType, profileData, user) => {
     const templateFile = templateMap[templateType];
     console.log('Loading template file:', templateFile);
     const response = await fetch(`/${templateFile}`);
-    
+
     if (!response.ok) {
       console.warn(`Template file ${templateFile} not found (${response.status}), using fallback`);
       throw new Error(`Template file not found: ${response.status}`);
     }
-    
+
     let templateContent = await response.text();
-    
+
     if (!templateContent || templateContent.trim() === '') {
       throw new Error('Template file is empty');
     }
-    
+
     // 准备统一的数据对象，确保字段名与模板中的Handlebars变量名一致
     const researchFieldsArray = profileData.researchFields ? profileData.researchFields.split(',').map(f => f.trim()) : [];
-    
+
     const data = {
       displayName,
       email,
@@ -104,7 +104,7 @@ const generateTemplateHTML = async (templateType, profileData, user) => {
       bio: profileData.bio || '',
       biography: profileData.bio || '', // template-1使用biography
       // template-1(scholar)使用字符串格式，其他模板使用数组格式
-       researchFields: templateType === 'scholar' ? profileData.researchFields || '' : researchFieldsArray,
+      researchFields: templateType === 'scholar' ? profileData.researchFields || '' : researchFieldsArray,
       website: profileData.website || '',
       personalWebsite: profileData.website || '', // template-1使用personalWebsite
       github: profileData.github || '',
@@ -124,7 +124,7 @@ const generateTemplateHTML = async (templateType, profileData, user) => {
       role: profileData.position || '', // template-2使用role
       location: profileData.institution || '' // template-2使用location
     };
-    
+
     // 使用 Handlebars 编译模板
     const template = Handlebars.compile(templateContent);
     return template(data);
@@ -138,19 +138,19 @@ const generateTemplateHTML = async (templateType, profileData, user) => {
 // 生成fallback模板
 const generateFallbackTemplate = (templateType, profileData, user, displayName, email) => {
   const templateTitle = {
-    scholar: 'Academic Profile',
-    tech: 'Developer Profile', 
+    scholar: 'Science Profile',
+    tech: 'Developer Profile',
     resume: 'Professional Resume',
     blog: 'Content Creator Profile'
   }[templateType] || 'Personal Profile';
-  
+
   const sectionTitle = {
     scholar: { skills: 'Research Fields', projects: 'Major Achievements' },
     tech: { skills: 'Tech Stack', projects: 'Project Experience' },
     resume: { skills: 'Professional Skills', projects: 'Project History' },
     blog: { skills: 'Content Categories', projects: 'Featured Articles' }
   }[templateType] || { skills: 'Skills', projects: 'Projects' };
-  
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -312,7 +312,7 @@ const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [profileForm] = Form.useForm();
   const [securityForm] = Form.useForm();
-  
+
   // 状态管理
   const [profileData, setProfileData] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState('scholar');
@@ -323,11 +323,11 @@ const SettingsPage = () => {
   const [subscriptionType, setSubscriptionType] = useState('free');
   const [storageInfo, setStorageInfo] = useState({ used: 0, total: 100 });
   const [localFiles, setLocalFiles] = useState([]);
-  
+
   // 用户名编辑状态
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [tempDisplayName, setTempDisplayName] = useState('');
-  
+
   // 加载用户数据
   useEffect(() => {
     console.log('=== USER OBJECT DEBUG ===');
@@ -335,12 +335,12 @@ const SettingsPage = () => {
     console.log('User keys:', user ? Object.keys(user) : 'user is null/undefined');
     console.log('isAuthenticated:', isAuthenticated);
     console.log('========================');
-    
+
     if (user?.user_id) {
       console.log('User authenticated, loading data for user:', user.user_id);
       loadUserData();
       loadStorageInfo();
-      
+
       // Debug: 检查localStorage中的所有相关数据
       const debugInfo = {
         userId: user.user_id,
@@ -356,13 +356,13 @@ const SettingsPage = () => {
       console.log('User not authenticated or user object missing:', { user, isAuthenticated });
     }
   }, [user, isAuthenticated]);
-  
+
   const loadUserData = () => {
     if (!user?.user_id) {
       console.warn('User ID not available, cannot load profile data');
       return;
     }
-    
+
     try {
       // 加载个人资料
       const savedProfile = localStorage.getItem(`scai_profile_${user.user_id}`);
@@ -378,19 +378,19 @@ const SettingsPage = () => {
       } else {
         console.log('No saved profile found for user:', user.user_id);
       }
-      
+
       // 加载已上传的页面URL
       const savedPageUrl = localStorage.getItem(`scai_profile_page_${user.user_id}`);
       if (savedPageUrl) {
         setProfilePageUrl(savedPageUrl);
       }
-      
+
       // 加载根密钥（加密存储）
       const savedRootKey = localStorage.getItem(`scai_root_key_${user.user_id}`);
       if (savedRootKey) {
         setRootKey(savedRootKey);
       }
-      
+
       // 加载订阅信息
       const savedSubscription = localStorage.getItem(`scai_subscription_${user.user_id}`);
       if (savedSubscription) {
@@ -401,7 +401,7 @@ const SettingsPage = () => {
       message.error('Failed to load profile data');
     }
   };
-  
+
   const loadStorageInfo = () => {
     // 计算本地存储使用情况
     let totalSize = 0;
@@ -410,20 +410,20 @@ const SettingsPage = () => {
         totalSize += localStorage[key].length;
       }
     }
-    
+
     setStorageInfo({
       used: Math.round(totalSize / 1024), // KB
       total: 5120 // 5MB limit
     });
   };
-  
+
   // 保存个人资料
   const handleSaveProfile = async (values) => {
     if (!user?.user_id) {
       message.error('User not authenticated. Please login again.');
       return;
     }
-    
+
     try {
       const updatedProfileData = {
         ...profileData, // 保留现有的profileData，包括displayName和avatarUrl
@@ -433,7 +433,7 @@ const SettingsPage = () => {
         userId: user.user_id,
         updatedAt: new Date().toISOString()
       };
-      
+
       localStorage.setItem(`scai_profile_${user.user_id}`, JSON.stringify(updatedProfileData));
       setProfileData(updatedProfileData);
       message.success('Profile saved successfully');
@@ -444,14 +444,14 @@ const SettingsPage = () => {
       message.error('Save failed, please try again');
     }
   };
-  
+
   // 上传个人主页
   const handleUploadProfile = async () => {
     if (!profileData) {
       message.warning('Please complete your profile first');
       return;
     }
-    
+
     setUploading(true);
     try {
       const htmlContent = await generateTemplateHTML(selectedTemplate, profileData, user);
@@ -460,7 +460,7 @@ const SettingsPage = () => {
       const displayName = profileData.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.user_id || 'user';
       const safeFileName = displayName.replace(/[^a-zA-Z0-9_-]/g, '_');
       const htmlFile = new File([htmlBlob], `${safeFileName}_${selectedTemplate}_profile.html`, { type: 'text/html' });
-      
+
       const result = await uploadToIrys(htmlFile, {
         title: `${profileData.displayName || `${user.firstName} ${user.lastName}`} - ${selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1)} Profile`,
         description: `${selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1)} Personal Profile`,
@@ -468,7 +468,7 @@ const SettingsPage = () => {
         isPrivate: false,
         uploadMode: 'irys'
       });
-      
+
       if (result.success) {
         // 使用返回的irysUrl而不是result.url
         const pageUrl = result.irysUrl || result.url;
@@ -498,27 +498,27 @@ const SettingsPage = () => {
       setUploading(false);
     }
   };
-  
+
   // 预览个人主页
   const handlePreviewProfile = async () => {
     if (!profileData) {
       message.warning('Please complete your profile first');
       return;
     }
-    
+
     if (!user?.user_id) {
       message.error('User not authenticated. Please login again.');
       return;
     }
-    
+
     try {
       console.log('Generating preview for template:', selectedTemplate, 'with data:', profileData);
       const htmlContent = await generateTemplateHTML(selectedTemplate, profileData, user);
-      
+
       if (!htmlContent || htmlContent.trim() === '') {
         throw new Error('Generated HTML content is empty');
       }
-      
+
       const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -528,7 +528,7 @@ const SettingsPage = () => {
       message.error(`Failed to generate preview: ${error.message}`);
     }
   };
-  
+
   // 查看已上传的主页
   const handleViewProfile = () => {
     if (profilePageUrl) {
@@ -540,42 +540,42 @@ const SettingsPage = () => {
       window.open(profileUrl, '_blank');
     }
   };
-  
+
   // 管理贡献列表
   const addContribution = () => {
     setContributions([...contributions, '']);
   };
-  
+
   const updateContribution = (index, value) => {
     const newContributions = [...contributions];
     newContributions[index] = value;
     setContributions(newContributions);
   };
-  
+
   const removeContribution = (index) => {
     const newContributions = contributions.filter((_, i) => i !== index);
     setContributions(newContributions);
   };
-  
+
   // 用户名编辑相关函数
   const handleEditDisplayName = () => {
     setTempDisplayName(profileData?.displayName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || '');
     setEditingDisplayName(true);
   };
-  
+
   const handleSaveDisplayName = async () => {
     if (!tempDisplayName.trim()) {
       message.warning('Username cannot be empty');
       return;
     }
-    
+
     try {
       const updatedProfileData = {
         ...profileData,
         displayName: tempDisplayName.trim(),
         updatedAt: new Date().toISOString()
       };
-      
+
       localStorage.setItem(`scai_profile_${user.user_id}`, JSON.stringify(updatedProfileData));
       setProfileData(updatedProfileData);
       setEditingDisplayName(false);
@@ -585,12 +585,12 @@ const SettingsPage = () => {
       message.error('Update failed, please try again');
     }
   };
-  
+
   const handleCancelEditDisplayName = () => {
     setEditingDisplayName(false);
     setTempDisplayName('');
   };
-  
+
   // 保存根密钥
   const handleSaveRootKey = (values) => {
     try {
@@ -603,7 +603,7 @@ const SettingsPage = () => {
       message.error('保存失败');
     }
   };
-  
+
   // 清理本地存储
   const handleClearStorage = () => {
     try {
@@ -613,20 +613,20 @@ const SettingsPage = () => {
           keysToRemove.push(key);
         }
       }
-      
+
       keysToRemove.forEach(key => {
         if (!key.includes('profile') && !key.includes('root_key')) {
           localStorage.removeItem(key);
         }
       });
-      
+
       loadStorageInfo();
       message.success('缓存清理完成');
     } catch (error) {
       message.error('清理失败');
     }
   };
-  
+
   // 购买Plus订阅
   const handleUpgradeToPro = () => {
     Modal.info({
@@ -660,7 +660,7 @@ const SettingsPage = () => {
       lastModified: file.lastModified,
       file: file
     }));
-    
+
     // 保存到localStorage
     const updatedFiles = [...localFiles, ...newFiles];
     setLocalFiles(updatedFiles);
@@ -671,7 +671,7 @@ const SettingsPage = () => {
       type: f.type,
       lastModified: f.lastModified
     }))));
-    
+
     message.success(`Successfully uploaded ${files.length} file(s)`);
     loadStorageInfo();
   };
@@ -680,7 +680,7 @@ const SettingsPage = () => {
     Modal.confirm({
       title: 'Create New Folder',
       content: (
-        <Input 
+        <Input
           placeholder="Enter folder name"
           id="folder-name-input"
         />
@@ -695,7 +695,7 @@ const SettingsPage = () => {
             lastModified: Date.now(),
             isFolder: true
           };
-          
+
           const updatedFiles = [...localFiles, newFolder];
           setLocalFiles(updatedFiles);
           localStorage.setItem(`scai_local_files_${user.user_id}`, JSON.stringify(updatedFiles));
@@ -721,29 +721,29 @@ const SettingsPage = () => {
     }
 
     console.log('Refreshing profile data for user:', user.user_id);
-    
+
     // 重新加载profile数据
     loadUserData();
-    
+
     // 重新加载其他相关数据
     const savedProfilePageUrl = localStorage.getItem(`scai_profile_page_${user.user_id}`);
     if (savedProfilePageUrl) {
       setProfilePageUrl(savedProfilePageUrl);
     }
-    
+
     const savedRootKey = localStorage.getItem(`scai_root_key_${user.user_id}`);
     if (savedRootKey) {
       setRootKey(savedRootKey);
     }
-    
+
     const savedSubscription = localStorage.getItem(`scai_subscription_${user.user_id}`);
     if (savedSubscription) {
       setSubscriptionType(savedSubscription);
     }
-    
+
     // 重新加载存储信息
     loadStorageInfo();
-    
+
     message.success('Profile data refreshed successfully');
   };
 
@@ -792,100 +792,100 @@ const SettingsPage = () => {
       }
     }
   }, [user]);
-  
+
   if (!isAuthenticated) {
     return (
       <Layout>
-         <div className={`search-page light-theme`}>
-                <div className="hero-section1">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="hero-content">
-            <Title level={1} className="hero-title" style={{ color: "#fff" }}>
-              {isAuthenticated ? `Welcome back!` : "Account Setting"}
-            </Title>
-            <Paragraph className="hero-subtitle">Set your personal Information, Page and More.</Paragraph>
-          </motion.div>
-        </div>
-        <div
-          style={{
-            padding: "2rem",
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
+        <div className={`search-page light-theme`}>
+          <div className="hero-section1">
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="hero-content">
+              <Title level={1} className="hero-title" style={{ color: "#fff" }}>
+                {isAuthenticated ? `Welcome back!` : "Account Setting"}
+              </Title>
+              <Paragraph className="hero-subtitle">Set your personal Information, Page and More.</Paragraph>
+            </motion.div>
+          </div>
           <div
-            className="scholar-container"
             style={{
-              width: "100%",
               padding: "2rem",
+              maxWidth: "1200px",
+              margin: "0 auto",
+              display: "flex",
+              justifyContent: "center",
             }}
           >
             <div
+              className="scholar-container"
               style={{
-                textAlign: "center",
+                width: "100%",
+                padding: "2rem",
               }}
             >
-              <UserOutlined
+              <div
                 style={{
-                  fontSize: 64,
-                  color: "#fff",
-                  marginBottom: 7,
-                }}
-              />
-              <Title
-                level={2}
-                style={{
-                  color: "#fff",
-                  marginBottom: 16,
+                  textAlign: "center",
                 }}
               >
-                Login Required
-              </Title>
-              <Text
-                style={{
-                  color: "#ccc",
-                  fontSize: 16,
-                  marginBottom: 24,
-                  maxWidth: 500,
-                  margin: "0 auto 24px",
-                  display: "block",
-                }}
-              >
-                Please sign in to access your personalized settings and manage your account preferences.
-              </Text>
+                <UserOutlined
+                  style={{
+                    fontSize: 64,
+                    color: "#fff",
+                    marginBottom: 7,
+                  }}
+                />
+                <Title
+                  level={2}
+                  style={{
+                    color: "#fff",
+                    marginBottom: 16,
+                  }}
+                >
+                  Login Required
+                </Title>
+                <Text
+                  style={{
+                    color: "#ccc",
+                    fontSize: 16,
+                    marginBottom: 24,
+                    maxWidth: 500,
+                    margin: "0 auto 24px",
+                    display: "block",
+                  }}
+                >
+                  Please sign in to access your personalized settings and manage your account preferences.
+                </Text>
 
-              <Button
-                className="modern-btn modern-btn-primary"
-                type="primary"
-                size="large"
-                style={{
-                  height: 48,
-                  paddingLeft: 32,
-                  paddingRight: 32,
-                  fontSize: 16,
-                }}
-                onClick={() => {
-                  // Simulate clicking the login button in the top right corner
-                  const loginButton = document.querySelector(".login-btn");
-                  if (loginButton) {
-                    loginButton.click();
-                  } else {
-                    // If login button is not found, show prompt message
-                    message.info("Please use the login button in the top right corner to log in");
-                  }
-                }}
-              >
-                Sign In to Continue
-              </Button>
+                <Button
+                  className="modern-btn modern-btn-primary"
+                  type="primary"
+                  size="large"
+                  style={{
+                    height: 48,
+                    paddingLeft: 32,
+                    paddingRight: 32,
+                    fontSize: 16,
+                  }}
+                  onClick={() => {
+                    // Simulate clicking the login button in the top right corner
+                    const loginButton = document.querySelector(".login-btn");
+                    if (loginButton) {
+                      loginButton.click();
+                    } else {
+                      // If login button is not found, show prompt message
+                      message.info("Please use the login button in the top right corner to log in");
+                    }
+                  }}
+                >
+                  Sign In to Continue
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </Layout>
     );
   }
-  
+
   const tabItems = [
     {
       key: 'profile',
@@ -897,34 +897,34 @@ const SettingsPage = () => {
       ),
       children: (
         <>
-          <Card className="feature-card" style={{marginBottom: '24px'}}>
+          <Card className="feature-card" style={{ marginBottom: '24px' }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <Avatar 
-                size={80} 
-                icon={<UserOutlined />} 
+              <Avatar
+                size={80}
+                icon={<UserOutlined />}
                 src={profileData?.avatarUrl}
                 style={{ marginBottom: '16px' }}
               />
               <div style={{ marginBottom: '16px' }}>
                 {editingDisplayName ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <Input 
+                    <Input
                       value={tempDisplayName}
                       onChange={(e) => setTempDisplayName(e.target.value)}
                       style={{ width: '200px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}
                       onPressEnter={handleSaveDisplayName}
                       autoFocus
                     />
-                    <Button 
-                      type="primary" 
-                      size="small" 
+                    <Button
+                      type="primary"
+                      size="small"
                       onClick={handleSaveDisplayName}
                       icon={<EditOutlined />}
                     >
                       Confirm
                     </Button>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       onClick={handleCancelEditDisplayName}
                     >
                       Cancel
@@ -935,9 +935,9 @@ const SettingsPage = () => {
                     <Text strong style={{ fontSize: '18px' }}>
                       {profileData?.displayName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Username not set'}
                     </Text>
-                    <Button 
-                      type="text" 
-                      size="small" 
+                    <Button
+                      type="text"
+                      size="small"
                       icon={<EditOutlined />}
                       onClick={handleEditDisplayName}
                       style={{ color: '#1890ff' }}
@@ -947,10 +947,10 @@ const SettingsPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <div style={{ marginBottom: '16px' }}>
                 <Text strong style={{ display: 'block', marginBottom: '8px' }}>Avatar URL</Text>
-                <Input 
+                <Input
                   value={profileData?.avatarUrl || ''}
                   onChange={(e) => {
                     const newAvatarUrl = e.target.value;
@@ -972,7 +972,7 @@ const SettingsPage = () => {
                 </Text>
               </div>
             </div>
-            
+
             <div className="template-selection" style={{ marginBottom: '24px' }}>
               <Text strong style={{ display: 'block', marginBottom: '12px', textAlign: 'left' }}>Select Homepage Template</Text>
               <Radio.Group
@@ -983,11 +983,11 @@ const SettingsPage = () => {
                 <Row gutter={[16, 16]}>
                   {TEMPLATE_OPTIONS.map(option => (
                     <Col span={12} key={option.value}>
-                      <Radio.Button 
-                        value={option.value} 
-                        style={{ 
-                          width: '100%', 
-                          height: 'auto', 
+                      <Radio.Button
+                        value={option.value}
+                        style={{
+                          width: '100%',
+                          height: 'auto',
                           padding: '12px',
                           textAlign: 'left',
                           whiteSpace: 'normal'
@@ -1004,146 +1004,146 @@ const SettingsPage = () => {
               </Radio.Group>
             </div>
           </Card>
-          <Card  className="feature-card" >
-                                      <Form
-                form={profileForm}
-                layout="vertical"
-                onFinish={handleSaveProfile}
-              >
-                    <Form.Item name="institution" label="Institution/Company">
-                      <Input placeholder="University/Research Institution/Company Name" />
-                    </Form.Item>
-              
-                    <Form.Item name="researchFields" label={selectedTemplate === 'scholar' ? 'Research Fields' : selectedTemplate === 'tech' ? 'Tech Stack' : selectedTemplate === 'resume' ? 'Professional Skills' : 'Content Categories'}>
-                      <TextArea placeholder="Enter relevant information, separated by commas" rows={3} />
-                    </Form.Item>
-                    
-                    <Form.Item name="bio" label="Personal Bio">
-                      <TextArea placeholder="Introduce yourself and your professional background" rows={4} />
-                    </Form.Item>
-                    
-                    <Form.Item label={selectedTemplate === 'scholar' ? 'Major Work & Contributions' : selectedTemplate === 'tech' ? 'Project Experience' : selectedTemplate === 'resume' ? 'Project History' : 'Featured Articles'}>
-                      <div style={{ marginBottom: '1rem' }}>
-                        {contributions.map((contribution, index) => (
-                          <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <TextArea
-                              value={contribution}
-                              onChange={(e) => updateContribution(index, e.target.value)}
-                              placeholder={`${selectedTemplate === 'scholar' ? 'Contribution' : selectedTemplate === 'tech' ? 'Project' : selectedTemplate === 'resume' ? 'Experience' : 'Article'} ${index + 1}`}
-                              rows={2}
-                              style={{ flex: 1 }}
-                            />
-                            {contributions.length > 1 && (
-                              <Button
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={() => removeContribution(index)}
-                                style={{ alignSelf: 'flex-start', marginTop: '0.25rem' }}
-                              />
-                            )}
-                          </div>
-                        ))}
+          <Card className="feature-card" >
+            <Form
+              form={profileForm}
+              layout="vertical"
+              onFinish={handleSaveProfile}
+            >
+              <Form.Item name="institution" label="Institution/Company">
+                <Input placeholder="University/Research Institution/Company Name" />
+              </Form.Item>
+
+              <Form.Item name="researchFields" label={selectedTemplate === 'scholar' ? 'Research Fields' : selectedTemplate === 'tech' ? 'Tech Stack' : selectedTemplate === 'resume' ? 'Professional Skills' : 'Content Categories'}>
+                <TextArea placeholder="Enter relevant information, separated by commas" rows={3} />
+              </Form.Item>
+
+              <Form.Item name="bio" label="Personal Bio">
+                <TextArea placeholder="Introduce yourself and your professional background" rows={4} />
+              </Form.Item>
+
+              <Form.Item label={selectedTemplate === 'scholar' ? 'Major Work & Contributions' : selectedTemplate === 'tech' ? 'Project Experience' : selectedTemplate === 'resume' ? 'Project History' : 'Featured Articles'}>
+                <div style={{ marginBottom: '1rem' }}>
+                  {contributions.map((contribution, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <TextArea
+                        value={contribution}
+                        onChange={(e) => updateContribution(index, e.target.value)}
+                        placeholder={`${selectedTemplate === 'scholar' ? 'Contribution' : selectedTemplate === 'tech' ? 'Project' : selectedTemplate === 'resume' ? 'Experience' : 'Article'} ${index + 1}`}
+                        rows={2}
+                        style={{ flex: 1 }}
+                      />
+                      {contributions.length > 1 && (
                         <Button
-                          type="dashed"
-                          onClick={addContribution}
-                          icon={<EditOutlined />}
-                          style={{ width: '100%' }}
-                        >
-                          Add {selectedTemplate === 'scholar' ? 'Contribution' : selectedTemplate === 'tech' ? 'Project' : selectedTemplate === 'resume' ? 'Experience' : 'Article'}
-                        </Button>
-                      </div>
-                    </Form.Item>
-                    
-                    <Form.Item name="website" label="Personal Website">
-                      <Input placeholder="https://yourwebsite.com" />
-                    </Form.Item>
-                    
-                    <Form.Item name="orcid" label="ORCID ID">
-                      <Input placeholder="0000-0000-0000-0000" />
-                    </Form.Item>
-                    
-                    <Form.Item>
-                      <Button type="primary" htmlType="submit" size="large" className="modern-btn" block>
-                        <EditOutlined /> Save Profile
-                      </Button>
-                    </Form.Item>
-                    
-                    <Divider style={{ margin: '24px 0' }} />
-                    
-                    <div style={{ marginBottom: '16px' }}>
-                      <Text strong style={{ display: 'block', marginBottom: '12px', fontSize: '16px' }}>Homepage Publishing</Text>
-                      <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>Publish your personal profile as an online homepage</Text>
-                    </div>
-                    
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      <Button 
-                        type="default" 
-                        block 
-                        icon={<ReloadOutlined />}
-                        onClick={handleRefreshProfileData}
-                        className="modern-btn"
-                        size="large"
-                        style={{ background: '#f0f9ff', borderColor: '#91d5ff', color: '#1890ff' }}
-                      >
-                        🔄 Refresh Profile Data
-                      </Button>
-                      <Button 
-                        type="default" 
-                        block 
-                        icon={<EyeOutlined />}
-                        onClick={handlePreviewProfile} 
-                        disabled={!profileData}
-                        className="modern-btn"
-                        size="large"
-                      >
-                        Preview Homepage
-                      </Button>
-                      <Button 
-                        type="primary" 
-                        block
-                        icon={<CloudUploadOutlined />}
-                        onClick={handleUploadProfile} 
-                        loading={uploading}
-                        disabled={!profileData}
-                        className="modern-btn"
-                        style={{ background: '#52c41a', borderColor: '#52c41a' }}
-                        size="large"
-                      >
-                        {profilePageUrl ? 'Update Homepage' : 'Upload Homepage'}
-                      </Button>
-                      {profilePageUrl && (
-                        <>
-                          <Button 
-                            block
-                            icon={<EyeOutlined />}
-                            onClick={handleViewProfile}
-                            className="modern-btn"
-                            size="large"
-                            type="default"
-                            style={{ background: '#f6ffed', borderColor: '#b7eb8f', color: '#52c41a' }}
-                          >
-                            🔗 Visit Your Personal Homepage
-                          </Button>
-                          <div style={{ 
-                            padding: '12px', 
-                            background: '#f6ffed', 
-                            border: '1px solid #b7eb8f', 
-                            borderRadius: '6px',
-                            textAlign: 'center'
-                          }}>
-                            <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>Direct Link:</Text>
-                            <Text 
-                              copyable={{ text: profilePageUrl }}
-                              style={{ fontSize: '12px', wordBreak: 'break-all' }}
-                            >
-                              {profilePageUrl}
-                            </Text>
-                          </div>
-                        </>
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => removeContribution(index)}
+                          style={{ alignSelf: 'flex-start', marginTop: '0.25rem' }}
+                        />
                       )}
-                    </Space>
-              </Form>
+                    </div>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={addContribution}
+                    icon={<EditOutlined />}
+                    style={{ width: '100%' }}
+                  >
+                    Add {selectedTemplate === 'scholar' ? 'Contribution' : selectedTemplate === 'tech' ? 'Project' : selectedTemplate === 'resume' ? 'Experience' : 'Article'}
+                  </Button>
+                </div>
+              </Form.Item>
+
+              <Form.Item name="website" label="Personal Website">
+                <Input placeholder="https://yourwebsite.com" />
+              </Form.Item>
+
+              <Form.Item name="orcid" label="ORCID ID">
+                <Input placeholder="0000-0000-0000-0000" />
+              </Form.Item>
+
+              <Form.Item>
+                <Button type="primary" htmlType="submit" size="large" className="modern-btn" block>
+                  <EditOutlined /> Save Profile
+                </Button>
+              </Form.Item>
+
+              <Divider style={{ margin: '24px 0' }} />
+
+              <div style={{ marginBottom: '16px' }}>
+                <Text strong style={{ display: 'block', marginBottom: '12px', fontSize: '16px' }}>Homepage Publishing</Text>
+                <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>Publish your personal profile as an online homepage</Text>
+              </div>
+
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <Button
+                  type="default"
+                  block
+                  icon={<ReloadOutlined />}
+                  onClick={handleRefreshProfileData}
+                  className="modern-btn"
+                  size="large"
+                  style={{ background: '#f0f9ff', borderColor: '#91d5ff', color: '#1890ff' }}
+                >
+                  🔄 Refresh Profile Data
+                </Button>
+                <Button
+                  type="default"
+                  block
+                  icon={<EyeOutlined />}
+                  onClick={handlePreviewProfile}
+                  disabled={!profileData}
+                  className="modern-btn"
+                  size="large"
+                >
+                  Preview Homepage
+                </Button>
+                <Button
+                  type="primary"
+                  block
+                  icon={<CloudUploadOutlined />}
+                  onClick={handleUploadProfile}
+                  loading={uploading}
+                  disabled={!profileData}
+                  className="modern-btn"
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                  size="large"
+                >
+                  {profilePageUrl ? 'Update Homepage' : 'Upload Homepage'}
+                </Button>
+                {profilePageUrl && (
+                  <>
+                    <Button
+                      block
+                      icon={<EyeOutlined />}
+                      onClick={handleViewProfile}
+                      className="modern-btn"
+                      size="large"
+                      type="default"
+                      style={{ background: '#f6ffed', borderColor: '#b7eb8f', color: '#52c41a' }}
+                    >
+                      🔗 Visit Your Personal Homepage
+                    </Button>
+                    <div style={{
+                      padding: '12px',
+                      background: '#f6ffed',
+                      border: '1px solid #b7eb8f',
+                      borderRadius: '6px',
+                      textAlign: 'center'
+                    }}>
+                      <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>Direct Link:</Text>
+                      <Text
+                        copyable={{ text: profilePageUrl }}
+                        style={{ fontSize: '12px', wordBreak: 'break-all' }}
+                      >
+                        {profilePageUrl}
+                      </Text>
+                    </div>
+                  </>
+                )}
+              </Space>
+            </Form>
           </Card></>
       )
     },
@@ -1164,14 +1164,14 @@ const SettingsPage = () => {
     //                 <Title  level={4}><span style={{color:"#000"}}>Security Center</span></Title>
     //                 <Text type="secondary">Protect your data security</Text>
     //               </div>
-                  
+
     //               <Alert
     //                 message="Security Notice"
     //                 description="Root key is used to encrypt your private data and will not be uploaded to the server. Please keep it safe, it cannot be recovered if lost."
     //                 type="warning"
     //                 style={{ marginBottom: '24px' }}
     //               />
-                  
+
     //               <Form
     //                 form={securityForm}
     //                 layout="vertical"
@@ -1210,7 +1210,7 @@ const SettingsPage = () => {
     //                 <Title level={4}><span style={{color:"#000"}}>Subscription Management</span></Title>
     //                 <Text type="secondary">Manage your subscription plan</Text>
     //               </div>
-                  
+
     //               <Row gutter={[16, 16]}>
     //                 <Col xs={24} sm={12}>
     //                   <div style={{ 
@@ -1271,7 +1271,7 @@ const SettingsPage = () => {
     //                 <Title level={4} ><span style={{color:"#000"}}>Storage Management</span></Title>
     //                 <Text type="secondary">Manage local data storage</Text>
     //               </div>
-                  
+
     //               <div style={{ marginBottom: '24px' }}>
     //                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
     //                   <Text>Storage Usage</Text>
@@ -1285,7 +1285,7 @@ const SettingsPage = () => {
     //                   }}
     //                 />
     //               </div>
-                  
+
     //               <Popconfirm
     //                 title="Clear Cache"
     //                 description="Are you sure you want to clear application cache? This will not delete your personal profile and root key."
@@ -1309,7 +1309,7 @@ const SettingsPage = () => {
     //                 <Title level={4}><span style={{color:"#000"}}>Local File Management</span></Title>
     //                 <Text type="secondary">Manage your local files and documents</Text>
     //               </div>
-                  
+
     //               <div style={{ marginBottom: '24px' }}>
     //                 <Row gutter={[16, 16]}>
     //                   <Col xs={24} sm={8}>
@@ -1446,11 +1446,11 @@ const SettingsPage = () => {
     //     )
     // }
   ];
-  
+
   return (
     <Layout>
-      
-         <div className={`search-page light-theme`}>
+
+      <div className={`search-page light-theme`}>
         <div className="hero-section1">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="hero-content">
             <Title level={1} className="hero-title" style={{ color: "#fff" }}>
@@ -1460,24 +1460,24 @@ const SettingsPage = () => {
           </motion.div>
         </div>
 
-      
-      <div className="scholar-tabs">
-        <div className="scholar-container">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              items={tabItems}
-              size="large"
-              className="modern-tabs"
-            />
-          </motion.div>
+
+        <div className="scholar-tabs">
+          <div className="scholar-container">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <Tabs
+                activeKey={activeTab}
+                onChange={setActiveTab}
+                items={tabItems}
+                size="large"
+                className="modern-tabs"
+              />
+            </motion.div>
+          </div>
         </div>
-      </div>
       </div>
     </Layout>
   );

@@ -28,7 +28,9 @@ import { useAuth } from "../../contexts/AuthContext";
 import apiService from "../../services/apiService";
 
 import { uploadToIrys, validateFileType, validateFileSize, getSupportedFileTypes } from "../../utils/irysUploader";
+import { hasUserFulltext } from "../../utils/fulltextManager";
 import ChatModal from "../../components/chatpage";
+import UploadFulltextModal from "../../components/UploadFulltextModal";
 import "./BoxPage.css";
 
 // Generate scholar profile HTML template
@@ -75,6 +77,8 @@ const BoxPage = () => {
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [selectedPaperId, setSelectedPaperId] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
+  const [uploadFulltextModalVisible, setUploadFulltextModalVisible] = useState(false);
+  const [selectedPaperForUpload, setSelectedPaperForUpload] = useState(null);
 
   // Initialize data
   useEffect(() => {
@@ -115,7 +119,7 @@ const BoxPage = () => {
   const handleRemoveFavorite = (doi) => {
     const updatedFavorites = removeFromFavorites(doi);
     setFavorites(updatedFavorites);
-    message.success("Removed from favorites");
+    message.success("Removed from bookmarks");
   };
 
   const handleRemoveUpload = (upload) => {
@@ -144,34 +148,34 @@ const BoxPage = () => {
     console.log("user:", user);
     console.log("paperId:", paperId);
     console.log("source:", source);
-    
-    // 检查认证状态和深度研究权限
+
+    // Check authentication status and deep research permissions
     if (!isAuthenticated) {
       console.log("❌ Authentication failed - isAuthenticated is false");
-      message.warning("请先登录后再使用深度研究功能");
+      message.warning("Please login before using the Deep Research feature");
       return;
     }
-    
+
     console.log("✅ Authentication passed - isAuthenticated is true");
-    
+
     try {
       console.log("🔍 Checking deep research permission...");
       const hasDeepResearchPermission = await hasPermission('deep_research');
       console.log("hasDeepResearchPermission:", hasDeepResearchPermission);
-      
+
       if (!hasDeepResearchPermission) {
         console.log("❌ Permission denied - no deep research permission");
-        message.warning("您没有深度研究功能的权限");
+        message.warning("You don't have permission to use the Deep Research feature");
         return;
       }
-      
+
       console.log("✅ Permission granted - opening chat modal");
     } catch (error) {
       console.error('❌ Error checking permission:', error);
-      message.error("权限检查失败，请重试");
+      message.error("Permission check failed, please try again");
       return;
     }
-    
+
     console.log("🚀 Opening chat for paper:", paperId, "source:", source);
     setSelectedPaperId(paperId);
     setSelectedSource(source);
@@ -191,7 +195,7 @@ const BoxPage = () => {
             <Title level={1} className="hero-title" style={{ color: "#fff" }}>
               {isAuthenticated ? `Welcome back!` : "Welcome to SCAI Box"}
             </Title>
-            <Paragraph className="hero-subtitle">Your personal academic workspace for managing research and publications.</Paragraph>
+            <Paragraph className="hero-subtitle">Your personal Science workspace for managing research and publications.</Paragraph>
           </motion.div>
         </div>
 
@@ -245,7 +249,7 @@ const BoxPage = () => {
                     margin: "0 auto 24px",
                   }}
                 >
-                  Please sign in to access your personalized academic workspace and manage your research materials.
+                  Please sign in to access your personalized Science workspace and manage your research materials.
                 </Paragraph>
 
                 <Button
@@ -273,11 +277,11 @@ const BoxPage = () => {
                 </Button>
               </div>
             ) : (
-              <Tabs 
-                activeKey={activeTab} 
-                onChange={setActiveTab} 
-                size="large" 
-                style={{ marginBottom: "2rem" }} 
+              <Tabs
+                activeKey={activeTab}
+                onChange={setActiveTab}
+                size="large"
+                style={{ marginBottom: "2rem" }}
                 className="scholar-tabs"
                 items={[
                   {
@@ -285,17 +289,26 @@ const BoxPage = () => {
                     label: (
                       <span>
                         <HeartOutlined style={{ marginRight: "5px" }} />
-                        My Favorites ({favorites.length})
+                        Bookmark ({favorites.length})
                       </span>
                     ),
                     children: (
-                      <FavoritesTab 
-                        favorites={favorites} 
-                        onRemove={handleRemoveFavorite} 
-                        onDeepResearch={handleDeepResearch} 
-                        currentTheme={currentTheme} 
-                        isAuthenticated={isAuthenticated} 
-                        hasPermission={hasPermission} 
+                      <FavoritesTab
+                        favorites={favorites}
+                        onRemove={handleRemoveFavorite}
+                        onDeepResearch={handleDeepResearch}
+                        currentTheme={currentTheme}
+                        isAuthenticated={isAuthenticated}
+                        hasPermission={hasPermission}
+                        onUploadFulltext={(paper) => {
+                          setSelectedPaperForUpload({
+                            doi: paper.doi,
+                            title: paper.title,
+                            author: paper.author,
+                            year: paper.year
+                          });
+                          setUploadFulltextModalVisible(true);
+                        }}
                       />
                     )
                   },
@@ -308,11 +321,11 @@ const BoxPage = () => {
                       </span>
                     ),
                     children: (
-                      <UploadsTab 
-                        uploads={myUploads} 
-                        onUpload={() => setUploadModalVisible(true)} 
-                        onRemoveUpload={handleRemoveUpload} 
-                        currentTheme={currentTheme} 
+                      <UploadsTab
+                        uploads={myUploads}
+                        onUpload={() => setUploadModalVisible(true)}
+                        onRemoveUpload={handleRemoveUpload}
+                        currentTheme={currentTheme}
                       />
                     )
                   }
@@ -340,13 +353,28 @@ const BoxPage = () => {
             source={selectedSource}
           />
         )}
+
+        {/* Upload Fulltext Modal */}
+        <UploadFulltextModal
+          visible={uploadFulltextModalVisible}
+          onClose={() => {
+            setUploadFulltextModalVisible(false);
+            setSelectedPaperForUpload(null);
+          }}
+          paperInfo={selectedPaperForUpload}
+          onSuccess={(doi, fulltextData) => {
+            // Trigger favorites reload to update fulltext status
+            loadFavorites();
+            message.success('Fulltext uploaded successfully! You can now use the Deep Research feature!');
+          }}
+        />
       </div>
     </Layout>
   );
 };
 
 // Tab component definitions
-const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAuthenticated, hasPermission }) => {
+const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAuthenticated, hasPermission, onUploadFulltext }) => {
   const [bibtexModalVisible, setBibtexModalVisible] = useState(false);
   const [currentBibtex, setCurrentBibtex] = useState("");
   const [currentPaperTitle, setCurrentPaperTitle] = useState("");
@@ -384,6 +412,20 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAut
   // Initialize category data
   useEffect(() => {
     loadCategories();
+  }, []);
+
+  // Listen for fulltext update events
+  useEffect(() => {
+    const handleFulltextUpdate = () => {
+      // Force re-render by updating a dummy state or triggering parent reload
+      // This will cause hasFulltextAvailable to be re-evaluated
+      window.dispatchEvent(new Event("favoritesUpdated"));
+    };
+
+    window.addEventListener('fulltextUpdated', handleFulltextUpdate);
+    return () => {
+      window.removeEventListener('fulltextUpdated', handleFulltextUpdate);
+    };
   }, []);
 
   // Load user-defined categories
@@ -430,46 +472,62 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAut
   const categoryOptions = [{ id: "all", name: "All Papers", color: "blue", icon: <FolderOutlined /> }, ...categories];
   // View paper handler function
   const handleViewPaper = (paper) => {
-    if (paper.url) {
+    if (paper.url && !paper.url.includes('localhost')) {
       window.open(paper.url, "_blank");
     } else if (paper.doi) {
-      // Build DOI link
-      const doiUrl = `https://doi.org/${paper.doi}`;
-      window.open(doiUrl, "_blank");
+      // Use scai.sh API to view paper
+      const scaiUrl = `https://api.scai.sh/paper/${paper.doi}`;
+      window.open(scaiUrl, "_blank");
     } else {
       message.warning("Unable to find paper link");
     }
   };
 
-  // Check if paper has fulltext available
+  // Check if paper has fulltext available (including user uploaded) - for FavoritesTab
+  const hasFulltextAvailable = (paper) => {
+    // Reference search page logic: check if there are scihub or arxiv sources
+    const hasOriginalFulltext = paper.source === "scihub" || paper.source === "arxiv" || paper.scinet || paper.is_oa || (paper.doi && paper.doi.toLowerCase().includes("arxiv")) || (paper.url && paper.url.toLowerCase().includes("arxiv"));
+
+    // Check user uploaded fulltext
+    const hasUserUploadedFulltext = hasUserFulltext(paper.doi);
+
+    return hasOriginalFulltext || hasUserUploadedFulltext;
+  };
+
+  // Check if paper has fulltext available (including user uploaded)
   const hasFulltext = (paper) => {
     // Reference search page logic: check if there are scihub or arxiv sources
-    return paper.source === "scihub" || paper.source === "arxiv" || paper.scinet || paper.is_oa || (paper.doi && paper.doi.toLowerCase().includes("arxiv")) || (paper.url && paper.url.toLowerCase().includes("arxiv"));
+    const hasOriginalFulltext = paper.source === "scihub" || paper.source === "arxiv" || paper.scinet || paper.is_oa || (paper.doi && paper.doi.toLowerCase().includes("arxiv")) || (paper.url && paper.url.toLowerCase().includes("arxiv"));
+
+    // Check user uploaded fulltext
+    const hasUserUploadedFulltext = hasUserFulltext(paper.doi);
+
+    return hasOriginalFulltext || hasUserUploadedFulltext;
   };
 
   // Deep Research handler function
   const handleDeepResearch = async (paper) => {
-    // 检查认证状态和深度研究权限
+    // Check authentication status and deep research permissions
     if (!isAuthenticated) {
-      message.warning("请先登录后再使用深度研究功能");
+      message.warning("Please login before using the Deep Research feature");
       return;
     }
-    
+
     try {
       const hasDeepResearchPermission = await hasPermission('deep_research');
       if (!hasDeepResearchPermission) {
-        message.warning("您没有深度研究功能的权限");
+        message.warning("You don't have permission to use the Deep Research feature");
         return;
       }
     } catch (error) {
       console.error('Error checking permission:', error);
-      message.error("权限检查失败，请重试");
+      message.error("Permission check failed, please try again");
       return;
     }
-    
+
     // Check if fulltext is available
     if (!hasFulltext(paper)) {
-      message.warning("该论文没有全文可用，无法进行深度研究");
+      message.warning("This paper has no fulltext available, cannot perform deep research");
       return;
     }
 
@@ -789,7 +847,7 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAut
               fontWeight: 600,
             }}
           >
-            {favorites.length === 0 ? "No favorite papers yet" : "No matching papers found"}
+            {favorites.length === 0 ? "No bookmarked papers yet" : "No matching papers found"}
           </Title>
           <Paragraph
             style={{
@@ -800,9 +858,9 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAut
           >
             {favorites.length === 0 ? (
               <>
-                Start exploring academic papers and add interesting research to your favorites
+                Start exploring Science papers and add interesting research to your bookmarks
                 <br />
-                to build your personal academic library.
+                to build your personal Science library.
               </>
             ) : (
               "Try adjusting search criteria or clearing filters"
@@ -822,6 +880,15 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAut
                       marginBottom: "0.5rem",
                       fontWeight: 600,
                       lineHeight: "1.4",
+                      cursor: "pointer",
+                      transition: "color 0.2s ease",
+                    }}
+                    onClick={() => handleViewPaper(paper)}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#1890ff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = currentTheme.isDark ? "#f1f5f9" : "#1e293b";
                     }}
                   >
                     {paper.title}
@@ -891,13 +958,38 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAut
                       color: currentTheme.isDark ? "#64748b" : "#94a3b8",
                     }}
                   >
-                    Favorited on {new Date(paper.favoriteDate).toLocaleDateString("en-US")}
+                    Bookmarked on {new Date(paper.favoriteDate).toLocaleDateString("en-US")}
                   </Text>
-                  <div style={{ marginTop: "12px", display: "flex", gap: "0.5rem", minWidth: "140px" }}>
+                  <div style={{ marginTop: "12px", display: "flex", gap: "0.5rem", minWidth: "140px", flexWrap: "wrap" }}>
 
-                    <Button icon={<MessageOutlined />} className="modern-btn modern-btn-secondary" size="small" disabled={!hasFulltext(paper)} onClick={() => handleDeepResearch(paper)} title={!hasFulltext(paper) ? "This paper has no fulltext available" : "Deep research paper"}>
+                    <Button
+                      icon={<MessageOutlined />}
+                      className="modern-btn modern-btn-secondary"
+                      size="small"
+                      disabled={!hasFulltextAvailable(paper)}
+                      onClick={() => handleDeepResearch(paper)}
+                      title={!hasFulltextAvailable(paper) ? "This paper has no fulltext available" : "Deep research paper"}
+                    >
                       Deep Research
                     </Button>
+
+                    {/* Upload Fulltext button - shown when no fulltext is available */}
+                    {!hasFulltextAvailable(paper) && (
+                      <Button
+                        icon={<CloudUploadOutlined />}
+                        className="modern-btn modern-btn-secondary"
+                        size="small"
+                        onClick={() => onUploadFulltext(paper)}
+                        style={{
+                          borderColor: "#52c41a",
+                          color: "#52c41a",
+                        }}
+                        title="Upload fulltext for this paper"
+                      >
+                        Upload Fulltext
+                      </Button>
+                    )}
+
                     <Button icon={<BookOutlined />} className="modern-btn modern-btn-secondary" size="small" onClick={() => handleBibTexClick(paper)}>
                       BibTeX
                     </Button>
@@ -1209,7 +1301,7 @@ const UploadsTab = ({ uploads, onUpload, currentTheme, onRemoveUpload }) => {
               lineHeight: "1.6",
             }}
           >
-            Upload your research papers and academic documents to decentralized storage network,
+            Upload your research papers and Science documents to decentralized storage network,
             <br />
             enjoy permanent storage and global access convenience.
           </Paragraph>
@@ -1227,7 +1319,7 @@ const UploadsTab = ({ uploads, onUpload, currentTheme, onRemoveUpload }) => {
                 fontWeight: 600
               }}
             >
-              上传新文档
+              Upload New Document
             </Button>
           </div> */}
         </div>
@@ -1403,27 +1495,27 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
 
     setDoiLoading(true);
     try {
-      // 使用新的 API 服务
+      // Use new API service
       const data = await apiService.getPaperInfo(doi.trim());
-      
+
       if (data && !data.error) {
         setPaperMetadata(data);
         // Auto-fill form fields
         form.setFieldsValue({
           title: data.title,
-          description: data.abstract && data.abstract !== "Abstract Not Available" ? data.abstract.substring(0, 200) + "..." : "论文摘要",
+          description: data.abstract && data.abstract !== "Abstract Not Available" ? data.abstract.substring(0, 200) + "..." : "Paper abstract",
           authors: data.author,
           year: data.year,
         });
-        message.success("DOI信息获取成功");
+        message.success("DOI information retrieved successfully");
       } else {
         setPaperMetadata(null);
-        message.warning(data?.error || "未找到该DOI的信息");
+        message.warning(data?.error || "DOI information not found");
       }
     } catch (error) {
       console.error("DOI search error:", error);
       setPaperMetadata(null);
-      message.error("DOI查询错误: " + error.message);
+      message.error("DOI query error: " + error.message);
     } finally {
       setDoiLoading(false);
     }
@@ -1435,9 +1527,9 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
       return;
     }
 
-    // 检查用户是否已登录
+    // Check if user is logged in
     if (!isAuthenticated) {
-      message.error("请先登录或注册后再上传文件");
+      message.error("Please login or register before uploading files");
       return;
     }
 
@@ -1482,7 +1574,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
       console.log(`Using ${useLocal ? "local storage" : "Irys network"} mode for upload`);
 
       let uploadResult;
-      
+
       if (fileType === "literature" && !useLocal) {
         // 论文类型使用专门的upload-paper接口
         console.log("Using dedicated paper upload API");
@@ -1626,7 +1718,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
                 }),
               }}
             >
-              Academic Literature
+              Science Literature
             </Button>
             <Button
               type={fileType === "other" ? "primary" : "default"}

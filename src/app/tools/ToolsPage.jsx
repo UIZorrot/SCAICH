@@ -60,7 +60,7 @@ const ToolsPage = () => {
         },
         {
             id: 2,
-            title: "Best Practices for Academic Writing",
+            title: "Best Practices for Science Writing",
             description: "Essential guidelines for writing high-impact research papers",
             category: "Writing",
             rating: 4.6,
@@ -204,10 +204,10 @@ const ToolsPage = () => {
                     >
                         <Title level={1} className="hero-title">SCAI Tools</Title>
                         <Paragraph className="hero-subtitle">
-                            AI-Powered Academic Writing & Research Tools
+                            AI-Powered Science Writing & Research Tools
                         </Paragraph>
                         <Paragraph className="hero-description">
-                            Enhance your academic writing with our suite of intelligent tools designed for researchers and scholars.
+                            Enhance your Science writing with our suite of intelligent tools designed for researchers and scholars.
                         </Paragraph>
                     </motion.div>
                 </div>
@@ -416,7 +416,7 @@ const ToolsPage = () => {
                                     />
                                 </Card>
 
-                                {/* Academic News */}
+                                {/* Science News */}
                                 <Card className="sidebar-card" title={
                                     <span>
                                         <AccountBookOutlined style={{ marginRight: '0.5rem', color: '#ee1d1d' }} />

@@ -25,7 +25,7 @@ export const UserGuidelineModal = ({ visible, onClose }) => {
         >
             <div>
                 <Text style={{ fontSize: "14px" }}>
-                    Welcome to SCAICH, a cutting-edge academic search engine powered by the Sci-Hub database. To get started and enjoy our features:
+                    Welcome to SCAICH, a cutting-edge Science search engine powered by the Sci-Hub database. To get started and enjoy our features:
                 </Text>
 
                 <div style={{ marginTop: "24px" }}>

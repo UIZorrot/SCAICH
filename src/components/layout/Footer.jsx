@@ -43,7 +43,7 @@ const Footer = () => {
           <div className="footer-brand">
             <div className="brand-info" style={{ textalign: "center", verticalAlign: "center", justifyContent: "center", alignItems: "center" }}>
               <span className="brand-name">
-                SCAI <span style={{ fontWeight: 200, fontSize: "22px" }}>| Web3 Brain of Academic</span>
+                SCAI <span style={{ fontWeight: 200, fontSize: "22px" }}>| Web3 Brain of Science</span>
               </span>
             </div>
           </div>

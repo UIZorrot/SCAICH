@@ -594,7 +594,7 @@ const PressPage = () => {
         </div>
 
         <div class="footer">
-            <p>Published on SCAI Press - Decentralized Academic Publishing Platform</p>
+            <p>Published on SCAI Press - Decentralized Science Publishing Platform</p>
             <p>Project ID: ${projectData.id} | Stored on Irys Network</p>
         </div>
     </div>

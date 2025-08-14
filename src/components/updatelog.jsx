@@ -23,14 +23,14 @@ export const UpdateModal = ({ visible, onClose }) => {
             closable={false}
             style={{ overflow: "auto", maxHeight: "75vh", zIndex: 10 }}
         >
-        <div>
+            <div>
                 <Title level={4}>
                     V1.1 - 2025.05.03
                 </Title>
                 <div style={{ marginTop: "24px" }}>
                     <Title level={5}>Integrate With YNE</Title>
                     <Paragraph>
-                       We added the YNE current dataset into the search engine, and will sync with the YNE overtime. YNE is a well-known Desci project focus on the paper auditing.
+                        We added the YNE current dataset into the search engine, and will sync with the YNE overtime. YNE is a well-known Desci project focus on the paper auditing.
                     </Paragraph>
 
                     <Title level={5}>UI adoption</Title>
@@ -52,12 +52,12 @@ export const UpdateModal = ({ visible, onClose }) => {
                 <div style={{ marginTop: "24px" }}>
                     <Title level={5}>Introducing SCAICH DEEP</Title>
                     <Paragraph>
-                        We’re excited to unveil SCAICH DEEP, the most convenient tool for deep research on academic papers. Search for papers like you would on Google Scholar, and instantly use our AI assistant to read them or ask detailed questions about their content. Powered by Sci-hub’s vast database of approximately 80 million papers and our rigorous data cleaning, SCAICH DEEP offers end-to-end full-text analysis, making research faster and more accessible for everyone, from scholars to curious minds.
+                        We’re excited to unveil SCAICH DEEP, the most convenient tool for deep research on Science papers. Search for papers like you would on Google Scholar, and instantly use our AI assistant to read them or ask detailed questions about their content. Powered by Sci-hub’s vast database of approximately 80 million papers and our rigorous data cleaning, SCAICH DEEP offers end-to-end full-text analysis, making research faster and more accessible for everyone, from scholars to curious minds.
                     </Paragraph>
 
                     <Title level={5}>Membership and Open Science</Title>
                     <Paragraph>
-                        SCAICH DEEP is a member-exclusive feature due to server costs, but access is simple: hold 10,000 Scihub tokens to unlock it and all future Scihub Web3 ecosystem products. No locking or burning required—just hold, and the choice is yours to support open science or sell anytime. As a Sci-hub Web3 community project, SCAI is committed to academic freedom, developing Web3-based tools to keep science open and accessible without paywalls.
+                        SCAICH DEEP is a member-exclusive feature due to server costs, but access is simple: hold 10,000 Scihub tokens to unlock it and all future Scihub Web3 ecosystem products. No locking or burning required—just hold, and the choice is yours to support open science or sell anytime. As a Sci-hub Web3 community project, SCAI is committed to Science freedom, developing Web3-based tools to keep science open and accessible without paywalls.
                     </Paragraph>
 
                     <Title level={5}>BNB AI Hackathon Milestone</Title>
