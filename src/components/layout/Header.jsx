@@ -19,7 +19,8 @@ const Header = () => {
     { name: "Search", href: "/app/search", key: "search" },
     { name: "Box", href: "/app/box", key: "box" },
     { name: "Settings", href: "/app/settings", key: "settings" },
-    { name: "Press (Building)", href: "/app/press", key: "press" },
+    // { name: "Press (Building)", href: "/app/press", key: "press" },
+    { name: "Foundation", href: "https://foundation.scai.sh/", external: true },
     { name: "Community", href: "https://t.me/+AMy9MvWuVqhlNDY1", external: true },
   ];
 

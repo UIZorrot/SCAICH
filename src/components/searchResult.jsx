@@ -226,7 +226,7 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
 
 
 
-  // 智能全文打开：立即打开新标签，后台检查API，失败时重定向到DOI页面
+  // 智能全文打开：先检查代理API，成功则打开代理URL，失败则直接打开DOI页面
   const handleFulltextOpen = async (result) => {
     const cleanDoi = result.doi.replace(/^https?:\/\/doi\.org\//i, "");
     const encodedDoi = encodeURIComponent(cleanDoi);
@@ -238,64 +238,47 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
     console.log(`Attempting to open fulltext for DOI: ${cleanDoi}`);
     console.log(`Proxy URL: ${proxyUrl}`);
 
-    // 立即打开新标签页，先尝试代理URL
-    const newTab = window.open(proxyUrl, '_blank', 'noopener,noreferrer');
+    // 显示加载提示
+    const loadingMessage = message.loading('Checking fulltext availability...', 0);
 
-    // 在后台检查代理API是否会返回错误
     try {
+      // 先检查代理API是否可用
       const response = await fetch(proxyUrl, {
-        redirect: 'manual' // 不自动跟随重定向
+        method: 'HEAD', // 只检查头部，不下载内容
+        redirect: 'manual'
       });
 
-      // 如果是重定向响应（3xx）或成功的PDF/HTML响应，代理成功，无需处理
+      loadingMessage();
+
+      // 如果是重定向响应（3xx），说明代理成功
       if (response.status >= 300 && response.status < 400) {
-        console.log('Proxy redirect successful');
+        console.log('Proxy available, opening proxy URL');
+        window.open(proxyUrl, '_blank', 'noopener,noreferrer');
         return;
       }
 
+      // 如果是成功响应，检查内容类型
       if (response.status === 200) {
         const contentType = response.headers.get('content-type');
 
-        // 如果返回的是JSON，可能是错误响应
-        if (contentType && contentType.includes('application/json')) {
-          const responseData = await response.json();
-          // 检查是否包含错误信息
-          if (responseData.error || responseData.message) {
-            console.log('Proxy API returned error response:', responseData);
-            message.warning('Paper not found in proxy, redirecting to DOI page');
-            // 重定向已打开的标签页到DOI URL
-            if (newTab && !newTab.closed) {
-              newTab.location.href = doiUrl;
-            }
-            return;
-          }
-        }
-
-        // 如果返回的是PDF或HTML，说明代理成功
+        // 如果是PDF或HTML，说明代理成功
         if (contentType && (contentType.includes('pdf') || contentType.includes('html'))) {
-          console.log('Proxy returned valid content');
+          console.log('Proxy available, opening proxy URL');
+          window.open(proxyUrl, '_blank', 'noopener,noreferrer');
           return;
         }
       }
 
-      // 如果状态码表明有错误，重定向到DOI页面
-      if (response.status >= 400) {
-        console.log('Proxy API returned error status:', response.status);
-        message.warning('Paper not found in proxy, redirecting to DOI page');
-        // 重定向已打开的标签页到DOI URL
-        if (newTab && !newTab.closed) {
-          newTab.location.href = doiUrl;
-        }
-        return;
-      }
+      // 如果代理不可用，fallback到DOI页面
+      console.log('Proxy not available, opening DOI page');
+      message.info('Fulltext not available via proxy, opening publisher page');
+      window.open(doiUrl, '_blank', 'noopener,noreferrer');
 
     } catch (error) {
-      console.log('Error checking proxy API, redirecting to DOI URL:', error);
-      message.warning('Unable to access proxy, redirecting to DOI page');
-      // 重定向已打开的标签页到DOI URL
-      if (newTab && !newTab.closed) {
-        newTab.location.href = doiUrl;
-      }
+      loadingMessage();
+      console.log('Error checking proxy API, opening DOI page:', error);
+      message.info('Unable to check fulltext availability, opening publisher page');
+      window.open(doiUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -588,8 +571,8 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                     BibTeX
                   </Button>
 
-                  {/* Deep Research按鈕 - 使用新的fulltext檢測邏輯 */}
-                  {hasFulltextAvailable(result) && (
+                  {/* Deep Research按鈕 - 只有當有fulltext且不是View Source時才顯示 */}
+                  {hasFulltextAvailable(result) && buttonText !== "View Source" && (
                     <Button
                       type="primary"
                       icon={<PlayCircleOutlined color="#fff" style={{ color: "#fff" }} />}
@@ -604,8 +587,8 @@ function SearchResult({ query, results, classOver, onReadFullText, pro, setModal
                     </Button>
                   )}
 
-                  {/* Upload Fulltext按鈕 - 當沒有fulltext時顯示 */}
-                  {!hasFulltextAvailable(result) && (
+                  {/* Upload Fulltext按鈕 - 當顯示View Source或沒有fulltext時顯示 */}
+                  {(buttonText === "View Source" || !hasFulltextAvailable(result)) && (
                     <Button
                       type="default"
                       icon={<CloudUploadOutlined />}

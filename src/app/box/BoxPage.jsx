@@ -108,7 +108,8 @@ const BoxPage = () => {
   const loadMyUploads = () => {
     // Get user's upload records from localStorage
     try {
-      const uploads = localStorage.getItem(`scai_uploads_${user?.id}`);
+      const userIdForStorage = user?.id || user?.user_id;
+      const uploads = localStorage.getItem(`scai_uploads_${userIdForStorage}`);
       setMyUploads(uploads ? JSON.parse(uploads) : []);
     } catch (error) {
       console.error("Error loading uploads:", error);
@@ -124,14 +125,15 @@ const BoxPage = () => {
 
   const handleRemoveUpload = (upload) => {
     try {
-      const uploads = localStorage.getItem(`scai_uploads_${user?.id}`);
+      const userIdForStorage = user?.id || user?.user_id;
+      const uploads = localStorage.getItem(`scai_uploads_${userIdForStorage}`);
       const uploadList = uploads ? JSON.parse(uploads) : [];
 
       // Remove specified upload record from list
       const updatedUploads = uploadList.filter((item) => item.txId !== upload.txId);
 
       // Save updated list
-      localStorage.setItem(`scai_uploads_${user?.id}`, JSON.stringify(updatedUploads));
+      localStorage.setItem(`scai_uploads_${userIdForStorage}`, JSON.stringify(updatedUploads));
 
       // Update state
       setMyUploads(updatedUploads);
@@ -365,6 +367,8 @@ const BoxPage = () => {
           onSuccess={(doi, fulltextData) => {
             // Trigger favorites reload to update fulltext status
             loadFavorites();
+            // Reload My Upload list to show the new upload
+            loadMyUploads();
             message.success('Fulltext uploaded successfully! You can now use the Deep Research feature!');
           }}
         />
@@ -473,10 +477,10 @@ const FavoritesTab = ({ favorites, onRemove, currentTheme, onDeepResearch, isAut
   // View paper handler function
   const handleViewPaper = (paper) => {
     if (paper.url && !paper.url.includes('localhost')) {
-      window.open(paper.url, "_blank");
+      window.open("https://api.scai.sh" + paper.url, "_blank");
     } else if (paper.doi) {
       // Use scai.sh API to view paper
-      const scaiUrl = `https://api.scai.sh/paper/${paper.doi}`;
+      const scaiUrl = `https://api.scai.sh/api/fulltext/proxy/${paper.doi}`;
       window.open(scaiUrl, "_blank");
     } else {
       message.warning("Unable to find paper link");
@@ -1553,7 +1557,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
       formData.append("title", values.title);
       formData.append("description", values.description || "");
       formData.append("isPrivate", isPrivate);
-      formData.append("userId", user.user_id);
+      formData.append("userId", user?.id || user?.user_id || "anonymous");
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -1589,7 +1593,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
             year: values.year || paperMetadata?.year,
             abstract: paperMetadata?.abstract,
             isPrivate: isPrivate,
-            userId: user.user_id,
+            userId: user?.id || user?.user_id || "anonymous",
             paperMetadata: paperMetadata,
           }
         );
@@ -1602,7 +1606,7 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
             title: values.title,
             description: values.description || "",
             isPrivate: isPrivate,
-            userId: user.user_id,
+            userId: user?.id || user?.user_id || "anonymous",
             fileType: fileType,
             // If it's literature type, add additional metadata
             ...(fileType === "literature" && {
@@ -1620,29 +1624,56 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error);
+      // Debug: Log the upload result structure
+      console.log("📊 Upload result received:", uploadResult);
+
+      // Check if upload was successful
+      if (!uploadResult || !uploadResult.success) {
+        const errorMessage = uploadResult?.error || uploadResult?.message || "Upload failed with unknown error";
+        console.error("❌ Upload failed:", errorMessage);
+        throw new Error(errorMessage);
       }
 
-      // Save upload record to localStorage
+      // Save upload record to localStorage with safe data extraction
+      const uploadData = uploadResult?.data || uploadResult || {};
+
+      // Debug: Log the data structure we're working with
+      console.log("📦 Upload data structure:", uploadData);
+
+      // Safely extract data with fallbacks
+      const txId = uploadData.txId || uploadData.id || `upload_${Date.now()}`;
+      const fileUrl = uploadData.irysUrl || uploadData.url || uploadData.gateway || "";
+      const fileId = uploadData.fileId || uploadData.txId || uploadData.id || txId;
+
+      // Debug: Log extracted values
+      console.log("🔍 Extracted values:", { txId, fileUrl, fileId });
+
       const uploadRecord = {
         id: Date.now().toString(),
         title: values.title,
         description: values.description || "",
         isPrivate: isPrivate,
         uploadDate: new Date().toISOString(),
-        txId: uploadResult.data.txId,
-        url: uploadResult.data.url,
-        fileId: uploadResult.data.fileId,
+        txId: txId,
+        url: fileUrl,
+        fileId: fileId,
         fileName: file.name,
         fileSize: file.size,
-        userId: user.user_id,
+        userId: user?.id || user?.user_id || "anonymous",
         uploadMode: uploadMode, // Add upload mode identifier
       };
 
-      const existingUploads = JSON.parse(localStorage.getItem(`scai_uploads_${user.user_id}`) || "[]");
-      existingUploads.push(uploadRecord);
-      localStorage.setItem(`scai_uploads_${user.user_id}`, JSON.stringify(existingUploads));
+      // Save to localStorage with error handling
+      try {
+        const userIdForStorage = user?.id || user?.user_id || "anonymous";
+        const existingUploads = JSON.parse(localStorage.getItem(`scai_uploads_${userIdForStorage}`) || "[]");
+        existingUploads.push(uploadRecord);
+        localStorage.setItem(`scai_uploads_${userIdForStorage}`, JSON.stringify(existingUploads));
+        console.log("✅ Upload record saved to localStorage");
+      } catch (storageError) {
+        console.error("⚠️ Failed to save to localStorage:", storageError);
+        // Continue anyway - the upload was successful even if localStorage failed
+      }
 
       message.success("Document uploaded successfully!");
       form.resetFields();
@@ -1650,8 +1681,23 @@ const UploadModal = ({ visible, onClose, onSuccess, user, isAuthenticated }) => 
       onSuccess();
       onClose();
     } catch (error) {
-      console.error("Upload error:", error);
-      message.error("Failed to upload document");
+      console.error("❌ Upload error:", error);
+
+      // Provide more specific error messages
+      let errorMessage = "Failed to upload document";
+      if (error.message) {
+        if (error.message.includes("network") || error.message.includes("fetch")) {
+          errorMessage = "Network error - please check your connection and try again";
+        } else if (error.message.includes("size") || error.message.includes("large")) {
+          errorMessage = "File is too large - please try a smaller file";
+        } else if (error.message.includes("type") || error.message.includes("format")) {
+          errorMessage = "Unsupported file type - please try a different file";
+        } else {
+          errorMessage = `Upload failed: ${error.message}`;
+        }
+      }
+
+      message.error(errorMessage);
     } finally {
       setUploading(false);
       setUploadProgress(0);

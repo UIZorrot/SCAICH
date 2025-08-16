@@ -131,7 +131,7 @@ const UploadFulltextModal = ({
         url: uploadResult.url,
         fileName: actualFile.name,
         fileSize: actualFile.size,
-        userId: user.user_id,
+        userId: user.id || user.user_id,
         paperTitle: paperInfo.title,
         paperAuthor: paperInfo.author,
         paperYear: paperInfo.year,
@@ -142,6 +142,31 @@ const UploadFulltextModal = ({
       if (!saveSuccess) {
         throw new Error('Failed to save fulltext information');
       }
+
+      // Also save to My Upload list for consistency
+      const uploadRecord = {
+        txId: uploadResult.txId,
+        url: uploadResult.url,
+        title: `${paperInfo.title} - Fulltext`,
+        description: `User uploaded fulltext for paper: ${paperInfo.title}`,
+        fileName: actualFile.name,
+        fileSize: actualFile.size,
+        uploadDate: new Date().toISOString(),
+        userId: user.id || user.user_id,
+        fileType: 'fulltext',
+        doi: paperInfo.doi,
+        paperTitle: paperInfo.title,
+        paperAuthor: paperInfo.author,
+        paperYear: paperInfo.year,
+        isPrivate: false,
+        uploadMode: 'remote-irys'
+      };
+
+      // Save to user's upload list (use consistent user ID field)
+      const userIdForStorage = user.id || user.user_id;
+      const existingUploads = JSON.parse(localStorage.getItem(`scai_uploads_${userIdForStorage}`) || '[]');
+      existingUploads.push(uploadRecord);
+      localStorage.setItem(`scai_uploads_${userIdForStorage}`, JSON.stringify(existingUploads));
 
       message.success('Fulltext uploaded successfully!');
 

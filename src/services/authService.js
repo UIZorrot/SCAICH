@@ -46,7 +46,7 @@ class AuthService {
 
       const encodedMessage = new TextEncoder().encode(message);
       const signature = await wallet.signMessage(encodedMessage);
-      
+
       return {
         signature: bs58.encode(signature.signature),
         publicKey: wallet.publicKey.toString()
@@ -80,7 +80,7 @@ class AuthService {
 
       // 连接钱包
       const walletAddress = await this.connectWallet();
-      
+
       // 检查余额
       const hasEnoughBalance = await this.checkWalletBalance(walletAddress);
       if (!hasEnoughBalance) {
@@ -89,7 +89,7 @@ class AuthService {
 
       // 生成签名消息
       const message = this.generateSignMessage(walletAddress);
-      
+
       // 请求签名
       const { signature } = await this.signMessage(message);
 
@@ -238,7 +238,7 @@ class AuthService {
     if (this.tokenCache && !this.isTokenExpired(this.tokenCache)) {
       return this.tokenCache;
     }
-    
+
     // 如果钱包已连接但没有token，尝试登录
     const connected = await this.isWalletConnected();
     if (connected) {
@@ -250,7 +250,7 @@ class AuthService {
         return 'wallet_connected';
       }
     }
-    
+
     throw new Error('Wallet not connected');
   }
 
@@ -430,16 +430,16 @@ export const useAuthService = () => {
       const connected = await authService.isWalletConnected();
       const address = await authService.getCurrentWalletAddress();
       const isAuth = !!connected;
-      
+
       console.log("[useAuthService] Wallet connected:", connected);
       console.log("[useAuthService] Wallet address:", address);
       console.log("[useAuthService] Setting isAuthenticated to:", isAuth);
-      
+
       setIsAuthenticated(isAuth);
       setWalletAddress(address);
-      
+
       console.log("✅ [useAuthService] State updated - isAuthenticated:", isAuth, "address:", address);
-      
+
       // 如果已认证，获取用户信息
       if (isAuth) {
         try {
@@ -465,7 +465,7 @@ export const useAuthService = () => {
 
   React.useEffect(() => {
     checkAuthStatus();
-    
+
     // 监听钱包连接状态变化
     const handleAccountChange = () => {
       checkAuthStatus();
@@ -539,12 +539,12 @@ export const useAuthService = () => {
   const hasPermission = async (permission) => {
     console.log(`🔐 [useAuthService] Checking permission: ${permission}`);
     console.log(`[useAuthService] isAuthenticated: ${isAuthenticated}`);
-    
+
     if (!isAuthenticated) {
       console.log(`[useAuthService] ❌ Permission denied - not authenticated`);
       return false;
     }
-    
+
     try {
       console.log(`[useAuthService] userCache exists: ${!!authService.userCache}`);
       // 如果没有用户缓存，先获取用户信息
@@ -552,7 +552,7 @@ export const useAuthService = () => {
         console.log(`[useAuthService] Getting user info for permission check...`);
         await authService.getUserInfo();
       }
-      
+
       const result = authService.checkPermission(permission);
       console.log(`[useAuthService] Permission ${permission} result: ${result}`);
       return result;
@@ -627,7 +627,7 @@ export const useAuthService = () => {
 export const apiCall = async (endpoint, options = {}) => {
   try {
     const token = await authService.getBackendToken();
-    
+
     const defaultOptions = {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -666,7 +666,7 @@ export const apiCall = async (endpoint, options = {}) => {
 export const uploadFile = async (endpoint, formData) => {
   try {
     const token = await authService.getBackendToken();
-    
+
     const response = await fetch(`${authService.baseURL}${endpoint}`, {
       method: 'POST',
       headers: {
